@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="Sated.Api/Sated.Api.csproj" />
   <Project Path="Sated.Calibration/Sated.Calibration.csproj" />
+  <Project Path="Sated.Parsing/Sated.Parsing.csproj" />
   <Project Path="Sated.Scoring/Sated.Scoring.csproj" />
 </Solution>
