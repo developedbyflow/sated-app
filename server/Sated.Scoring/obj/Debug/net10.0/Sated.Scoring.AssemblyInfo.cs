@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Sated.Scoring")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e98429d07612b083ba8cebb8e6cab072c0e53daa")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e8d063fcdcc6512a70a649461d34b208b59a7ed0")]
 [assembly: System.Reflection.AssemblyProductAttribute("Sated.Scoring")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Sated.Scoring")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

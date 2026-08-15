@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Sated.Calibration")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+06782925cf09572b814fcf49ba4b140e669a11b1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e8d063fcdcc6512a70a649461d34b208b59a7ed0")]
 [assembly: System.Reflection.AssemblyProductAttribute("Sated.Calibration")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Sated.Calibration")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

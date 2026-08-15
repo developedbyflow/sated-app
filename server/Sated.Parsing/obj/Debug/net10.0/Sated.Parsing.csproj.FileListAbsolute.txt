@@ -1,0 +1,12 @@
+/Users/ionescuflorin-eugen/Desktop/TechProducts/Sated/sated-app/server/Sated.Parsing/bin/Debug/net10.0/Sated.Parsing.deps.json
+/Users/ionescuflorin-eugen/Desktop/TechProducts/Sated/sated-app/server/Sated.Parsing/bin/Debug/net10.0/Sated.Parsing.dll
+/Users/ionescuflorin-eugen/Desktop/TechProducts/Sated/sated-app/server/Sated.Parsing/bin/Debug/net10.0/Sated.Parsing.pdb
+/Users/ionescuflorin-eugen/Desktop/TechProducts/Sated/sated-app/server/Sated.Parsing/obj/Debug/net10.0/Sated.Parsing.GeneratedMSBuildEditorConfig.editorconfig
+/Users/ionescuflorin-eugen/Desktop/TechProducts/Sated/sated-app/server/Sated.Parsing/obj/Debug/net10.0/Sated.Parsing.AssemblyInfoInputs.cache
+/Users/ionescuflorin-eugen/Desktop/TechProducts/Sated/sated-app/server/Sated.Parsing/obj/Debug/net10.0/Sated.Parsing.AssemblyInfo.cs
+/Users/ionescuflorin-eugen/Desktop/TechProducts/Sated/sated-app/server/Sated.Parsing/obj/Debug/net10.0/Sated.Parsing.csproj.CoreCompileInputs.cache
+/Users/ionescuflorin-eugen/Desktop/TechProducts/Sated/sated-app/server/Sated.Parsing/obj/Debug/net10.0/Sated.Parsing.sourcelink.json
+/Users/ionescuflorin-eugen/Desktop/TechProducts/Sated/sated-app/server/Sated.Parsing/obj/Debug/net10.0/Sated.Parsing.dll
+/Users/ionescuflorin-eugen/Desktop/TechProducts/Sated/sated-app/server/Sated.Parsing/obj/Debug/net10.0/refint/Sated.Parsing.dll
+/Users/ionescuflorin-eugen/Desktop/TechProducts/Sated/sated-app/server/Sated.Parsing/obj/Debug/net10.0/Sated.Parsing.pdb
+/Users/ionescuflorin-eugen/Desktop/TechProducts/Sated/sated-app/server/Sated.Parsing/obj/Debug/net10.0/ref/Sated.Parsing.dll

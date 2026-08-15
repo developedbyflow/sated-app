@@ -1,11 +1,30 @@
 {
   "version": 3,
   "targets": {
-    "net10.0": {}
+    "net10.0": {
+      "Sated.Scoring/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/Sated.Scoring.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Sated.Scoring.dll": {}
+        }
+      }
+    }
   },
-  "libraries": {},
+  "libraries": {
+    "Sated.Scoring/1.0.0": {
+      "type": "project",
+      "path": "../Sated.Scoring/Sated.Scoring.csproj",
+      "msbuildProject": "../Sated.Scoring/Sated.Scoring.csproj"
+    }
+  },
   "projectFileDependencyGroups": {
-    "net10.0": []
+    "net10.0": [
+      "Sated.Scoring >= 1.0.0"
+    ]
   },
   "packageFolders": {
     "/Users/ionescuflorin-eugen/.nuget/packages/": {}
@@ -31,7 +50,11 @@
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "/Users/ionescuflorin-eugen/Desktop/TechProducts/Sated/sated-app/server/Sated.Scoring/Sated.Scoring.csproj": {
+              "projectPath": "/Users/ionescuflorin-eugen/Desktop/TechProducts/Sated/sated-app/server/Sated.Scoring/Sated.Scoring.csproj"
+            }
+          }
         }
       },
       "warningProperties": {
