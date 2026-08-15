@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "UsdaCoverageQuery/1.0.0": {
+        "runtime": {
+          "UsdaCoverageQuery.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "UsdaCoverageQuery/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
