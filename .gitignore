@@ -3,3 +3,5 @@ CLAUDE.md
 .claude/settings.local.json
 handoff.md
 tools/UsdaCoverageQuery/data/
+bin/
+obj/
