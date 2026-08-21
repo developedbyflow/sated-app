@@ -14,7 +14,7 @@ var fnddsJson = File.ReadAllText("data/surveyDownload.json");
 var fnddsData = JsonSerializer.Deserialize<SurveyFoodsFile>(fnddsJson);
 
 var satietyNutrients = new HashSet<string> { "208", "203", "291", "204" };
-var densityNutrients = new HashSet<string> { "203", "291", "320", "401", "323", "301", "303", "304", "306", "606", "539", "307" };
+var densityNutrients = new HashSet<string> { "203", "291", "320", "401", "323", "301", "303", "304", "306", "606", "307", "645", "646" };
 
 var leucineNutrient = new HashSet<string> { "504" };
 var vitaminDNutrient = new HashSet<string> { "328" };
@@ -23,7 +23,7 @@ var thiamineNutrient = new HashSet<string> { "404" };
 var groups = new (string Name, HashSet<string> Codes)[]
 {
     ("Sațietate (4)", satietyNutrients),
-    ("Densitate (12)", densityNutrients),
+    ("Densitate (13)", densityNutrients),
     ("Leucină", leucineNutrient),
     ("Vitamina D", vitaminDNutrient),
     ("Tiamină", thiamineNutrient),
