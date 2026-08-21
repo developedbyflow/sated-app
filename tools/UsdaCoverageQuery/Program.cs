@@ -45,6 +45,7 @@ foreach (var source in sources)
     {
         Console.WriteLine($"{group.Name,-16} {PercentageWithNutrients(source.Foods, group.Codes):F1}%");
     }
+    Console.WriteLine($"{"Porții (gramaj)",-16} {PercentageWithPortions(source.Foods):F1}%");
 }
 
 static bool HasAllNutrients(FoodItem food, HashSet<string> requiredCodes)
@@ -65,6 +66,22 @@ static bool HasAllNutrients(FoodItem food, HashSet<string> requiredCodes)
 static double PercentageWithNutrients(List<FoodItem> foods, HashSet<string> requiredCodes)
 {
     double count = foods.Count(food => HasAllNutrients(food, requiredCodes));
+    return count / foods.Count * 100;
+}
+
+static bool HasUsablePortion(FoodItem food)
+{
+    if (food.FoodPortions is null)
+    {
+        return false;
+    }
+
+    return food.FoodPortions.Any(portion => portion.GramWeight > 0);
+}
+
+static double PercentageWithPortions(List<FoodItem> foods)
+{
+    double count = foods.Count(HasUsablePortion);
     return count / foods.Count * 100;
 }
 
