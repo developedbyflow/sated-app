@@ -5,7 +5,7 @@ public class SatietyScoreTests
     [Fact]
     public void Calculate_ChickenBreast_MatchesBriefValue()
     {
-        var chickenBreast = new NutrientProfile(
+        var chickenBreast = new SatietyInput(
             Calories: 165,
             Protein: 31,
             Fat: 3.6,
@@ -20,7 +20,7 @@ public class SatietyScoreTests
     [Fact]
     public void Calculate_Croissant_MatchesBriefValue()
     {
-        var croissant = new NutrientProfile(
+        var croissant = new SatietyInput(
             Calories: 406,
             Protein: 8.2,
             Fat: 21,
@@ -35,7 +35,7 @@ public class SatietyScoreTests
         [Fact]
     public void Calculate_ProteinAboveCap_ScoresSameAsAtCap()
     {
-        var atCap = new NutrientProfile(Calories: 200, Protein: 30, Fat: 5, Fiber: 5);
+        var atCap = new SatietyInput(Calories: 200, Protein: 30, Fat: 5, Fiber: 5);
         var aboveCap = atCap with { Protein = 80 };
 
         Assert.Equal(SatietyScore.Calculate(atCap), SatietyScore.Calculate(aboveCap));
@@ -44,7 +44,7 @@ public class SatietyScoreTests
     [Fact]
     public void Calculate_FiberAboveCap_ScoresSameAsAtCap()
     {
-        var atCap = new NutrientProfile(Calories: 250, Protein: 14, Fat: 3.5, Fiber: 12);
+        var atCap = new SatietyInput(Calories: 250, Protein: 14, Fat: 3.5, Fiber: 12);
         var aboveCap = atCap with { Fiber = 27 };
 
         Assert.Equal(SatietyScore.Calculate(atCap), SatietyScore.Calculate(aboveCap));
@@ -53,7 +53,7 @@ public class SatietyScoreTests
     [Fact]
     public void Calculate_FatAboveCap_ScoresSameAsAtCap()
     {
-        var atCap = new NutrientProfile(Calories: 600, Protein: 20, Fat: 50, Fiber: 7);
+        var atCap = new SatietyInput(Calories: 600, Protein: 20, Fat: 50, Fiber: 7);
         var aboveCap = atCap with { Fat = 80 };
 
         Assert.Equal(SatietyScore.Calculate(atCap), SatietyScore.Calculate(aboveCap));
@@ -62,7 +62,7 @@ public class SatietyScoreTests
     [Fact]
     public void Calculate_CaloriesBelowFloor_ScoresSameAsAtFloor()
     {
-        var atFloor = new NutrientProfile(Calories: 30, Protein: 2, Fat: 0.2, Fiber: 1);
+        var atFloor = new SatietyInput(Calories: 30, Protein: 2, Fat: 0.2, Fiber: 1);
         var belowFloor = atFloor with { Calories = 5 };
 
         Assert.Equal(SatietyScore.Calculate(atFloor), SatietyScore.Calculate(belowFloor));
@@ -71,7 +71,7 @@ public class SatietyScoreTests
         [Fact]
     public void Calculate_MaximalInput_ClampsToFive()
     {
-        var maximal = new NutrientProfile(Calories: 30, Protein: 30, Fat: 0, Fiber: 12);
+        var maximal = new SatietyInput(Calories: 30, Protein: 30, Fat: 0, Fiber: 12);
 
         Assert.Equal(5, SatietyScore.Calculate(maximal));
     }
@@ -79,7 +79,7 @@ public class SatietyScoreTests
     [Fact]
     public void Calculate_OliveOil_ClampsToZeroPointFive()
     {
-        var oliveOil = new NutrientProfile(Calories: 884, Protein: 0, Fat: 100, Fiber: 0);
+        var oliveOil = new SatietyInput(Calories: 884, Protein: 0, Fat: 100, Fiber: 0);
 
         Assert.Equal(0.5, SatietyScore.Calculate(oliveOil));
     }

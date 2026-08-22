@@ -15,7 +15,7 @@ public static class SatietyScore
     /// Calculates the Satiety Score from a food's per-100g nutrient values.
     /// </summary>
     /// <returns>A score between 0.5 and 5. Higher means more filling per calorie.</returns>
-    public static double Calculate(NutrientProfile profile)
+    public static double Calculate(SatietyInput profile)
     {
         var cal = Math.Max(CalorieFloor, profile.Calories);
         var pr = Math.Min(ProteinCap, profile.Protein);
