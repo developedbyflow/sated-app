@@ -14,12 +14,15 @@ public sealed class GradeThresholds
     // Recalibrated 2026-08-22 after Story 1.8 gave every food a protein component: the previous
     // cutoffs were measured when that axis was empty, and the A cutoff moved from 76.77 to 66.90.
     // See 04_delivery/5.letter-threshold-report.
+    // Recalibrated 2026-08-22 a second time, after the protein component moved to a 300 g
+    // reference meal: the cutoffs it replaced were measured while that component occupied the
+    // bottom fifth of the scale. See 04_delivery/7.protein-scale-report.
 
     public static GradeThresholds WeightLoss { get; } =
-        new(dStartsAt: 24.97, cStartsAt: 37.99, bStartsAt: 51.35, aStartsAt: 66.90);
+        new(dStartsAt: 31.81, cStartsAt: 45.55, bStartsAt: 58.64, aStartsAt: 71.77);
 
     public static GradeThresholds Fitness { get; } =
-        new(dStartsAt: 22.50, cStartsAt: 31.76, bStartsAt: 41.42, aStartsAt: 48.87);
+        new(dStartsAt: 32.80, cStartsAt: 46.89, bStartsAt: 57.18, aStartsAt: 71.50);
 
     private readonly double _dStartsAt;
     private readonly double _cStartsAt;

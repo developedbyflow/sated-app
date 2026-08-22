@@ -32,9 +32,13 @@ public sealed class GeneralStrategies
 
     // No scale here: this one is already 0-100, being a percentage of the leucine threshold
     // rather than a raw quantity that needs a catalogue to be read against.
+    // The portion is ignored on purpose: a grade is read against the reference meal, so 200 g
+    // of a food carries the same letter as 100 g of it. What a meal actually delivered is a
+    // fact for the day's total, not part of a food's letter.
     public ComponentValue? ProteinQuality(FoodInput food, double grams)
     {
-        var measured = ProteinQualityScore.Calculate(food.LeucinePer100g, grams);
+        var measured = ProteinQualityScore.Calculate(
+            food.LeucinePer100g, ProteinQualityScore.ReferenceMealGrams);
 
         if (measured is not null)
         {
@@ -49,6 +53,7 @@ public sealed class GeneralStrategies
         var estimatedLeucine =
             ProteinCompleteness.EstimateLeucinePer100g(food.Protein, food.Category);
 
-        return ComponentValue.Estimated(ProteinQualityScore.Calculate(estimatedLeucine, grams));
+        return ComponentValue.Estimated(ProteinQualityScore.Calculate(
+            estimatedLeucine, ProteinQualityScore.ReferenceMealGrams));
     }
 }

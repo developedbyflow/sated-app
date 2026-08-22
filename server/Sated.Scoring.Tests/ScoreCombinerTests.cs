@@ -122,17 +122,17 @@ public class ScoreCombinerTests
     [Fact]
     public void Combine_ChickenBreastUnderWeightLoss_WeightsAllThreeComponents()
     {
-        var score = Combiner().Combine(ChickenBreast with { LeucinePer100g = 2.3 }, 100, Lens.WeightLoss);
+        var score = Combiner().Combine(ChickenBreast with { LeucinePer100g = 0.5 }, 100, Lens.WeightLoss);
 
-        Assert.Equal(78.3886, score.Value, tolerance: 0.0001);
+        Assert.Equal(73.0553, score.Value, tolerance: 0.0001);
     }
 
     [Fact]
     public void Combine_ChickenBreastUnderFitness_ScoresDifferentlyFromWeightLoss()
     {
-        var score = Combiner().Combine(ChickenBreast with { LeucinePer100g = 2.3 }, 100, Lens.Fitness);
+        var score = Combiner().Combine(ChickenBreast with { LeucinePer100g = 0.5 }, 100, Lens.Fitness);
 
-        Assert.Equal(77.4049, score.Value, tolerance: 0.0001);
+        Assert.Equal(64.0715, score.Value, tolerance: 0.0001);
     }
 
     [Fact]
@@ -219,15 +219,13 @@ public class ScoreCombinerTests
     }
 
     [Fact]
-    public void Combine_LargerPortion_RaisesOnlyProteinQuality()
+    public void Combine_LargerPortion_ChangesNothing()
     {
         var combiner = Combiner();
+        var food = ChickenBreast with { LeucinePer100g = 0.5 };
 
-        var hundredGrams = combiner.Combine(ChickenBreast with { LeucinePer100g = 1 }, 100, Lens.Fitness);
-        var twoHundredGrams = combiner.Combine(ChickenBreast with { LeucinePer100g = 1 }, 200, Lens.Fitness);
-
-        Assert.Equal(hundredGrams.Satiety, twoHundredGrams.Satiety);
-        Assert.Equal(hundredGrams.Density, twoHundredGrams.Density);
-        Assert.True(twoHundredGrams.ProteinQuality!.Score > hundredGrams.ProteinQuality!.Score);
+        Assert.Equal(
+            combiner.Combine(food, 100, Lens.Fitness),
+            combiner.Combine(food, 200, Lens.Fitness));
     }
 }

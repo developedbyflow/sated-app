@@ -5,13 +5,13 @@ public class GradeThresholdsTests
     [Fact]
     public void GradeFor_ScoreExactlyAtACutoff_TakesTheHigherLetter()
     {
-        Assert.Equal(Grade.A, GradeThresholds.WeightLoss.GradeFor(66.90));
+        Assert.Equal(Grade.A, GradeThresholds.WeightLoss.GradeFor(71.77));
     }
 
     [Fact]
     public void GradeFor_ScoreJustBelowACutoff_TakesTheLowerLetter()
     {
-        Assert.Equal(Grade.B, GradeThresholds.WeightLoss.GradeFor(66.89));
+        Assert.Equal(Grade.B, GradeThresholds.WeightLoss.GradeFor(71.76));
     }
 
     [Fact]
@@ -33,14 +33,14 @@ public class GradeThresholdsTests
 
         Assert.Equal(
             new[] { Grade.E, Grade.D, Grade.C, Grade.B, Grade.A },
-            new[] { 10.0, 30.0, 45.0, 60.0, 90.0 }.Select(thresholds.GradeFor));
+            new[] { 10.0, 40.0, 50.0, 65.0, 90.0 }.Select(thresholds.GradeFor));
     }
 
     [Fact]
     public void For_TheTwoCalibratedLenses_CarryDifferentCutoffs()
     {
-        Assert.Equal(Grade.E, GradeThresholds.For(Lens.WeightLoss).GradeFor(23.5));
-        Assert.Equal(Grade.D, GradeThresholds.For(Lens.Fitness).GradeFor(23.5));
+        Assert.Equal(Grade.D, GradeThresholds.For(Lens.WeightLoss).GradeFor(32.0));
+        Assert.Equal(Grade.E, GradeThresholds.For(Lens.Fitness).GradeFor(32.0));
     }
 
     [Fact]
