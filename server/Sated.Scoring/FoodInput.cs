@@ -8,6 +8,12 @@ namespace Sated.Scoring;
 /// The catalogue's own category name, verbatim. It selects the category rule (FR-6), so a
 /// renamed or normalised category silently changes which rule applies.
 /// </param>
+/// <param name="LeucineIsEstimated">
+/// Where <see cref="LeucinePer100g"/> came from, not a second value for it. A catalogue food
+/// leaves leucine null and the engine estimates it from the category; an aggregate has to
+/// resolve leucine per ingredient before the categories are gone, so it arrives already filled
+/// in and would otherwise read as measured. SM-C4 counts that as a failure of the product.
+/// </param>
 public record FoodInput(
     string Category,
     double Calories,
@@ -23,7 +29,8 @@ public record FoodInput(
     double Potassium,
     double SaturatedFat,
     double Sodium,
-    double? LeucinePer100g = null
+    double? LeucinePer100g = null,
+    bool LeucineIsEstimated = false
 )
 {
     // The three scores read overlapping nutrients, and used to be handed their own input record

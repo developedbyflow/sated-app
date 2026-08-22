@@ -42,7 +42,9 @@ public sealed class GeneralStrategies
 
         if (measured is not null)
         {
-            return ComponentValue.Measured(measured.Value);
+            return food.LeucineIsEstimated
+                ? ComponentValue.Estimated(measured.Value)
+                : ComponentValue.Measured(measured.Value);
         }
 
         // FNDDS carries no amino acid data at all, so this is the path the entire catalogue

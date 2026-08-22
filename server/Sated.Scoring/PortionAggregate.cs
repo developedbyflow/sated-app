@@ -40,6 +40,18 @@ public static class PortionAggregate
         double Per100g(Func<FoodInput, double> nutrient) =>
             portions.Sum(portion => nutrient(portion.Food) * portion.Grams) / totalGrams;
 
+        // Leucine is resolved before the nutrients are merged, never after. The animal/plant
+        // share is a property of the ingredient's category, and the aggregate has none — reading
+        // it off the mixed profile would hand a plate of rice and beans the animal share.
+        var leucine = portions.Sum(portion =>
+            (portion.Food.LeucinePer100g ?? ProteinCompleteness.EstimateLeucinePer100g(
+                portion.Food.Protein, portion.Food.Category)) * portion.Grams) / totalGrams;
+
+        // One guessed ingredient makes the whole plate a guess. A Recipe nested in a Meal
+        // carries its own flag, so the answer stays right however deep the portions go.
+        var estimated = portions.Any(portion =>
+            portion.Food.LeucinePer100g is null || portion.Food.LeucineIsEstimated);
+
         return new FoodInput(
             Category: MixedCategory,
             Calories: Per100g(food => food.Calories),
@@ -54,6 +66,8 @@ public static class PortionAggregate
             Magnesium: Per100g(food => food.Magnesium),
             Potassium: Per100g(food => food.Potassium),
             SaturatedFat: Per100g(food => food.SaturatedFat),
-            Sodium: Per100g(food => food.Sodium));
+            Sodium: Per100g(food => food.Sodium),
+            LeucinePer100g: leucine,
+            LeucineIsEstimated: estimated);
     }
 }
