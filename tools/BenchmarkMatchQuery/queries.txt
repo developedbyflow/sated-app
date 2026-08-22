@@ -1,4 +1,10 @@
-# Scratch input for search mode: label|term;term — every term must appear in the FNDDS
-# description, or in its WWEIA category when prefixed with cat:. Shortest matches first.
-# --validate re-checks the bound ids · --extract rewrites benchmark-nutrients.csv
-pui NS|Chicken breast, NS as to cooking method
+03 cod|cod;no added fat
+04 somon|salmon;no added fat
+16 broccoli|Broccoli, cooked;no added fat
+21 conopida|Cauliflower;no added fat
+15 mazare|Green peas;no added fat
+C5 cartof|Potato, boiled;no added fat
+05 creveti|Shrimp;no added fat
+06 curcan|Turkey;no added fat
+07 ou|Egg;no added fat
+28 ovaz|Oatmeal;no added fat

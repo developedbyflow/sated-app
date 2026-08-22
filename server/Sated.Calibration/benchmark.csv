@@ -4,8 +4,8 @@
 Id,RequiredGrade,FdcId,Description,Deviation
 1,A/B,2705954,"Chicken breast, NS as to cooking method, skin not eaten",
 2,A,2706311,"Fish, tuna, canned","FNDDS does not say water or oil pack; 85 kcal and 0.9 g fat read as water"
-3,A,2706241,"Fish, cod, baked or broiled",
-4,A/B,2706286,"Fish, salmon, baked or broiled",
+3,A,2706241,"Fish, cod, baked or broiled","FNDDS bakes it with fat: 5.0 g against about 0.9 g for plain cod. No fat-free baked variant exists."
+4,A/B,2706286,"Fish, salmon, baked or broiled","18.4 g fat against about 13 g for plain salmon; the rest is the catalogue cooking it as eaten."
 5,A,2706363,"Shrimp, steamed or boiled",
 6,A/B,2706109,"Turkey, light meat, roasted, skin not eaten",
 7,B,2707154,"Egg, whole, boiled or poached",
@@ -16,13 +16,13 @@ Id,RequiredGrade,FdcId,Description,Deviation
 12,A,2707425,"Lentils, from dried, no added fat",
 13,A,2707361,"Black beans, from dried, no added fat",
 14,A/B,2707416,"Chickpeas, from dried, no added fat",
-15,A,2709962,"Green peas, NS as to form, cooked",
+15,A,2709959,"Green peas, fresh, cooked, no added fat",
 16,A,2710792,"Broccoli, cooked, as ingredient","FNDDS has no plain boiled broccoli; the alternatives are restaurant-cooked with added fat"
 17,A,2709614,"Spinach, raw",
 18,A,2709660,"Carrots, raw",
 19,A,2709801,"Peppers, sweet, red, raw",
 20,A,2709719,"Tomatoes, raw",
-21,A,2710801,"Cauliflower, cooked, as ingredient",
+21,A,2709897,"Cauliflower, fresh, cooked, no added fat",
 22,A,2709773,"Cabbage, green, raw",
 23,A,2709215,"Apple, raw",
 24,A,2709171,"Orange, raw",
@@ -66,7 +66,7 @@ C1,B/C,2710186,"Olive oil",
 C2,B/C,2707485,"Almonds, NFS",
 C3,B/C,2707531,"Walnuts, excluding honey roasted",
 C4,B,2709223,"Avocado, raw",
-C5,A,2709385,"Potato, boiled, NFS",
+C5,A,2709395,"Potato, boiled, from fresh,  peel eaten, no added fat",
 C6,A/B,2706286,"Fish, salmon, baked or broiled","Same entry as 4; the set lists it twice, once as a food and once as a trap"
 C7,B,2708219,"Popcorn, air-popped, no butter added",
 C8,C/D,2705709,"Cheese, Cheddar",
