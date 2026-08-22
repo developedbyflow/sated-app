@@ -21,6 +21,15 @@ public sealed record Lens
 
     public Lens(string name, double satiety, double density, double proteinQuality)
     {
+        // Strictly positive, not merely non-negative. Satiety is the only component that can
+        // never be missing, so a zero weight on it plus two unavailable components would leave
+        // the combiner dividing by a total weight of zero — a silent NaN instead of a score.
+        // A component a lens does not want is not a zero weight either: it would still be
+        // reported in the breakdown as if it had counted.
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(satiety);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(density);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(proteinQuality);
+
         var total = satiety + density + proteinQuality;
 
         // A tenth of a point of slack, so three-way splits written as 33.3/33.3/33.4 load.
