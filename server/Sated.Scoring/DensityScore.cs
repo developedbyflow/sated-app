@@ -17,7 +17,7 @@ public static class DensityScore
     private const double MagnesiumDv = 420;      // mg
     private const double PotassiumDv = 4700;     // mg
     private const double SaturatedFatDv = 20;    // g
-    private const double SodiumDv = 2300;        // mg
+    internal const double SodiumDv = 2300;       // mg — shared with FatQuality
 
     /// <summary>
     /// Calculates the Density Score from a food's per-100g nutrient values.

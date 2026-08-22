@@ -18,7 +18,8 @@ var satietyScale = new PercentileScale(
 var densityScale = new PercentileScale(
     [.. breakpoints.Select(row => double.Parse(row[2], CultureInfo.InvariantCulture))]);
 
-var combiner = new ScoreCombiner(satietyScale, densityScale);
+var combiner = new ScoreCombiner(
+    new GeneralStrategies(satietyScale, densityScale), CategoryRules.Standard);
 
 var json = File.ReadAllText("../UsdaCoverageQuery/data/surveyDownload.json");
 var foods = JsonSerializer.Deserialize<SurveyFoodsFile>(json)!.Foods;
@@ -105,7 +106,7 @@ foreach (var lens in lenses)
 Console.WriteLine("Prezis: Weight Loss mai lat decât Fitness.");
 
 Section("P5 / P6 — alimentele numite");
-foreach (var needle in new[] { "Chicken breast", "Olive oil", "Butter, stick", "Spinach, raw", "Watermelon", "Wheat bran" })
+foreach (var needle in new[] { "Chicken breast", "Olive oil", "Butter, stick", "Margarine, NFS", "Mayonnaise, regular", "Walnuts", "Cheese, Cheddar", "Avocado, raw", "Spinach, raw", "Watermelon", "Wheat bran" })
 {
     var match = scored.FirstOrDefault(food =>
         food.Description.StartsWith(needle, StringComparison.OrdinalIgnoreCase));

@@ -25,6 +25,19 @@ public sealed class CategoryRules
     /// <summary>No rules at all: every food takes the general formula.</summary>
     public static CategoryRules None { get; } = new([]);
 
+    // The four WWEIA categories that are pure fat. "Salad dressings and vegetable oils" also
+    // holds dressings, which the rule treats the same way and which is correct: a dressing is
+    // oil plus sodium, and both are what the strategy reads.
+    private static readonly string[] FatCategories =
+        ["Salad dressings and vegetable oils", "Butter and animal fats", "Margarine", "Mayonnaise"];
+
+    /// <summary>The rules this catalogue needs today.</summary>
+    public static CategoryRules Standard { get; } = new(
+        from category in FatCategories
+        from lens in new[] { Lens.WeightLoss, Lens.Fitness }
+        select new CategoryRule(
+            category, lens.Name, ScoreComponent.Density, FatQuality.UnsaturatedShare));
+
     private readonly Dictionary<(string Category, string Lens, ScoreComponent Component),
         ComponentStrategy> _byKey = [];
 
