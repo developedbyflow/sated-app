@@ -39,7 +39,10 @@ var benchmark = ReadCsv("benchmark.csv")
 
 Console.WriteLine($"Set etalon: {benchmark.Length} rânduri · {nutrients.Count} alimente distincte");
 
-foreach (var lens in new[] { Lens.WeightLoss, Lens.Fitness })
+var lenses = new[] { Lens.WeightLoss, Lens.Fitness };
+var grades = new Dictionary<(string Lens, string Id), (double Score, Grade Grade)>();
+
+foreach (var lens in lenses)
 {
     var thresholds = GradeThresholds.For(lens);
 
@@ -52,13 +55,106 @@ foreach (var lens in new[] { Lens.WeightLoss, Lens.Fitness })
     {
         var input = nutrients[food.FdcId];
         var score = combiner.Combine(input, lens);
+        var grade = thresholds.GradeFor(score.Value);
+
+        grades[(lens.Name, food.Id)] = (score.Value, grade);
 
         Console.WriteLine($"{food.Id,-4} {Truncate(food.Description, 34),-34} " +
-            $"{food.RequiredGrade,6} {score.Value,6:F1} {thresholds.GradeFor(score.Value),4} " +
+            $"{food.RequiredGrade,6} {score.Value,6:F1} {grade,4} " +
             $"{score.Satiety.Score,6:F1} {Cell(score.Density),6} {Cell(score.ProteinQuality),6}" +
             $"  {Signs(food, input, score, lens)}");
     }
 }
+
+var pairs = ReadCsv("benchmark-pairs.csv");
+var top = benchmark.Where(food => Numbered(food.Id, 1, 30)).ToArray();
+var bottom = benchmark.Where(food => Numbered(food.Id, 31, 60)).ToArray();
+var traps = benchmark.Where(food => food.Id.StartsWith('C')).ToArray();
+var failed = 0;
+
+foreach (var lens in lenses)
+{
+    Console.WriteLine();
+    Console.WriteLine($"── Verdict · {lens.Name} ".PadRight(100, '─'));
+
+    // P35: the 30/30/8 criteria are asked of Weight Loss only — it is the one lens whose required
+    // grades were written blind. The ordering pairs are asked of both: they do not depend on the
+    // goal, so they are what stands in for a second column of 60 letters.
+    if (lens.Name == Lens.WeightLoss.Name)
+    {
+        failed += Tally(lens, "cele 30 de sus", top, 27, ["1", "8", "30"], [Grade.A, Grade.B]);
+        failed += Tally(lens, "cele 30 de jos", bottom, 27, ["40"], [Grade.D, Grade.E]);
+        failed += Tally(lens, "capcanele", traps, 6, [], []);
+    }
+
+    failed += TallyPairs(lens);
+}
+
+Console.WriteLine();
+Console.WriteLine(failed == 0
+    ? "G0: TRECE"
+    : $"G0: PICĂ — {failed} {(failed == 1 ? "criteriu" : "criterii")} nesatisfăcut{(failed == 1 ? "" : "e")}");
+
+// The process exit code, read straight by GitHub Actions in step 4: a failed gate has to stop
+// the push, not just print a sad table nobody reads.
+return failed == 0 ? 0 : 1;
+
+// Not static: both read `grades`, which the report filled in. Passing 69 scores through a
+// parameter to save a keyword would make the call sites unreadable for nothing.
+int Tally(Lens lens, string label, BenchmarkFood[] group, int minimum, string[] mustHold, Grade[] band)
+{
+    var missed = group
+        .Where(food => !Accepted(food.RequiredGrade, band)
+            .Contains(grades[(lens.Name, food.Id)].Grade))
+        .ToArray();
+
+    var blocking = missed.Where(food => mustHold.Contains(food.Id)).ToArray();
+    var passed = group.Length - missed.Length;
+    var ok = passed >= minimum && blocking.Length == 0;
+
+    Console.WriteLine(
+        $"{label,-16} {passed,2}/{group.Length} · prag {minimum} · {(ok ? "TRECE" : "PICĂ")}");
+
+    foreach (var food in missed)
+    {
+        var (score, grade) = grades[(lens.Name, food.Id)];
+
+        Console.WriteLine($"   {food.Id,-4} {Truncate(food.Description, 32),-34} " +
+            $"cerut {food.RequiredGrade,-4} dat {grade} ({score,5:F1})" +
+            $"{(mustHold.Contains(food.Id) ? "   ← NU ARE VOIE SĂ PICE" : "")}");
+    }
+
+    return ok ? 0 : 1;
+}
+
+int TallyPairs(Lens lens)
+{
+    var broken = pairs
+        .Where(pair => grades[(lens.Name, pair[0])].Score <= grades[(lens.Name, pair[1])].Score)
+        .ToArray();
+
+    Console.WriteLine($"{"perechile",-16} {pairs.Length - broken.Length,2}/{pairs.Length} · " +
+        $"fără toleranță · {(broken.Length == 0 ? "TRECE" : "PICĂ")}");
+
+    foreach (var pair in broken)
+    {
+        Console.WriteLine($"   {pair[0]} ({grades[(lens.Name, pair[0])].Score:F1}) nu bate " +
+            $"{pair[1]} ({grades[(lens.Name, pair[1])].Score:F1}) — {pair[2]}");
+    }
+
+    return broken.Length == 0 ? 0 : 1;
+}
+
+// The gate is a band, not the exact letter: the set asks the top 30 to come out A or B, so a food
+// required A that lands B has not failed it. Where the required grade widens the band — #8, after
+// FNDDS forced an 80% lean substitution — the wider one wins. Traps pass no band and are judged
+// on their own acceptable grade alone.
+static HashSet<Grade> Accepted(string required, Grade[] band) =>
+    [.. band,
+       .. required.Split('/', StringSplitOptions.RemoveEmptyEntries).Select(Enum.Parse<Grade>)];
+
+static bool Numbered(string id, int from, int to) =>
+    int.TryParse(id, out var number) && number >= from && number <= to;
 
 // Everything the report has to show beyond the grade itself: whether a component was missing,
 // whether one was guessed, which category rule fired, and whether FNDDS forced a substitution.
