@@ -24,11 +24,20 @@ public static class DensityScore
     /// </summary>
     /// <returns>
     /// A raw NRF9.2 score per 100 kcal. Higher means more nutrients per calorie.
+    /// Null when the food has no calories: "nutrients per calorie" has no answer there,
+    /// and the missing component carries on to the partial-grade path of FR-7.
     /// Not normalised — the 0-100 range comes later, from measured percentiles.
     /// </returns>
-    public static double Calculate(DensityInput food)
+    public static double? Calculate(DensityInput food)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(food.Calories);
+        ArgumentOutOfRangeException.ThrowIfNegative(food.Calories);
+
+        // FNDDS reports energy in whole kcal — all 5,431 values, none between 0 and 1 —
+        // so this equality is exact, not the usual floating-point trap.
+        if (food.Calories == 0)
+        {
+            return null;
+        }
 
         var scaleTo100Kcal = 100 / food.Calories;
 

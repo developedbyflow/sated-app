@@ -14,7 +14,7 @@ public class DensityScoreTests
 
         var score = DensityScore.Calculate(oliveOil);
 
-        Assert.Equal(7.2, score, tolerance: 0.1);
+        Assert.Equal(7.2, score!.Value, tolerance: 0.1);
     }
 
     [Fact]
@@ -29,7 +29,7 @@ public class DensityScoreTests
 
         var score = DensityScore.Calculate(cheddar);
 
-        Assert.Equal(6.3, score, tolerance: 0.1);
+        Assert.Equal(6.3, score!.Value, tolerance: 0.1);
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public class DensityScoreTests
 
         var score = DensityScore.Calculate(almonds);
 
-        Assert.Equal(55.1, score, tolerance: 0.1);
+        Assert.Equal(55.1, score!.Value, tolerance: 0.1);
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class DensityScoreTests
     }
 
     [Fact]
-    public void Calculate_ZeroCalorieFood_Throws()
+    public void Calculate_ZeroCalorieFood_ReturnsNull()
     {
         var blackCoffee = new DensityInput(
             Calories: 0, Protein: 0.1, Fiber: 0,
@@ -104,6 +104,19 @@ public class DensityScoreTests
             SaturatedFat: 0.002, Sodium: 2
         );
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => DensityScore.Calculate(blackCoffee));
+        Assert.Null(DensityScore.Calculate(blackCoffee));
+    }
+
+    [Fact]
+    public void Calculate_NegativeCalories_Throws()
+    {
+        var corrupt = new DensityInput(
+            Calories: -100, Protein: 0, Fiber: 0,
+            VitaminA: 0, VitaminC: 0, VitaminE: 0,
+            Calcium: 0, Iron: 0, Magnesium: 0, Potassium: 0,
+            SaturatedFat: 0, Sodium: 0
+        );
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => DensityScore.Calculate(corrupt));
     }
 }

@@ -53,7 +53,7 @@ foreach (var food in foods)
         Magnesium: amounts["304"],
         Potassium: amounts["306"],
         SaturatedFat: amounts["606"],
-        Sodium: amounts["307"]));
+        Sodium: amounts["307"]))!.Value;   // never null: zero-calorie foods are skipped above
 
     scored.Add(new Scored(food.Description, satiety, density, amounts));
 }
