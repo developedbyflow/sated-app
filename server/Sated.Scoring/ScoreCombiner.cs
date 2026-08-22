@@ -5,31 +5,19 @@ namespace Sated.Scoring;
 /// </summary>
 public sealed class ScoreCombiner
 {
-    private readonly ComponentStrategy _satiety;
-    private readonly ComponentStrategy _density;
-    private readonly ComponentStrategy _proteinQuality;
+    private readonly GeneralStrategies _general;
+    private readonly CategoryRules _rules;
 
-    /// <summary>The engine with the general formula for all three components.</summary>
+    /// <summary>The engine with the general formula everywhere and no category rules.</summary>
     public ScoreCombiner(PercentileScale satietyScale, PercentileScale densityScale)
+        : this(new GeneralStrategies(satietyScale, densityScale), CategoryRules.None)
     {
-        // The two scales were measured on one catalogue and belong to it: changing the food
-        // source invalidates them. See 04_delivery/4.grade-distribution-report.
-        var general = new GeneralStrategies(satietyScale, densityScale);
-
-        _satiety = general.Satiety;
-        _density = general.Density;
-        _proteinQuality = general.ProteinQuality;
     }
 
-    /// <summary>The engine with one or more components computed some other way (FR-6).</summary>
-    public ScoreCombiner(
-        ComponentStrategy satiety,
-        ComponentStrategy density,
-        ComponentStrategy proteinQuality)
+    public ScoreCombiner(GeneralStrategies general, CategoryRules rules)
     {
-        _satiety = satiety;
-        _density = density;
-        _proteinQuality = proteinQuality;
+        _general = general;
+        _rules = rules;
     }
 
     /// <param name="grams">
@@ -42,12 +30,14 @@ public sealed class ScoreCombiner
         // Every food that can be graded at all carries the four nutrients satiety needs, so this
         // is the one component guaranteed to be there. A strategy that returns nothing here would
         // leave a lens with no weight to divide by, and the score would come out NaN in silence.
-        var satiety = _satiety(food, grams)
+        var satiety = Component(ScoreComponent.Satiety, _general.Satiety, food, grams, lens)
             ?? throw new InvalidOperationException(
                 $"The satiety strategy returned nothing for a food in {food.Category}.");
 
-        var density = _density(food, grams);
-        var proteinQuality = _proteinQuality(food, grams);
+        var density = Component(ScoreComponent.Density, _general.Density, food, grams, lens);
+
+        var proteinQuality = Component(
+            ScoreComponent.ProteinQuality, _general.ProteinQuality, food, grams, lens);
 
         // A missing component drops out of both sums. Dividing by the weight actually used,
         // instead of by 100, is the redistribution FR-7 asks for: with satiety 50 and
@@ -68,5 +58,17 @@ public sealed class ScoreCombiner
         }
 
         return new CombinedScore(weighted / usedWeight, satiety, density, proteinQuality);
+    }
+
+    private double? Component(
+        ScoreComponent component,
+        ComponentStrategy general,
+        FoodInput food,
+        double grams,
+        Lens lens)
+    {
+        var strategy = _rules.Find(food.Category, lens, component) ?? general;
+
+        return strategy(food, grams);
     }
 }

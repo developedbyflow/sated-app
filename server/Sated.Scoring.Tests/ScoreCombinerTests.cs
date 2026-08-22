@@ -26,23 +26,26 @@ public class ScoreCombinerTests
     private static GeneralStrategies General() =>
         new(new PercentileScale(MeasuredSatiety), new PercentileScale(MeasuredDensity));
 
+    private static ScoreCombiner CombinerWith(params CategoryRule[] rules) =>
+        new(General(), new CategoryRules(rules));
+
     [Fact]
-    public void Combine_SatietyStrategyThatReturnsNothing_Throws()
+    public void Combine_RuleThatLeavesSatietyEmpty_Throws()
     {
-        var general = General();
-        var combiner = new ScoreCombiner(
-            (food, grams) => null, general.Density, general.ProteinQuality);
+        var combiner = CombinerWith(new CategoryRule(
+            ChickenBreast.Category, Lens.WeightLoss.Name, ScoreComponent.Satiety,
+            (food, grams) => null));
 
         Assert.Throws<InvalidOperationException>(
             () => combiner.Combine(ChickenBreast, 100, Lens.WeightLoss));
     }
 
     [Fact]
-    public void Combine_ReplacedProteinStrategy_FillsAComponentTheGeneralFormulaLeavesEmpty()
+    public void Combine_RuleOnProtein_FillsAComponentTheGeneralFormulaLeavesEmpty()
     {
-        var general = General();
-        var combiner = new ScoreCombiner(
-            general.Satiety, general.Density, (food, grams) => 80);
+        var combiner = CombinerWith(new CategoryRule(
+            ChickenBreast.Category, Lens.WeightLoss.Name, ScoreComponent.ProteinQuality,
+            (food, grams) => 80));
 
         var score = combiner.Combine(ChickenBreast, 100, Lens.WeightLoss);
 
@@ -51,14 +54,45 @@ public class ScoreCombinerTests
     }
 
     [Fact]
-    public void Combine_ReplacedDensityStrategy_OutweighsTheGeneralFormula()
+    public void Combine_RuleOnDensity_OutweighsTheGeneralFormula()
     {
-        var general = General();
-        var replaced = new ScoreCombiner(general.Satiety, (food, grams) => 0, general.ProteinQuality);
+        var combiner = CombinerWith(new CategoryRule(
+            ChickenBreast.Category, Lens.WeightLoss.Name, ScoreComponent.Density,
+            (food, grams) => 0));
 
         Assert.True(
-            replaced.Combine(ChickenBreast, 100, Lens.WeightLoss).Value <
+            combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).Value <
             Combiner().Combine(ChickenBreast, 100, Lens.WeightLoss).Value);
+    }
+
+    [Fact]
+    public void Combine_RuleForAnotherLens_DoesNotApply()
+    {
+        var combiner = CombinerWith(new CategoryRule(
+            ChickenBreast.Category, Lens.Fitness.Name, ScoreComponent.ProteinQuality,
+            (food, grams) => 80));
+
+        Assert.Null(combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).ProteinQuality);
+    }
+
+    [Fact]
+    public void Combine_RuleForAnotherCategory_DoesNotApply()
+    {
+        var combiner = CombinerWith(new CategoryRule(
+            "Butter and animal fats", Lens.WeightLoss.Name, ScoreComponent.ProteinQuality,
+            (food, grams) => 80));
+
+        Assert.Null(combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).ProteinQuality);
+    }
+
+    [Fact]
+    public void Combine_RuleWrittenInAnotherCasing_StillApplies()
+    {
+        var combiner = CombinerWith(new CategoryRule(
+            ChickenBreast.Category.ToUpperInvariant(), Lens.WeightLoss.Name,
+            ScoreComponent.ProteinQuality, (food, grams) => 80));
+
+        Assert.Equal(80, combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).ProteinQuality);
     }
 
     [Fact]
