@@ -1,0 +1,26 @@
+# Measured satiety index values from Holt et al. 1995, as recorded in the Ancora column of
+# 01_analysis/3.set-etalon-60-alimente. White bread is the reference at 100.
+# These are evidence, not targets: they say what satiety IS, not what a grade must be.
+# 2 and 3 are both the study's single "fish" value; the set writes it as "peste 225".
+Id,Holt
+2,225
+3,225
+7,150
+8,176
+12,133
+23,197
+24,202
+27,118
+28,209
+29,132
+30,157
+31,47
+32,68
+33,91
+38,65
+39,114
+43,100
+56,127
+C5,323
+C7,154
+C8,146
