@@ -24,17 +24,12 @@ public sealed class ScoreCombiner
     /// components are per 100 g and per 100 kcal by construction.
     /// </param>
     /// <returns>A score between 0 and 100 under this lens, plus the components behind it.</returns>
-    public CombinedScore Combine(
-        SatietyInput satietyInput,
-        DensityInput densityInput,
-        double? leucinePer100g,
-        double grams,
-        Lens lens)
+    public CombinedScore Combine(FoodInput food, double grams, Lens lens)
     {
-        var satiety = _satietyScale.Normalize(SatietyScore.Calculate(satietyInput));
+        var satiety = _satietyScale.Normalize(SatietyScore.Calculate(food.ForSatiety()));
 
         double? density = null;
-        var rawDensity = DensityScore.Calculate(densityInput);
+        var rawDensity = DensityScore.Calculate(food.ForDensity());
 
         if (rawDensity is not null)
         {
@@ -43,7 +38,7 @@ public sealed class ScoreCombiner
 
         // No scale here: this one is already 0-100, being a percentage of the leucine
         // threshold rather than a raw quantity that needs a catalogue to be read against.
-        var proteinQuality = ProteinQualityScore.Calculate(leucinePer100g, grams);
+        var proteinQuality = ProteinQualityScore.Calculate(food.LeucinePer100g, grams);
 
         // A missing component drops out of both sums. Dividing by the weight actually used,
         // instead of by 100, is the redistribution FR-7 asks for: with satiety 50 and

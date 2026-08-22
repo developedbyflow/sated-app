@@ -37,15 +37,11 @@ foreach (var food in foods)
         continue;
     }
 
-    var satietyInput = new SatietyInput(
+    var input = new FoodInput(
+        Category: food.WweiaFoodCategory?.Description ?? "Not included in a food category",
         Calories: amounts["208"],
         Protein: amounts["203"],
         Fat: amounts["204"],
-        Fiber: amounts["291"]);
-
-    var densityInput = new DensityInput(
-        Calories: amounts["208"],
-        Protein: amounts["203"],
         Fiber: amounts["291"],
         VitaminA: amounts["320"],
         VitaminC: amounts["401"],
@@ -61,7 +57,7 @@ foreach (var food in foods)
     // score below is a Partial Grade. That is the measurement, not a flaw in it.
     var byLens = lenses.ToDictionary(
         lens => lens.Name,
-        lens => combiner.Combine(satietyInput, densityInput, null, 100, lens));
+        lens => combiner.Combine(input, 100, lens));
 
     scored.Add(new Scored(food.Description, byLens));
 }
@@ -180,10 +176,15 @@ public record FoodNutrient(
     [property: JsonPropertyName("amount")] double? Amount
 );
 
+public record WweiaCategory(
+    [property: JsonPropertyName("wweiaFoodCategoryDescription")] string Description
+);
+
 public record FoodItem(
     [property: JsonPropertyName("fdcId")] int FdcId,
     [property: JsonPropertyName("description")] string Description,
-    [property: JsonPropertyName("foodNutrients")] List<FoodNutrient> FoodNutrients
+    [property: JsonPropertyName("foodNutrients")] List<FoodNutrient> FoodNutrients,
+    [property: JsonPropertyName("wweiaFoodCategory")] WweiaCategory? WweiaFoodCategory
 );
 
 public record SurveyFoodsFile([property: JsonPropertyName("SurveyFoods")] List<FoodItem> Foods);

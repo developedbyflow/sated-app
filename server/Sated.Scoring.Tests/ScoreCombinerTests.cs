@@ -10,18 +10,14 @@ public class ScoreCombinerTests
     private static readonly double[] MeasuredDensity =
         [-884.5460, 8.7918, 18.8242, 37.0955, 535.6610];
 
-    private static readonly SatietyInput ChickenSatiety =
-        new(Calories: 165, Protein: 31, Fat: 3.6, Fiber: 0);
-
-    private static readonly DensityInput ChickenDensity = new(
-        Calories: 165, Protein: 31, Fiber: 0, VitaminA: 9, VitaminC: 0, VitaminE: 0.27,
+    private static readonly FoodInput ChickenBreast = new(
+        Category: "Chicken, whole pieces",
+        Calories: 165, Protein: 31, Fat: 3.6, Fiber: 0, VitaminA: 9, VitaminC: 0, VitaminE: 0.27,
         Calcium: 15, Iron: 1, Magnesium: 29, Potassium: 256, SaturatedFat: 1, Sodium: 74);
 
-    private static readonly SatietyInput SparklingWaterSatiety =
-        new(Calories: 0, Protein: 0, Fat: 0, Fiber: 0);
-
-    private static readonly DensityInput SparklingWaterDensity = new(
-        Calories: 0, Protein: 0, Fiber: 0, VitaminA: 0, VitaminC: 0, VitaminE: 0,
+    private static readonly FoodInput SparklingWater = new(
+        Category: "Enhanced water",
+        Calories: 0, Protein: 0, Fat: 0, Fiber: 0, VitaminA: 0, VitaminC: 0, VitaminE: 0,
         Calcium: 0, Iron: 0, Magnesium: 0, Potassium: 0, SaturatedFat: 0, Sodium: 4);
 
     private static ScoreCombiner Combiner() =>
@@ -30,7 +26,7 @@ public class ScoreCombinerTests
     [Fact]
     public void Combine_ChickenBreastUnderWeightLoss_WeightsAllThreeComponents()
     {
-        var score = Combiner().Combine(ChickenSatiety, ChickenDensity, 2.3, 100, Lens.WeightLoss);
+        var score = Combiner().Combine(ChickenBreast with { LeucinePer100g = 2.3 }, 100, Lens.WeightLoss);
 
         Assert.Equal(78.3886, score.Value, tolerance: 0.0001);
     }
@@ -38,7 +34,7 @@ public class ScoreCombinerTests
     [Fact]
     public void Combine_ChickenBreastUnderFitness_ScoresDifferentlyFromWeightLoss()
     {
-        var score = Combiner().Combine(ChickenSatiety, ChickenDensity, 2.3, 100, Lens.Fitness);
+        var score = Combiner().Combine(ChickenBreast with { LeucinePer100g = 2.3 }, 100, Lens.Fitness);
 
         Assert.Equal(77.4049, score.Value, tolerance: 0.0001);
     }
@@ -46,7 +42,7 @@ public class ScoreCombinerTests
     [Fact]
     public void Combine_WithoutLeucineData_RedistributesFiftyThirtyToSixtyTwoFiveThirtySevenFive()
     {
-        var score = Combiner().Combine(ChickenSatiety, ChickenDensity, null, 100, Lens.WeightLoss);
+        var score = Combiner().Combine(ChickenBreast, 100, Lens.WeightLoss);
 
         Assert.Equal(
             (62.5 * score.Satiety + 37.5 * score.Density!.Value) / 100,
@@ -59,14 +55,14 @@ public class ScoreCombinerTests
         var combiner = Combiner();
 
         Assert.True(
-            combiner.Combine(ChickenSatiety, ChickenDensity, null, 100, Lens.WeightLoss).Value >
-            combiner.Combine(ChickenSatiety, ChickenDensity, 0, 100, Lens.WeightLoss).Value);
+            combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).Value >
+            combiner.Combine(ChickenBreast with { LeucinePer100g = 0 }, 100, Lens.WeightLoss).Value);
     }
 
     [Fact]
     public void Combine_WithoutLeucineData_MarksTheScorePartial()
     {
-        var score = Combiner().Combine(ChickenSatiety, ChickenDensity, null, 100, Lens.WeightLoss);
+        var score = Combiner().Combine(ChickenBreast, 100, Lens.WeightLoss);
 
         Assert.True(score.IsPartial);
     }
@@ -74,7 +70,7 @@ public class ScoreCombinerTests
     [Fact]
     public void Combine_WithEveryComponent_DoesNotMarkTheScorePartial()
     {
-        var score = Combiner().Combine(ChickenSatiety, ChickenDensity, 2.3, 100, Lens.WeightLoss);
+        var score = Combiner().Combine(ChickenBreast with { LeucinePer100g = 2.3 }, 100, Lens.WeightLoss);
 
         Assert.False(score.IsPartial);
     }
@@ -83,7 +79,7 @@ public class ScoreCombinerTests
     public void Combine_ZeroCalorieFood_LeavesDensityOutOfTheScore()
     {
         var score = Combiner().Combine(
-            SparklingWaterSatiety, SparklingWaterDensity, null, 100, Lens.WeightLoss);
+            SparklingWater, 100, Lens.WeightLoss);
 
         Assert.Null(score.Density);
     }
@@ -92,7 +88,7 @@ public class ScoreCombinerTests
     public void Combine_ZeroCalorieFoodWithoutLeucine_ScoresOnSatietyAlone()
     {
         var score = Combiner().Combine(
-            SparklingWaterSatiety, SparklingWaterDensity, null, 100, Lens.WeightLoss);
+            SparklingWater, 100, Lens.WeightLoss);
 
         Assert.Equal(score.Satiety, score.Value);
     }
@@ -100,7 +96,7 @@ public class ScoreCombinerTests
     [Fact]
     public void Combine_ChickenBreastWithoutLeucineData_StillGradesAOrB()
     {
-        var score = Combiner().Combine(ChickenSatiety, ChickenDensity, null, 100, Lens.WeightLoss);
+        var score = Combiner().Combine(ChickenBreast, 100, Lens.WeightLoss);
 
         var grade = GradeThresholds.WeightLoss.GradeFor(score.Value);
 
@@ -117,8 +113,8 @@ public class ScoreCombinerTests
             new[] { Grade.A, Grade.B },
             new[]
             {
-                combiner.Combine(ChickenSatiety, ChickenDensity, null, 100, Lens.WeightLoss),
-                combiner.Combine(ChickenSatiety, ChickenDensity, 0, 100, Lens.WeightLoss)
+                combiner.Combine(ChickenBreast, 100, Lens.WeightLoss),
+                combiner.Combine(ChickenBreast with { LeucinePer100g = 0 }, 100, Lens.WeightLoss)
             }.Select(score => thresholds.GradeFor(score.Value)));
     }
 
@@ -127,8 +123,8 @@ public class ScoreCombinerTests
     {
         var combiner = Combiner();
 
-        var hundredGrams = combiner.Combine(ChickenSatiety, ChickenDensity, 1, 100, Lens.Fitness);
-        var twoHundredGrams = combiner.Combine(ChickenSatiety, ChickenDensity, 1, 200, Lens.Fitness);
+        var hundredGrams = combiner.Combine(ChickenBreast with { LeucinePer100g = 1 }, 100, Lens.Fitness);
+        var twoHundredGrams = combiner.Combine(ChickenBreast with { LeucinePer100g = 1 }, 200, Lens.Fitness);
 
         Assert.Equal(hundredGrams.Satiety, twoHundredGrams.Satiety);
         Assert.Equal(hundredGrams.Density, twoHundredGrams.Density);
