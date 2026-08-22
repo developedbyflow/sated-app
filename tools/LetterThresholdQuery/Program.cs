@@ -58,7 +58,7 @@ foreach (var food in foods)
     // score below is a Partial Grade. That is the measurement, not a flaw in it.
     var byLens = lenses.ToDictionary(
         lens => lens.Name,
-        lens => combiner.Combine(input, 100, lens));
+        lens => combiner.Combine(input, lens));
 
     scored.Add(new Scored(food.Description, byLens));
 }

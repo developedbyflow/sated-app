@@ -34,10 +34,10 @@ public class ScoreCombinerTests
     {
         var combiner = CombinerWith(new CategoryRule(
             ChickenBreast.Category, Lens.WeightLoss.Name, ScoreComponent.Satiety,
-            (food, grams) => null));
+            food => null));
 
         Assert.Throws<InvalidOperationException>(
-            () => combiner.Combine(ChickenBreast, 100, Lens.WeightLoss));
+            () => combiner.Combine(ChickenBreast, Lens.WeightLoss));
     }
 
     [Fact]
@@ -45,9 +45,9 @@ public class ScoreCombinerTests
     {
         var combiner = CombinerWith(new CategoryRule(
             ChickenBreast.Category, Lens.WeightLoss.Name, ScoreComponent.ProteinQuality,
-            (food, grams) => ComponentValue.Measured(80)));
+            food => ComponentValue.Measured(80)));
 
-        var score = combiner.Combine(ChickenBreast, 100, Lens.WeightLoss);
+        var score = combiner.Combine(ChickenBreast, Lens.WeightLoss);
 
         Assert.Equal(80, score.ProteinQuality!.Score);
         Assert.False(score.IsPartial);
@@ -58,11 +58,11 @@ public class ScoreCombinerTests
     {
         var combiner = CombinerWith(new CategoryRule(
             ChickenBreast.Category, Lens.WeightLoss.Name, ScoreComponent.Density,
-            (food, grams) => ComponentValue.Measured(0)));
+            food => ComponentValue.Measured(0)));
 
         Assert.True(
-            combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).Value <
-            Combiner().Combine(ChickenBreast, 100, Lens.WeightLoss).Value);
+            combiner.Combine(ChickenBreast, Lens.WeightLoss).Value <
+            Combiner().Combine(ChickenBreast, Lens.WeightLoss).Value);
     }
 
     [Fact]
@@ -70,10 +70,10 @@ public class ScoreCombinerTests
     {
         var combiner = CombinerWith(new CategoryRule(
             ChickenBreast.Category, Lens.Fitness.Name, ScoreComponent.ProteinQuality,
-            (food, grams) => ComponentValue.Measured(80)));
+            food => ComponentValue.Measured(80)));
 
         Assert.True(
-            combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).ProteinQuality!.IsEstimated);
+            combiner.Combine(ChickenBreast, Lens.WeightLoss).ProteinQuality!.IsEstimated);
     }
 
     [Fact]
@@ -81,10 +81,10 @@ public class ScoreCombinerTests
     {
         var combiner = CombinerWith(new CategoryRule(
             "Butter and animal fats", Lens.WeightLoss.Name, ScoreComponent.ProteinQuality,
-            (food, grams) => ComponentValue.Measured(80)));
+            food => ComponentValue.Measured(80)));
 
         Assert.True(
-            combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).ProteinQuality!.IsEstimated);
+            combiner.Combine(ChickenBreast, Lens.WeightLoss).ProteinQuality!.IsEstimated);
     }
 
     [Fact]
@@ -92,16 +92,16 @@ public class ScoreCombinerTests
     {
         var combiner = CombinerWith(new CategoryRule(
             ChickenBreast.Category.ToUpperInvariant(), Lens.WeightLoss.Name,
-            ScoreComponent.ProteinQuality, (food, grams) => ComponentValue.Measured(80)));
+            ScoreComponent.ProteinQuality, food => ComponentValue.Measured(80)));
 
-        Assert.Equal(80, combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).ProteinQuality?.Score);
+        Assert.Equal(80, combiner.Combine(ChickenBreast, Lens.WeightLoss).ProteinQuality?.Score);
     }
 
     [Fact]
     public void Combine_GeneralFormula_MarksEveryComponentMeasured()
     {
         var score = Combiner().Combine(
-            ChickenBreast with { LeucinePer100g = 2.3 }, 100, Lens.WeightLoss);
+            ChickenBreast with { LeucinePer100g = 2.3 }, Lens.WeightLoss);
 
         Assert.False(score.HasEstimatedComponents);
     }
@@ -111,9 +111,9 @@ public class ScoreCombinerTests
     {
         var combiner = CombinerWith(new CategoryRule(
             ChickenBreast.Category, Lens.WeightLoss.Name, ScoreComponent.ProteinQuality,
-            (food, grams) => ComponentValue.Estimated(80)));
+            food => ComponentValue.Estimated(80)));
 
-        var score = combiner.Combine(ChickenBreast, 100, Lens.WeightLoss);
+        var score = combiner.Combine(ChickenBreast, Lens.WeightLoss);
 
         Assert.False(score.IsPartial);
         Assert.True(score.HasEstimatedComponents);
@@ -122,7 +122,7 @@ public class ScoreCombinerTests
     [Fact]
     public void Combine_ChickenBreastUnderWeightLoss_WeightsAllThreeComponents()
     {
-        var score = Combiner().Combine(ChickenBreast with { LeucinePer100g = 0.5 }, 100, Lens.WeightLoss);
+        var score = Combiner().Combine(ChickenBreast with { LeucinePer100g = 0.5 }, Lens.WeightLoss);
 
         Assert.Equal(73.0553, score.Value, tolerance: 0.0001);
     }
@@ -130,7 +130,7 @@ public class ScoreCombinerTests
     [Fact]
     public void Combine_ChickenBreastUnderFitness_ScoresDifferentlyFromWeightLoss()
     {
-        var score = Combiner().Combine(ChickenBreast with { LeucinePer100g = 0.5 }, 100, Lens.Fitness);
+        var score = Combiner().Combine(ChickenBreast with { LeucinePer100g = 0.5 }, Lens.Fitness);
 
         Assert.Equal(64.0715, score.Value, tolerance: 0.0001);
     }
@@ -140,9 +140,9 @@ public class ScoreCombinerTests
     {
         var combiner = CombinerWith(new CategoryRule(
             ChickenBreast.Category, Lens.WeightLoss.Name, ScoreComponent.ProteinQuality,
-            (food, grams) => null));
+            food => null));
 
-        var score = combiner.Combine(ChickenBreast, 100, Lens.WeightLoss);
+        var score = combiner.Combine(ChickenBreast, Lens.WeightLoss);
 
         Assert.Equal(
             (62.5 * score.Satiety.Score + 37.5 * score.Density!.Score) / 100,
@@ -155,14 +155,14 @@ public class ScoreCombinerTests
         var combiner = Combiner();
 
         Assert.True(
-            combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).Value >
-            combiner.Combine(ChickenBreast with { LeucinePer100g = 0 }, 100, Lens.WeightLoss).Value);
+            combiner.Combine(ChickenBreast, Lens.WeightLoss).Value >
+            combiner.Combine(ChickenBreast with { LeucinePer100g = 0 }, Lens.WeightLoss).Value);
     }
 
     [Fact]
     public void Combine_WithoutLeucineData_IsNotPartialButSaysTheComponentWasGuessed()
     {
-        var score = Combiner().Combine(ChickenBreast, 100, Lens.WeightLoss);
+        var score = Combiner().Combine(ChickenBreast, Lens.WeightLoss);
 
         Assert.False(score.IsPartial);
         Assert.True(score.ProteinQuality!.IsEstimated);
@@ -171,7 +171,7 @@ public class ScoreCombinerTests
     [Fact]
     public void Combine_WithEveryComponent_DoesNotMarkTheScorePartial()
     {
-        var score = Combiner().Combine(ChickenBreast with { LeucinePer100g = 2.3 }, 100, Lens.WeightLoss);
+        var score = Combiner().Combine(ChickenBreast with { LeucinePer100g = 2.3 }, Lens.WeightLoss);
 
         Assert.False(score.IsPartial);
     }
@@ -180,7 +180,7 @@ public class ScoreCombinerTests
     public void Combine_ZeroCalorieFood_LeavesDensityOutOfTheScore()
     {
         var score = Combiner().Combine(
-            SparklingWater, 100, Lens.WeightLoss);
+            SparklingWater, Lens.WeightLoss);
 
         Assert.Null(score.Density);
     }
@@ -188,7 +188,7 @@ public class ScoreCombinerTests
     [Fact]
     public void Combine_ZeroCalorieFood_RedistributesTheDensityWeight()
     {
-        var score = Combiner().Combine(SparklingWater, 100, Lens.WeightLoss);
+        var score = Combiner().Combine(SparklingWater, Lens.WeightLoss);
 
         Assert.Equal(score.Satiety.Score * 50 / 70, score.Value);
     }
@@ -196,7 +196,7 @@ public class ScoreCombinerTests
     [Fact]
     public void Combine_ChickenBreastWithoutLeucineData_StillGradesAOrB()
     {
-        var score = Combiner().Combine(ChickenBreast, 100, Lens.WeightLoss);
+        var score = Combiner().Combine(ChickenBreast, Lens.WeightLoss);
 
         var grade = GradeThresholds.WeightLoss.GradeFor(score.Value);
 
@@ -213,19 +213,8 @@ public class ScoreCombinerTests
             new[] { Grade.A, Grade.B },
             new[]
             {
-                combiner.Combine(ChickenBreast, 100, Lens.WeightLoss),
-                combiner.Combine(ChickenBreast with { LeucinePer100g = 0 }, 100, Lens.WeightLoss)
+                combiner.Combine(ChickenBreast, Lens.WeightLoss),
+                combiner.Combine(ChickenBreast with { LeucinePer100g = 0 }, Lens.WeightLoss)
             }.Select(score => thresholds.GradeFor(score.Value)));
-    }
-
-    [Fact]
-    public void Combine_LargerPortion_ChangesNothing()
-    {
-        var combiner = Combiner();
-        var food = ChickenBreast with { LeucinePer100g = 0.5 };
-
-        Assert.Equal(
-            combiner.Combine(food, 100, Lens.Fitness),
-            combiner.Combine(food, 200, Lens.Fitness));
     }
 }

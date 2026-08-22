@@ -21,34 +21,34 @@ public class FatQualityTests
     public void UnsaturatedShare_OliveOil_ScoresFarAboveButter()
     {
         Assert.True(
-            FatQuality.UnsaturatedShare(OliveOil, 100)!.Score >
-            FatQuality.UnsaturatedShare(Butter, 100)!.Score);
+            FatQuality.UnsaturatedShare(OliveOil)!.Score >
+            FatQuality.UnsaturatedShare(Butter)!.Score);
     }
 
     [Fact]
     public void UnsaturatedShare_OliveOil_ScoresAboveMayonnaiseOnSodiumAlone()
     {
         Assert.True(
-            FatQuality.UnsaturatedShare(OliveOil, 100)!.Score >
-            FatQuality.UnsaturatedShare(Mayonnaise, 100)!.Score);
+            FatQuality.UnsaturatedShare(OliveOil)!.Score >
+            FatQuality.UnsaturatedShare(Mayonnaise)!.Score);
     }
 
     [Fact]
     public void UnsaturatedShare_OliveOil_IsMostlyUnsaturated()
     {
-        Assert.Equal(84.5, FatQuality.UnsaturatedShare(OliveOil, 100)!.Score, tolerance: 0.1);
+        Assert.Equal(84.5, FatQuality.UnsaturatedShare(OliveOil)!.Score, tolerance: 0.1);
     }
 
     [Fact]
     public void UnsaturatedShare_FoodWithoutFat_HasNoValue()
     {
-        Assert.Null(FatQuality.UnsaturatedShare(OliveOil with { Fat = 0 }, 100));
+        Assert.Null(FatQuality.UnsaturatedShare(OliveOil with { Fat = 0 }));
     }
 
     [Fact]
     public void UnsaturatedShare_FoodWithoutCalories_HasNoValue()
     {
-        Assert.Null(FatQuality.UnsaturatedShare(OliveOil with { Calories = 0 }, 100));
+        Assert.Null(FatQuality.UnsaturatedShare(OliveOil with { Calories = 0 }));
     }
 
     [Fact]

@@ -16,7 +16,7 @@ public static class FatQuality
     // FNDDS reports no trans fat at all, so "unsaturated" here means "not saturated" and trans
     // fat is credited as good. Margarine is the food this flatters.
 
-    public static ComponentValue? UnsaturatedShare(FoodInput food, double grams)
+    public static ComponentValue? UnsaturatedShare(FoodInput food)
     {
         if (food.Fat <= 0 || food.Calories <= 0)
         {

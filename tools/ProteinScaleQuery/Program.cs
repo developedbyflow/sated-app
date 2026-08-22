@@ -12,9 +12,10 @@ using Sated.Scoring;
 // food, would it reach the leucine threshold?", so the score stays per-100 g and works the
 // same at Food, Recipe, Meal and Day. R = 100 is today's formula, kept as the baseline.
 //
-// R is applied by passing it as `grams` to the existing engine. Satiety, density and the fat
-// rule ignore `grams` entirely, so this changes the protein component and nothing else. No
-// strategy is replaced and no library code moves until the numbers say it should.
+// R used to be applied by passing it as `grams` to the engine. That parameter is gone — no
+// component reads a portion any more — so the sweep registers its own protein strategy per
+// (category, lens) instead, which is what CategoryRules is for. The library's own reference
+// meal stays frozen: this tool explores candidates, it does not change the engine.
 //
 // Predictions P1-P7 were written before this ran — see 04_delivery/7.protein-scale-report.
 
@@ -28,8 +29,7 @@ var satietyScale = new PercentileScale(
 var densityScale = new PercentileScale(
     [.. breakpoints.Select(row => double.Parse(row[2], CultureInfo.InvariantCulture))]);
 
-var combiner = new ScoreCombiner(
-    new GeneralStrategies(satietyScale, densityScale), CategoryRules.Standard);
+var general = new GeneralStrategies(satietyScale, densityScale);
 
 var json = File.ReadAllText("../UsdaCoverageQuery/data/surveyDownload.json");
 var foods = JsonSerializer.Deserialize<SurveyFoodsFile>(json)!.Foods;
@@ -69,15 +69,50 @@ var references = new double[] { 100, 125, 150, 175, 200, 250, 300, 400 };
 
 Console.WriteLine($"FNDDS: {foods.Count} alimente · punctate: {inputs.Count}");
 
+// Mirrors the four categories of CategoryRules.Standard, whose list is private. Without them
+// the fat foods would fall back to the general formula and the sweep would stop describing the
+// engine it claims to measure.
+string[] fatCategories =
+    ["Salad dressings and vegetable oils", "Butter and animal fats", "Margarine", "Mayonnaise"];
+
+var categories = inputs.Select(food => food.Input.Category).ToHashSet();
+
 var runs = references.ToDictionary(
     reference => reference,
-    reference => inputs
-        .Select(food => new Scored(
-            food.Description,
-            lenses.ToDictionary(
-                lens => lens.Name,
-                lens => combiner.Combine(food.Input, reference, lens))))
-        .ToArray());
+    reference =>
+    {
+        var combiner = new ScoreCombiner(general, new CategoryRules([
+            .. from category in fatCategories
+               from lens in lenses
+               select new CategoryRule(
+                   category, lens.Name, ScoreComponent.Density, FatQuality.UnsaturatedShare),
+            .. from category in categories
+               from lens in lenses
+               select new CategoryRule(
+                   category, lens.Name, ScoreComponent.ProteinQuality, ProteinAt(reference))]));
+
+        return inputs
+            .Select(food => new Scored(
+                food.Description,
+                lenses.ToDictionary(
+                    lens => lens.Name,
+                    lens => combiner.Combine(food.Input, lens))))
+            .ToArray();
+    });
+
+// The general formula with one number swapped: the reference meal the score is read against.
+static ComponentStrategy ProteinAt(double reference) => food =>
+{
+    var measured = ProteinQualityScore.Calculate(food.LeucinePer100g, reference);
+
+    if (measured is not null)
+    {
+        return ComponentValue.Measured(measured.Value);
+    }
+
+    return ComponentValue.Estimated(ProteinQualityScore.Calculate(
+        ProteinCompleteness.EstimateLeucinePer100g(food.Protein, food.Category), reference));
+};
 
 Section("Componenta de proteină, pe măsura de referință");
 Console.WriteLine($"{"R",5} {"p10",7} {"p25",7} {"mediană",8} {"p75",7} {"p90",7} " +
