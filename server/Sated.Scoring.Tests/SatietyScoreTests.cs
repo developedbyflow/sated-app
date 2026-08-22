@@ -67,4 +67,20 @@ public class SatietyScoreTests
 
         Assert.Equal(SatietyScore.Calculate(atFloor), SatietyScore.Calculate(belowFloor));
     }
+
+        [Fact]
+    public void Calculate_MaximalInput_ClampsToFive()
+    {
+        var maximal = new NutrientProfile(Calories: 30, Protein: 30, Fat: 0, Fiber: 12);
+
+        Assert.Equal(5, SatietyScore.Calculate(maximal));
+    }
+
+    [Fact]
+    public void Calculate_OliveOil_ClampsToZeroPointFive()
+    {
+        var oliveOil = new NutrientProfile(Calories: 884, Protein: 0, Fat: 100, Fiber: 0);
+
+        Assert.Equal(0.5, SatietyScore.Calculate(oliveOil));
+    }
 }
