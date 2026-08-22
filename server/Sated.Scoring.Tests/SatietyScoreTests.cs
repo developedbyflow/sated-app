@@ -1,0 +1,70 @@
+﻿namespace Sated.Scoring.Tests;
+
+public class SatietyScoreTests
+{
+    [Fact]
+    public void Calculate_ChickenBreast_MatchesBriefValue()
+    {
+        var chickenBreast = new NutrientProfile(
+            Calories: 165,
+            Protein: 31,
+            Fat: 3.6,
+            Fiber: 0
+        );
+
+        var score = SatietyScore.Calculate(chickenBreast);
+
+        Assert.Equal(3.3, score, tolerance: 0.1);
+    }
+
+    [Fact]
+    public void Calculate_Croissant_MatchesBriefValue()
+    {
+        var croissant = new NutrientProfile(
+            Calories: 406,
+            Protein: 8.2,
+            Fat: 21,
+            Fiber: 2.6
+        );
+
+        var score = SatietyScore.Calculate(croissant);
+
+        Assert.Equal(1.6, score, tolerance: 0.1);
+    }
+
+        [Fact]
+    public void Calculate_ProteinAboveCap_ScoresSameAsAtCap()
+    {
+        var atCap = new NutrientProfile(Calories: 200, Protein: 30, Fat: 5, Fiber: 5);
+        var aboveCap = atCap with { Protein = 80 };
+
+        Assert.Equal(SatietyScore.Calculate(atCap), SatietyScore.Calculate(aboveCap));
+    }
+
+    [Fact]
+    public void Calculate_FiberAboveCap_ScoresSameAsAtCap()
+    {
+        var atCap = new NutrientProfile(Calories: 250, Protein: 14, Fat: 3.5, Fiber: 12);
+        var aboveCap = atCap with { Fiber = 27 };
+
+        Assert.Equal(SatietyScore.Calculate(atCap), SatietyScore.Calculate(aboveCap));
+    }
+
+    [Fact]
+    public void Calculate_FatAboveCap_ScoresSameAsAtCap()
+    {
+        var atCap = new NutrientProfile(Calories: 600, Protein: 20, Fat: 50, Fiber: 7);
+        var aboveCap = atCap with { Fat = 80 };
+
+        Assert.Equal(SatietyScore.Calculate(atCap), SatietyScore.Calculate(aboveCap));
+    }
+
+    [Fact]
+    public void Calculate_CaloriesBelowFloor_ScoresSameAsAtFloor()
+    {
+        var atFloor = new NutrientProfile(Calories: 30, Protein: 2, Fat: 0.2, Fiber: 1);
+        var belowFloor = atFloor with { Calories = 5 };
+
+        Assert.Equal(SatietyScore.Calculate(atFloor), SatietyScore.Calculate(belowFloor));
+    }
+}
