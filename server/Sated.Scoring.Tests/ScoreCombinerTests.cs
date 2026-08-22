@@ -45,11 +45,11 @@ public class ScoreCombinerTests
     {
         var combiner = CombinerWith(new CategoryRule(
             ChickenBreast.Category, Lens.WeightLoss.Name, ScoreComponent.ProteinQuality,
-            (food, grams) => 80));
+            (food, grams) => ComponentValue.Measured(80)));
 
         var score = combiner.Combine(ChickenBreast, 100, Lens.WeightLoss);
 
-        Assert.Equal(80, score.ProteinQuality);
+        Assert.Equal(80, score.ProteinQuality!.Score);
         Assert.False(score.IsPartial);
     }
 
@@ -58,7 +58,7 @@ public class ScoreCombinerTests
     {
         var combiner = CombinerWith(new CategoryRule(
             ChickenBreast.Category, Lens.WeightLoss.Name, ScoreComponent.Density,
-            (food, grams) => 0));
+            (food, grams) => ComponentValue.Measured(0)));
 
         Assert.True(
             combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).Value <
@@ -70,9 +70,9 @@ public class ScoreCombinerTests
     {
         var combiner = CombinerWith(new CategoryRule(
             ChickenBreast.Category, Lens.Fitness.Name, ScoreComponent.ProteinQuality,
-            (food, grams) => 80));
+            (food, grams) => ComponentValue.Measured(80)));
 
-        Assert.Null(combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).ProteinQuality);
+        Assert.Null(combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).ProteinQuality?.Score);
     }
 
     [Fact]
@@ -80,9 +80,9 @@ public class ScoreCombinerTests
     {
         var combiner = CombinerWith(new CategoryRule(
             "Butter and animal fats", Lens.WeightLoss.Name, ScoreComponent.ProteinQuality,
-            (food, grams) => 80));
+            (food, grams) => ComponentValue.Measured(80)));
 
-        Assert.Null(combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).ProteinQuality);
+        Assert.Null(combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).ProteinQuality?.Score);
     }
 
     [Fact]
@@ -90,9 +90,31 @@ public class ScoreCombinerTests
     {
         var combiner = CombinerWith(new CategoryRule(
             ChickenBreast.Category.ToUpperInvariant(), Lens.WeightLoss.Name,
-            ScoreComponent.ProteinQuality, (food, grams) => 80));
+            ScoreComponent.ProteinQuality, (food, grams) => ComponentValue.Measured(80)));
 
-        Assert.Equal(80, combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).ProteinQuality);
+        Assert.Equal(80, combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).ProteinQuality?.Score);
+    }
+
+    [Fact]
+    public void Combine_GeneralFormula_MarksEveryComponentMeasured()
+    {
+        var score = Combiner().Combine(
+            ChickenBreast with { LeucinePer100g = 2.3 }, 100, Lens.WeightLoss);
+
+        Assert.False(score.HasEstimatedComponents);
+    }
+
+    [Fact]
+    public void Combine_RuleThatEstimates_MarksTheScoreAsCarryingAnEstimate()
+    {
+        var combiner = CombinerWith(new CategoryRule(
+            ChickenBreast.Category, Lens.WeightLoss.Name, ScoreComponent.ProteinQuality,
+            (food, grams) => ComponentValue.Estimated(80)));
+
+        var score = combiner.Combine(ChickenBreast, 100, Lens.WeightLoss);
+
+        Assert.False(score.IsPartial);
+        Assert.True(score.HasEstimatedComponents);
     }
 
     [Fact]
@@ -117,7 +139,7 @@ public class ScoreCombinerTests
         var score = Combiner().Combine(ChickenBreast, 100, Lens.WeightLoss);
 
         Assert.Equal(
-            (62.5 * score.Satiety + 37.5 * score.Density!.Value) / 100,
+            (62.5 * score.Satiety.Score + 37.5 * score.Density!.Score) / 100,
             score.Value);
     }
 
@@ -162,7 +184,7 @@ public class ScoreCombinerTests
         var score = Combiner().Combine(
             SparklingWater, 100, Lens.WeightLoss);
 
-        Assert.Equal(score.Satiety, score.Value);
+        Assert.Equal(score.Satiety.Score, score.Value);
     }
 
     [Fact]
@@ -200,6 +222,6 @@ public class ScoreCombinerTests
 
         Assert.Equal(hundredGrams.Satiety, twoHundredGrams.Satiety);
         Assert.Equal(hundredGrams.Density, twoHundredGrams.Density);
-        Assert.True(twoHundredGrams.ProteinQuality > hundredGrams.ProteinQuality);
+        Assert.True(twoHundredGrams.ProteinQuality!.Score > hundredGrams.ProteinQuality!.Score);
     }
 }

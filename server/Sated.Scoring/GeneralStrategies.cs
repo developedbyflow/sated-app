@@ -14,10 +14,11 @@ public sealed class GeneralStrategies
         _densityScale = densityScale;
     }
 
-    public double? Satiety(FoodInput food, double grams) =>
-        _satietyScale.Normalize(SatietyScore.Calculate(food.ForSatiety()));
+    public ComponentValue? Satiety(FoodInput food, double grams) =>
+        ComponentValue.Measured(
+            _satietyScale.Normalize(SatietyScore.Calculate(food.ForSatiety())));
 
-    public double? Density(FoodInput food, double grams)
+    public ComponentValue? Density(FoodInput food, double grams)
     {
         var raw = DensityScore.Calculate(food.ForDensity());
 
@@ -26,11 +27,20 @@ public sealed class GeneralStrategies
             return null;
         }
 
-        return _densityScale.Normalize(raw.Value);
+        return ComponentValue.Measured(_densityScale.Normalize(raw.Value));
     }
 
     // No scale here: this one is already 0-100, being a percentage of the leucine threshold
     // rather than a raw quantity that needs a catalogue to be read against.
-    public double? ProteinQuality(FoodInput food, double grams) =>
-        ProteinQualityScore.Calculate(food.LeucinePer100g, grams);
+    public ComponentValue? ProteinQuality(FoodInput food, double grams)
+    {
+        var raw = ProteinQualityScore.Calculate(food.LeucinePer100g, grams);
+
+        if (raw is null)
+        {
+            return null;
+        }
+
+        return ComponentValue.Measured(raw.Value);
+    }
 }

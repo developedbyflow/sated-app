@@ -42,25 +42,25 @@ public sealed class ScoreCombiner
         // A missing component drops out of both sums. Dividing by the weight actually used,
         // instead of by 100, is the redistribution FR-7 asks for: with satiety 50 and
         // density 30 left, the two end up counting 62.5% and 37.5%.
-        var weighted = lens.Satiety * satiety;
+        var weighted = lens.Satiety * satiety.Score;
         var usedWeight = lens.Satiety;
 
         if (density is not null)
         {
-            weighted += lens.Density * density.Value;
+            weighted += lens.Density * density.Score;
             usedWeight += lens.Density;
         }
 
         if (proteinQuality is not null)
         {
-            weighted += lens.ProteinQuality * proteinQuality.Value;
+            weighted += lens.ProteinQuality * proteinQuality.Score;
             usedWeight += lens.ProteinQuality;
         }
 
         return new CombinedScore(weighted / usedWeight, satiety, density, proteinQuality);
     }
 
-    private double? Component(
+    private ComponentValue? Component(
         ScoreComponent component,
         ComponentStrategy general,
         FoodInput food,

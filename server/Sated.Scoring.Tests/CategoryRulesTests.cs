@@ -3,7 +3,7 @@ namespace Sated.Scoring.Tests;
 public class CategoryRulesTests
 {
     private static CategoryRule Rule(string category, ScoreComponent component) =>
-        new(category, Lens.WeightLoss.Name, component, (food, grams) => 50);
+        new(category, Lens.WeightLoss.Name, component, (food, grams) => ComponentValue.Measured(50));
 
     [Fact]
     public void Find_PairingNobodyRegistered_ReturnsNull()

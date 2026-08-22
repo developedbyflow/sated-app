@@ -9,4 +9,4 @@ namespace Sated.Scoring;
 /// A component score between 0 and 100, or null when this food has no value for it — missing
 /// data or a calculation with no answer. Never zero to mean absent (FR-7).
 /// </returns>
-public delegate double? ComponentStrategy(FoodInput food, double grams);
+public delegate ComponentValue? ComponentStrategy(FoodInput food, double grams);
