@@ -98,6 +98,31 @@ public class ScoreCombinerTests
     }
 
     [Fact]
+    public void Combine_ChickenBreastWithoutLeucineData_StillGradesAOrB()
+    {
+        var score = Combiner().Combine(ChickenSatiety, ChickenDensity, null, 100, Lens.WeightLoss);
+
+        var grade = GradeThresholds.WeightLoss.GradeFor(score.Value);
+
+        Assert.True(grade == Grade.A || grade == Grade.B);
+    }
+
+    [Fact]
+    public void Combine_ChickenBreastWithoutLeucineData_GradesAboveZeroLeucine()
+    {
+        var combiner = Combiner();
+        var thresholds = GradeThresholds.WeightLoss;
+
+        Assert.Equal(
+            new[] { Grade.A, Grade.B },
+            new[]
+            {
+                combiner.Combine(ChickenSatiety, ChickenDensity, null, 100, Lens.WeightLoss),
+                combiner.Combine(ChickenSatiety, ChickenDensity, 0, 100, Lens.WeightLoss)
+            }.Select(score => thresholds.GradeFor(score.Value)));
+    }
+
+    [Fact]
     public void Combine_LargerPortion_RaisesOnlyProteinQuality()
     {
         var combiner = Combiner();
