@@ -64,6 +64,26 @@ foreach (var food in foods)
 }
 
 Console.WriteLine($"FNDDS: {foods.Count} alimente · punctate: {scored.Count}");
+
+// P1 — the plant-protein exception list names categories in this catalogue. Nothing else checks
+// it: a renamed category would leave the rule registered and never matching.
+var realCategories = foods
+    .Select(food => food.WweiaFoodCategory?.Description ?? "")
+    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+var missing = ProteinCompleteness.PlantProteinCategoryNames
+    .Where(name => !realCategories.Contains(name))
+    .ToArray();
+
+if (missing.Length > 0)
+{
+    throw new InvalidOperationException(
+        "Plant-protein categories that no longer exist in the catalogue: " +
+        string.Join(", ", missing));
+}
+
+Console.WriteLine($"P1 — cele {ProteinCompleteness.PlantProteinCategoryNames.Count} " +
+    "categorii vegetale există toate în catalog.");
 Console.WriteLine($"Partial Grade: {Share(scored.Count(f => f.ByLens.Values.All(s => s.IsPartial)))}");
 
 var thresholds = new Dictionary<string, double[]>();
@@ -122,6 +142,37 @@ foreach (var needle in new[] { "Chicken breast", "Olive oil", "Butter, stick", "
         $"{Letter(match.ByLens[lens.Name].Value, thresholds[lens.Name])}"));
 
     Console.WriteLine($"{Truncate(match.Description, 40),-42} {line}");
+}
+
+Section("P2 / P3 — componenta de proteină");
+foreach (var lens in lenses)
+{
+    var protein = scored
+        .Select(food => food.ByLens[lens.Name].ProteinQuality?.Score ?? 0)
+        .ToArray();
+
+    Console.WriteLine($"{lens.Name,-12} mediană {Percentile(protein, 50),5:F1} · " +
+        $"sub 20: {Share(protein.Count(value => value < 20)),7} · " +
+        $"peste 90: {Share(protein.Count(value => value > 90)),7}");
+}
+
+foreach (var needle in new[] { "Cheese, Cheddar", "Chicken breast, NS", "Spinach, raw" })
+{
+    var match = scored.First(food =>
+        food.Description.StartsWith(needle, StringComparison.OrdinalIgnoreCase));
+
+    var fitness = match.ByLens["Fitness"];
+    Console.WriteLine($"  {Truncate(match.Description, 30),-32} Fitness · " +
+        $"sat {fitness.Satiety.Score,5:F1} · den {fitness.Density?.Score ?? 0,6:F1} · " +
+        $"prot {fitness.ProteinQuality?.Score ?? 0,5:F1}");
+}
+
+Section("Praguri recalibrate — de copiat în GradeThresholds");
+foreach (var lens in lenses)
+{
+    var cuts = thresholds[lens.Name];
+    Console.WriteLine($"{lens.Name,-12} dStartsAt: {cuts[0]:F2}, cStartsAt: {cuts[1]:F2}, " +
+        $"bStartsAt: {cuts[2]:F2}, aStartsAt: {cuts[3]:F2}");
 }
 
 Section("Câte alimente stau la un punct de altă literă");

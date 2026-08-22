@@ -11,13 +11,15 @@ public sealed class GradeThresholds
     // percentile breakpoints of Story 1.6 — both are tied to the catalogue they were read from.
     // Architecture §Butoane de reglaj moves these to a versioned JSON file, together with the
     // lens weights and the breakpoints; until that story exists, they live here.
+    // Recalibrated 2026-08-22 after Story 1.8 gave every food a protein component: the previous
+    // cutoffs were measured when that axis was empty, and the A cutoff moved from 76.77 to 66.90.
     // See 04_delivery/5.letter-threshold-report.
 
     public static GradeThresholds WeightLoss { get; } =
-        new(dStartsAt: 25.56, cStartsAt: 41.20, bStartsAt: 57.70, aStartsAt: 76.77);
+        new(dStartsAt: 24.97, cStartsAt: 37.99, bStartsAt: 51.35, aStartsAt: 66.90);
 
     public static GradeThresholds Fitness { get; } =
-        new(dStartsAt: 26.01, cStartsAt: 41.64, bStartsAt: 56.16, aStartsAt: 76.82);
+        new(dStartsAt: 22.50, cStartsAt: 31.76, bStartsAt: 41.42, aStartsAt: 48.87);
 
     private readonly double _dStartsAt;
     private readonly double _cStartsAt;

@@ -53,6 +53,12 @@ public static class ProteinCompleteness
             "Vegetable sandwiches/burgers"
         };
 
+    /// <summary>
+    /// The exception list, so a calibration run can check it against the catalogue it claims to
+    /// describe. A category USDA renames would otherwise disable a rule in silence.
+    /// </summary>
+    public static IReadOnlyCollection<string> PlantProteinCategoryNames => PlantProteinCategories;
+
     public static bool IsPlantProtein(string category) =>
         PlantProteinCategories.Contains(category);
 
