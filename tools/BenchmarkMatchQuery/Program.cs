@@ -1,0 +1,159 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+// Lists FNDDS candidates for each food of the G0 benchmark set, so the FDC id written into
+// 01_analysis/3.set-etalon can be checked against the numbers rather than taken on trust.
+// The set says the column is "de completat la prima rulare": without ids, "boiled potato"
+// resolves to a different food on every run and the harness measures name matching.
+
+var json = File.ReadAllText("../UsdaCoverageQuery/data/surveyDownload.json");
+var foods = JsonSerializer.Deserialize<SurveyFoodsFile>(json)!.Foods;
+
+if (args.Contains("--validate"))
+{
+    var byId = foods.ToDictionary(food => food.FdcId);
+    var rows = File.ReadAllLines("../../server/Sated.Calibration/benchmark.csv")
+        .Where(line => line.Length > 0 && !line.StartsWith('#'))
+        .Skip(1)
+        .ToArray();
+
+    var problems = 0;
+
+    foreach (var row in rows)
+    {
+        var cells = Split(row);
+        var (id, fdcId, description) = (cells[0], int.Parse(cells[2]), cells[3]);
+
+        if (!byId.TryGetValue(fdcId, out var food))
+        {
+            Console.WriteLine($"  {id,-4} {fdcId} NU EXISTĂ în FNDDS");
+            problems++;
+            continue;
+        }
+
+        if (!string.Equals(food.Description, description, StringComparison.Ordinal))
+        {
+            Console.WriteLine($"  {id,-4} {fdcId} descriere diferită:");
+            Console.WriteLine($"       csv:   {description}");
+            Console.WriteLine($"       fndds: {food.Description}");
+            problems++;
+        }
+    }
+
+    Console.WriteLine($"{rows.Length} rânduri verificate · {problems} probleme");
+
+    var pairs = File.ReadAllLines("../../server/Sated.Calibration/benchmark-pairs.csv")
+        .Where(line => line.Length > 0 && !line.StartsWith('#'))
+        .Skip(1)
+        .Select(Split)
+        .ToArray();
+
+    var ids = rows.Select(row => Split(row)[0]).ToHashSet();
+    var dangling = pairs
+        .SelectMany(pair => new[] { pair[0], pair[1] })
+        .Where(id => !ids.Contains(id))
+        .ToArray();
+
+    Console.WriteLine(dangling.Length == 0
+        ? $"{pairs.Length} perechi · toate cele {pairs.Length * 2} referințe există"
+        : $"PERECHI RUPTE: {string.Join(", ", dangling)}");
+
+    return;
+}
+
+static string[] Split(string line)
+{
+    var cells = new List<string>();
+    var current = "";
+    var quoted = false;
+
+    foreach (var character in line)
+    {
+        if (character == '"')
+        {
+            quoted = !quoted;
+        }
+        else if (character == ',' && !quoted)
+        {
+            cells.Add(current);
+            current = "";
+        }
+        else
+        {
+            current += character;
+        }
+    }
+
+    cells.Add(current);
+    return [.. cells];
+}
+
+var queries = File.ReadAllLines("queries.txt")
+    .Where(line => line.Length > 0 && !line.StartsWith('#'))
+    .Select(line => line.Split('|'))
+    .ToArray();
+
+foreach (var query in queries)
+{
+    var (label, terms) = (query[0], query[1].Split(';'));
+
+    var matches = foods
+        .Where(food => terms.All(term => term.Trim().StartsWith("cat:")
+            ? (food.WweiaFoodCategory?.Description ?? "").Contains(
+                term.Trim()[4..], StringComparison.OrdinalIgnoreCase)
+            : food.Description.Contains(term.Trim(), StringComparison.OrdinalIgnoreCase)))
+        .OrderBy(food => food.Description.Length)
+        .Take(6)
+        .ToArray();
+
+    Console.WriteLine($"── {label}");
+
+    if (matches.Length == 0)
+    {
+        Console.WriteLine("     nimic");
+        continue;
+    }
+
+    foreach (var food in matches)
+    {
+        var amounts = food.FoodNutrients
+            .Where(entry => entry.Amount is not null)
+            .ToDictionary(entry => entry.Nutrient.Number, entry => entry.Amount!.Value);
+
+        Console.WriteLine($"  {food.FdcId} {Truncate(food.Description, 58),-60} " +
+            $"kcal {Get(amounts, "208"),5:F0} p {Get(amounts, "203"),5:F1} " +
+            $"g {Get(amounts, "204"),5:F1} f {Get(amounts, "291"),4:F1} na {Get(amounts, "307"),5:F0}");
+    }
+}
+
+static double Get(Dictionary<string, double> amounts, string code) =>
+    amounts.GetValueOrDefault(code);
+
+static string Truncate(string text, int length) =>
+    text.Length <= length ? text : text[..length];
+
+public static class Codes
+{
+    public static readonly string[] Required =
+        ["208", "203", "204", "291", "320", "401", "323", "301", "303", "304", "306", "606", "307"];
+}
+
+public record Nutrient([property: JsonPropertyName("number")] string Number);
+
+public record FoodNutrient(
+    [property: JsonPropertyName("nutrient")] Nutrient Nutrient,
+    [property: JsonPropertyName("amount")] double? Amount
+);
+
+public record WweiaCategory(
+    [property: JsonPropertyName("wweiaFoodCategoryDescription")] string Description
+);
+
+public record FoodItem(
+    [property: JsonPropertyName("fdcId")] int FdcId,
+    [property: JsonPropertyName("description")] string Description,
+    [property: JsonPropertyName("foodNutrients")] List<FoodNutrient> FoodNutrients,
+    [property: JsonPropertyName("wweiaFoodCategory")] WweiaCategory? WweiaFoodCategory
+);
+
+public record SurveyFoodsFile([property: JsonPropertyName("SurveyFoods")] List<FoodItem> Foods);

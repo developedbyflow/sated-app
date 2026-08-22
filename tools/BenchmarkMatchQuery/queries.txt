@@ -1,0 +1,5 @@
+# Scratch input for search mode: label|term;term — every term must appear in the FNDDS
+# description, or in its WWEIA category when prefixed with cat:. Shortest matches first.
+# The benchmark set is already bound; run with --validate to re-check the ids instead.
+C8 cheddar|Cheese, Cheddar
+40 cereale zahar mare|cat:higher sugar

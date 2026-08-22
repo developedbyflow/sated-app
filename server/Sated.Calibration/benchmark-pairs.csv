@@ -1,0 +1,10 @@
+# The 7 ordering pairs of 01_analysis/3.set-etalon-60-alimente. All 7 must hold, no tolerance.
+# The set is explicit that these matter more than the individual grades.
+Better,Worse,Why
+30,43,"Holt measured wholemeal 157 against white bread 100"
+C5,34,"Same food, different preparation"
+1,47,"Same animal, different food"
+8,40,"The Food Compass case. Non-negotiable."
+C1,50,"If they tie, the formula cannot tell fats apart"
+C7,57,"Same, for popcorn"
+9,P7,"Added sugar has to count"
