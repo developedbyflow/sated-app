@@ -1,9 +1,10 @@
 namespace Sated.Scoring;
 
 /// <summary>
-/// Density for foods that are almost entirely fat, where NRF9.2 carries no information: all nine
-/// encouraged nutrients sit near zero, so olive oil and butter both land at the bottom of the
-/// catalogue and take the same letter (FR-6).
+/// How good a food's fat is, standing in for whichever component cannot tell such foods apart
+/// (FR-6). For the fat categories that is satiety: the Fullness Factor floor catches everything
+/// that is almost entirely fat, so olive oil and butter both score zero on it. For nuts it is
+/// density: NRF9.2 counts nutrients per calorie and cannot see that the calories are unsaturated.
 /// </summary>
 public static class FatQuality
 {

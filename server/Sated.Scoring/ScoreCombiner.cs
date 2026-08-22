@@ -36,8 +36,10 @@ public sealed class ScoreCombiner
             ScoreComponent.ProteinQuality, _general.ProteinQuality, food, lens);
 
         // A missing component drops out of both sums. Dividing by the weight actually used,
-        // instead of by 100, is the redistribution FR-7 asks for: with satiety 50 and
-        // density 30 left, the two end up counting 62.5% and 37.5%.
+        // instead of by 100, is the redistribution FR-7 asks for: a zero-calorie food has no
+        // density, so satiety 50 and protein 20 end up counting 71.4% and 28.6%.
+        // Only the general strategies can leave a component out now — a category rule that has
+        // no answer hands the food back to them instead of removing the component.
         var weighted = lens.Satiety * satiety.Score;
         var usedWeight = lens.Satiety;
 
@@ -62,8 +64,14 @@ public sealed class ScoreCombiner
         FoodInput food,
         Lens lens)
     {
-        var strategy = _rules.Find(food.Category, lens, component) ?? general;
+        var rule = _rules.Find(food.Category, lens, component);
 
-        return strategy(food);
+        // A rule replaces a component, it never removes one. FatQuality has no answer for a food
+        // with no fat, and fat-free mayonnaise is one: without this fallback that food would lose
+        // its density and take a partial grade for data the catalogue actually carries. Dropping
+        // a component is for data that is missing (FR-7), not for a strategy that does not apply.
+        // On satiety the fallback is what keeps the guard above from firing on a real catalogue
+        // food; the guard stays for a general strategy that could one day come back empty.
+        return rule is null ? general(food) : rule(food) ?? general(food);
     }
 }

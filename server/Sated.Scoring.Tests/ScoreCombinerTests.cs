@@ -30,14 +30,27 @@ public class ScoreCombinerTests
         new(General(), new CategoryRules(rules));
 
     [Fact]
-    public void Combine_RuleThatLeavesSatietyEmpty_Throws()
+    public void Combine_RuleThatHasNoAnswer_FallsBackToTheGeneralFormula()
     {
         var combiner = CombinerWith(new CategoryRule(
             ChickenBreast.Category, Lens.WeightLoss.Name, ScoreComponent.Satiety,
             food => null));
 
-        Assert.Throws<InvalidOperationException>(
-            () => combiner.Combine(ChickenBreast, Lens.WeightLoss));
+        Assert.Equal(
+            Combiner().Combine(ChickenBreast, Lens.WeightLoss).Satiety.Score,
+            combiner.Combine(ChickenBreast, Lens.WeightLoss).Satiety.Score);
+    }
+
+    [Fact]
+    public void Combine_RuleThatHasNoAnswerOnDensity_KeepsTheComponentInsteadOfDroppingIt()
+    {
+        var combiner = CombinerWith(new CategoryRule(
+            ChickenBreast.Category, Lens.WeightLoss.Name, ScoreComponent.Density,
+            food => null));
+
+        Assert.Equal(
+            Combiner().Combine(ChickenBreast, Lens.WeightLoss).Density!.Score,
+            combiner.Combine(ChickenBreast, Lens.WeightLoss).Density!.Score);
     }
 
     [Fact]
@@ -133,20 +146,6 @@ public class ScoreCombinerTests
         var score = Combiner().Combine(ChickenBreast with { LeucinePer100g = 0.5 }, Lens.Fitness);
 
         Assert.Equal(64.0715, score.Value, tolerance: 0.0001);
-    }
-
-    [Fact]
-    public void Combine_WithoutLeucineData_RedistributesFiftyThirtyToSixtyTwoFiveThirtySevenFive()
-    {
-        var combiner = CombinerWith(new CategoryRule(
-            ChickenBreast.Category, Lens.WeightLoss.Name, ScoreComponent.ProteinQuality,
-            food => null));
-
-        var score = combiner.Combine(ChickenBreast, Lens.WeightLoss);
-
-        Assert.Equal(
-            (62.5 * score.Satiety.Score + 37.5 * score.Density!.Score) / 100,
-            score.Value);
     }
 
     [Fact]

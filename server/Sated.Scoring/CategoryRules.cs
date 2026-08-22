@@ -31,12 +31,31 @@ public sealed class CategoryRules
     private static readonly string[] FatCategories =
         ["Salad dressings and vegetable oils", "Butter and animal fats", "Margarine", "Mayonnaise"];
 
+    private const string NutCategory = "Nuts and seeds";
+
     /// <summary>The rules this catalogue needs today.</summary>
-    public static CategoryRules Standard { get; } = new(
-        from category in FatCategories
+    // Two categories, two different axes, because the component that fails them is not the same.
+    // Olive oil scores 0.0 on satiety — the Fullness Factor floor catches anything that is
+    // almost entirely fat — while this rule was already handing it a density of 84.5, and it
+    // still graded E: satiety carries 50% of the Weight Loss lens against density's 30%, so the
+    // rule was replacing the component that was not the problem.
+    // Nuts fail the other way round. Walnuts score 1.4 on satiety and 32.3 on density, because
+    // NRF9.2 counts nutrients per calorie and cannot see that the calories are unsaturated fat.
+    // Measured in 04_delivery/11.fat-rule-axis-report: olive oil 25.3 → 48.7 and walnuts
+    // 30.4 → 48.1, with the top 30, the bottom 30 and all seven ordering pairs unmoved.
+    // The cost is in the same report and is not small: a light Italian dressing falls 39.0 → 26.7,
+    // because the category holds foods whose fat is a sixth of their calories and whose satiety
+    // was real. The category is a proxy for "mostly fat", and report 8 measured that it is a
+    // loose one.
+    public static CategoryRules Standard { get; } = new([
+        .. Replace(ScoreComponent.Satiety, FatCategories),
+        .. Replace(ScoreComponent.Density, [NutCategory])]);
+
+    private static IEnumerable<CategoryRule> Replace(
+        ScoreComponent component, string[] categories) =>
+        from category in categories
         from lens in new[] { Lens.WeightLoss, Lens.Fitness }
-        select new CategoryRule(
-            category, lens.Name, ScoreComponent.Density, FatQuality.UnsaturatedShare));
+        select new CategoryRule(category, lens.Name, component, FatQuality.UnsaturatedShare);
 
     private readonly Dictionary<(string Category, string Lens, ScoreComponent Component),
         ComponentStrategy> _byKey = [];
