@@ -34,7 +34,7 @@ var nutrients = ReadCsv("benchmark-nutrients.csv").ToDictionary(
         Sodium: Number(row[14])));
 
 var benchmark = ReadCsv("benchmark.csv")
-    .Select(row => new BenchmarkFood(row[0], row[1], row[2], row[3], row[4]))
+    .Select(row => new BenchmarkFood(row[0], row[1], row[2], row[3], row[4], row[5]))
     .ToArray();
 
 Console.WriteLine($"Set etalon: {benchmark.Length} rânduri · {nutrients.Count} alimente distincte");
@@ -104,8 +104,7 @@ return failed == 0 ? 0 : 1;
 int Tally(Lens lens, string label, BenchmarkFood[] group, int minimum, string[] mustHold, Grade[] band)
 {
     var missed = group
-        .Where(food => !Accepted(food.RequiredGrade, band)
-            .Contains(grades[(lens.Name, food.Id)].Grade))
+        .Where(food => !Holds(food, grades[(lens.Name, food.Id)].Grade, band))
         .ToArray();
 
     var blocking = missed.Where(food => mustHold.Contains(food.Id)).ToArray();
@@ -147,11 +146,35 @@ int TallyPairs(Lens lens)
 
 // The gate is a band, not the exact letter: the set asks the top 30 to come out A or B, so a food
 // required A that lands B has not failed it. Where the required grade widens the band — #8, after
-// FNDDS forced an 80% lean substitution — the wider one wins. Traps pass no band and are judged
-// on their own acceptable grade alone.
+// FNDDS forced an 80% lean substitution — the wider one wins.
 static HashSet<Grade> Accepted(string required, Grade[] band) =>
     [.. band,
        .. required.Split('/', StringSplitOptions.RemoveEmptyEntries).Select(Enum.Parse<Grade>)];
+
+// Traps pass no group band, so they carry their own direction instead. A trap exists to catch
+// one mistake, not both: C7 popcorn is there because a whole grain that looks like junk invites
+// the model to underrate it, and coming out better than asked is that trap held, not sprung.
+// C8 Cheddar is the opposite — it is there because protein invites the model to overrate cheese.
+// Without this the traps were the one group judged on the exact letter, while the 30 above and
+// the 30 below already ran on a band. The direction is read from benchmark.csv, per trap: a food
+// with no direction still has to land exactly, which is what the 60 do inside their group band.
+// Grade is ordered A to E, so a better letter compares as smaller.
+static bool Holds(BenchmarkFood food, Grade grade, Grade[] band)
+{
+    var accepted = Accepted(food.RequiredGrade, band);
+
+    if (accepted.Contains(grade))
+    {
+        return true;
+    }
+
+    return food.Direction switch
+    {
+        "under" => grade < accepted.Min(),
+        "over" => grade > accepted.Max(),
+        _ => false
+    };
+}
 
 static bool Numbered(string id, int from, int to) =>
     int.TryParse(id, out var number) && number >= from && number <= to;
@@ -236,4 +259,5 @@ static string[] SplitRow(string line)
 }
 
 record BenchmarkFood(
-    string Id, string RequiredGrade, string FdcId, string Description, string Deviation);
+    string Id, string RequiredGrade, string FdcId, string Description, string Deviation,
+    string Direction);
