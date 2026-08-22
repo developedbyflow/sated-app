@@ -15,7 +15,7 @@ public class ProteinQualityScoreTests
     {
         var score = ProteinQualityScore.Calculate(leucinePer100g: 0.623, grams: 70);
 
-        Assert.Equal(14.5, score!.Value, tolerance: 0.1);
+        Assert.Equal(14.5, score, tolerance: 0.1);
     }
 
     [Fact]

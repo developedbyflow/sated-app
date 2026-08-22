@@ -13,9 +13,23 @@ public static class ProteinQualityScore
     /// <summary>
     /// Calculates the Protein Quality Score from a food's leucine content and the amount eaten.
     /// </summary>
-    /// <param name="leucinePer100g">Grams of leucine per 100 g of food; null when the food has no leucine data.</param>
+    /// <param name="leucinePer100g">Grams of leucine per 100 g of food.</param>
+    /// <returns>A score between 0 and 100.</returns>
+    public static double Calculate(double leucinePer100g, double grams)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(grams);
+
+        var leucineEaten = leucinePer100g * grams / 100;
+
+        return Math.Min(100, leucineEaten / LeucineThresholdGrams * 100);
+    }
+
+    /// <summary>
+    /// The same score for a catalogue that may not carry leucine at all.
+    /// </summary>
+    /// <param name="leucinePer100g">Grams of leucine per 100 g, or null when unknown.</param>
     /// <returns>
-    /// A score between 0 and 100, or null when leucine data is missing. Missing data is not a 
+    /// A score between 0 and 100, or null when leucine data is missing. Missing data is not a
     /// zero — it carries on to the partial-grade path of FR-7.
     /// </returns>
     public static double? Calculate(double? leucinePer100g, double grams)
@@ -27,8 +41,6 @@ public static class ProteinQualityScore
             return null;
         }
 
-        var leucineEaten = leucinePer100g.Value * grams / 100;
-
-        return Math.Min(100, leucineEaten / LeucineThresholdGrams * 100);
+        return Calculate(leucinePer100g.Value, grams);
     }
 }

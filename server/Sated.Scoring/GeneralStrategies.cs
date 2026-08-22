@@ -34,13 +34,21 @@ public sealed class GeneralStrategies
     // rather than a raw quantity that needs a catalogue to be read against.
     public ComponentValue? ProteinQuality(FoodInput food, double grams)
     {
-        var raw = ProteinQualityScore.Calculate(food.LeucinePer100g, grams);
+        var measured = ProteinQualityScore.Calculate(food.LeucinePer100g, grams);
 
-        if (raw is null)
+        if (measured is not null)
         {
-            return null;
+            return ComponentValue.Measured(measured.Value);
         }
 
-        return ComponentValue.Measured(raw.Value);
+        // FNDDS carries no amino acid data at all, so this is the path the entire catalogue
+        // takes. Leaving the component empty instead would drop the one axis that separates
+        // Fitness from Weight Loss, and the two lenses would land on the same letter for 87.6%
+        // of the catalogue (P29). The estimate is marked as such: SM-C4 counts a guess that
+        // reads as a measurement as a failure of the product, not a shortcut in the engine.
+        var estimatedLeucine =
+            ProteinCompleteness.EstimateLeucinePer100g(food.Protein, food.Category);
+
+        return ComponentValue.Estimated(ProteinQualityScore.Calculate(estimatedLeucine, grams));
     }
 }

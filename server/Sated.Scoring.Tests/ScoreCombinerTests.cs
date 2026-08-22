@@ -72,7 +72,8 @@ public class ScoreCombinerTests
             ChickenBreast.Category, Lens.Fitness.Name, ScoreComponent.ProteinQuality,
             (food, grams) => ComponentValue.Measured(80)));
 
-        Assert.Null(combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).ProteinQuality?.Score);
+        Assert.True(
+            combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).ProteinQuality!.IsEstimated);
     }
 
     [Fact]
@@ -82,7 +83,8 @@ public class ScoreCombinerTests
             "Butter and animal fats", Lens.WeightLoss.Name, ScoreComponent.ProteinQuality,
             (food, grams) => ComponentValue.Measured(80)));
 
-        Assert.Null(combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).ProteinQuality?.Score);
+        Assert.True(
+            combiner.Combine(ChickenBreast, 100, Lens.WeightLoss).ProteinQuality!.IsEstimated);
     }
 
     [Fact]
@@ -136,7 +138,11 @@ public class ScoreCombinerTests
     [Fact]
     public void Combine_WithoutLeucineData_RedistributesFiftyThirtyToSixtyTwoFiveThirtySevenFive()
     {
-        var score = Combiner().Combine(ChickenBreast, 100, Lens.WeightLoss);
+        var combiner = CombinerWith(new CategoryRule(
+            ChickenBreast.Category, Lens.WeightLoss.Name, ScoreComponent.ProteinQuality,
+            (food, grams) => null));
+
+        var score = combiner.Combine(ChickenBreast, 100, Lens.WeightLoss);
 
         Assert.Equal(
             (62.5 * score.Satiety.Score + 37.5 * score.Density!.Score) / 100,
@@ -154,11 +160,12 @@ public class ScoreCombinerTests
     }
 
     [Fact]
-    public void Combine_WithoutLeucineData_MarksTheScorePartial()
+    public void Combine_WithoutLeucineData_IsNotPartialButSaysTheComponentWasGuessed()
     {
         var score = Combiner().Combine(ChickenBreast, 100, Lens.WeightLoss);
 
-        Assert.True(score.IsPartial);
+        Assert.False(score.IsPartial);
+        Assert.True(score.ProteinQuality!.IsEstimated);
     }
 
     [Fact]
@@ -179,12 +186,11 @@ public class ScoreCombinerTests
     }
 
     [Fact]
-    public void Combine_ZeroCalorieFoodWithoutLeucine_ScoresOnSatietyAlone()
+    public void Combine_ZeroCalorieFood_RedistributesTheDensityWeight()
     {
-        var score = Combiner().Combine(
-            SparklingWater, 100, Lens.WeightLoss);
+        var score = Combiner().Combine(SparklingWater, 100, Lens.WeightLoss);
 
-        Assert.Equal(score.Satiety.Score, score.Value);
+        Assert.Equal(score.Satiety.Score * 50 / 70, score.Value);
     }
 
     [Fact]
