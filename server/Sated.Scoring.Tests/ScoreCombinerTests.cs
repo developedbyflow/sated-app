@@ -23,6 +23,44 @@ public class ScoreCombinerTests
     private static ScoreCombiner Combiner() =>
         new(new PercentileScale(MeasuredSatiety), new PercentileScale(MeasuredDensity));
 
+    private static GeneralStrategies General() =>
+        new(new PercentileScale(MeasuredSatiety), new PercentileScale(MeasuredDensity));
+
+    [Fact]
+    public void Combine_SatietyStrategyThatReturnsNothing_Throws()
+    {
+        var general = General();
+        var combiner = new ScoreCombiner(
+            (food, grams) => null, general.Density, general.ProteinQuality);
+
+        Assert.Throws<InvalidOperationException>(
+            () => combiner.Combine(ChickenBreast, 100, Lens.WeightLoss));
+    }
+
+    [Fact]
+    public void Combine_ReplacedProteinStrategy_FillsAComponentTheGeneralFormulaLeavesEmpty()
+    {
+        var general = General();
+        var combiner = new ScoreCombiner(
+            general.Satiety, general.Density, (food, grams) => 80);
+
+        var score = combiner.Combine(ChickenBreast, 100, Lens.WeightLoss);
+
+        Assert.Equal(80, score.ProteinQuality);
+        Assert.False(score.IsPartial);
+    }
+
+    [Fact]
+    public void Combine_ReplacedDensityStrategy_OutweighsTheGeneralFormula()
+    {
+        var general = General();
+        var replaced = new ScoreCombiner(general.Satiety, (food, grams) => 0, general.ProteinQuality);
+
+        Assert.True(
+            replaced.Combine(ChickenBreast, 100, Lens.WeightLoss).Value <
+            Combiner().Combine(ChickenBreast, 100, Lens.WeightLoss).Value);
+    }
+
     [Fact]
     public void Combine_ChickenBreastUnderWeightLoss_WeightsAllThreeComponents()
     {
