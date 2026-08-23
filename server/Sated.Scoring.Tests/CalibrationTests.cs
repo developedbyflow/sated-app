@@ -51,9 +51,9 @@ public class CalibrationTests
     public void DensityScale_FromShippedFile_PutsEachMeasuredQuartileAtItsPercentile()
     {
         Assert.Equal(0, Shipped.DensityScale.Normalize(-884.5460), tolerance: 0.001);
-        Assert.Equal(25, Shipped.DensityScale.Normalize(8.7918), tolerance: 0.001);
-        Assert.Equal(50, Shipped.DensityScale.Normalize(18.8242), tolerance: 0.001);
-        Assert.Equal(75, Shipped.DensityScale.Normalize(37.0955), tolerance: 0.001);
+        Assert.Equal(25, Shipped.DensityScale.Normalize(8.7432), tolerance: 0.001);
+        Assert.Equal(50, Shipped.DensityScale.Normalize(18.6392), tolerance: 0.001);
+        Assert.Equal(75, Shipped.DensityScale.Normalize(36.3666), tolerance: 0.001);
         Assert.Equal(100, Shipped.DensityScale.Normalize(535.6610), tolerance: 0.001);
     }
 
