@@ -119,4 +119,34 @@ public class DensityScoreTests
 
         Assert.Throws<ArgumentOutOfRangeException>(() => DensityScore.Calculate(corrupt));
     }
+
+    [Fact]
+    public void Calculate_BelowTheCalorieFloor_ScalesFromTheFloor()
+    {
+        var dietCola = new DensityInput(
+            Calories: 2, Protein: 0.11, Fiber: 0,
+            VitaminA: 0, VitaminC: 0, VitaminE: 0,
+            Calcium: 3, Iron: 0.11, Magnesium: 1, Potassium: 8,
+            SaturatedFat: 0, Sodium: 8
+        );
+
+        Assert.Equal(
+            DensityScore.Calculate(dietCola with { Calories = 10 }),
+            DensityScore.Calculate(dietCola));
+    }
+
+    [Fact]
+    public void Calculate_AboveTheCalorieFloor_UsesTheCaloriesItWasGiven()
+    {
+        var dietCola = new DensityInput(
+            Calories: 2, Protein: 0.11, Fiber: 0,
+            VitaminA: 0, VitaminC: 0, VitaminE: 0,
+            Calcium: 3, Iron: 0.11, Magnesium: 1, Potassium: 8,
+            SaturatedFat: 0, Sodium: 8
+        );
+
+        Assert.NotEqual(
+            DensityScore.Calculate(dietCola with { Calories = 10 }),
+            DensityScore.Calculate(dietCola with { Calories = 20 }));
+    }
 }

@@ -19,6 +19,13 @@ public static class DensityScore
     private const double SaturatedFatDv = 20;    // g
     internal const double SodiumDv = 2300;       // mg — shared with FatQuality
 
+    // Density is stated per 100 kcal, so the scale factor is 100 / calories. Below 10 kcal that
+    // factor passes 10 and trace amounts become a full score: diet cola carries 2 kcal and scored
+    // 85 out of 100 on sodium and iron residue alone, which graded it A. Satiety has had the same
+    // guard since Story 1.3; density never got one. Measured over FNDDS: 70 foods of 5,403 sit
+    // below this floor, and the 41 vegetables under 40 kcal are untouched. See P42.
+    private const double CalorieFloor = 10;
+
     /// <summary>
     /// Calculates the Density Score from a food's per-100g nutrient values.
     /// </summary>
@@ -39,7 +46,7 @@ public static class DensityScore
             return null;
         }
 
-        var scaleTo100Kcal = 100 / food.Calories;
+        var scaleTo100Kcal = 100 / Math.Max(CalorieFloor, food.Calories);
 
         var encouraged =
               CappedPercentDv(food.Protein * scaleTo100Kcal, ProteinDv)
