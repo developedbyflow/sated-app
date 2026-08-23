@@ -2,6 +2,15 @@
   "catalogue": "FNDDS 2021-2023",
   "measuredOn": "2026-08-22",
 
+  "notes": [
+    "Letter cutoffs recalibrated twice on 2026-08-22, see 04_delivery/5 and 7: first when every food gained a protein component, then when that component moved onto a reference meal.",
+    "Olive oil takes the fat rule on satiety rather than density: satiety carries 50% of the Weight Loss lens and olive oil scores 0.0 on it, so a density of 84.5 still graded E.",
+    "Nuts take the same rule on density: NRF9.2 counts nutrients per calorie and cannot see that the calories are unsaturated fat.",
+    "The cost of both is measured in 04_delivery/11: a light Italian dressing falls from 39.0 to 26.7, because the category is a loose proxy for mostly fat.",
+    "FNDDS reports no trans fat, so the unsaturated share credits it as good. Margarine is the food this flatters.",
+    "300 g is the reference meal because it is a plausible one. Changing it changes every grade and requires refitting the cutoffs above."
+  ],
+
   "referenceMealGrams": 300,
 
   "lenses": [

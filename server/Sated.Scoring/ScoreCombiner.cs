@@ -9,8 +9,10 @@ public sealed class ScoreCombiner
     private readonly CategoryRules _rules;
 
     /// <summary>The engine with the general formula everywhere and no category rules.</summary>
-    public ScoreCombiner(PercentileScale satietyScale, PercentileScale densityScale)
-        : this(new GeneralStrategies(satietyScale, densityScale), CategoryRules.None)
+    public ScoreCombiner(
+        PercentileScale satietyScale, PercentileScale densityScale, double referenceMealGrams)
+        : this(new GeneralStrategies(satietyScale, densityScale, referenceMealGrams),
+               CategoryRules.None)
     {
     }
 

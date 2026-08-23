@@ -8,16 +8,9 @@ public sealed record Lens
 {
     private const double TotalWeight = 100;
 
-    // Two lenses, not three. FR-26 leaves the GLP-1 weights undecided, and inventing them
-    // would put a number nobody agreed on in front of users.
-    // Architecture §Butoane de reglaj moves these to a versioned JSON file; until that story
-    // exists they live here, so the engine can be exercised without loading one.
-
-    public static Lens WeightLoss { get; } =
-        new("Weight Loss", satiety: 50, density: 30, proteinQuality: 20);
-
-    public static Lens Fitness { get; } =
-        new("Fitness", satiety: 25, density: 25, proteinQuality: 50);
+    // Which lenses exist is a calibration question, not a code one: they are read from
+    // calibration.json (Story 1.12). FR-26 leaves the GLP-1 weights undecided, so the file ships
+    // two — inventing a third would put a number nobody agreed on in front of users.
 
     public Lens(string name, double satiety, double density, double proteinQuality)
     {

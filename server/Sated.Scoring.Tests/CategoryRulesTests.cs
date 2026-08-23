@@ -3,12 +3,12 @@ namespace Sated.Scoring.Tests;
 public class CategoryRulesTests
 {
     private static CategoryRule Rule(string category, ScoreComponent component) =>
-        new(category, Lens.WeightLoss.Name, component, food => ComponentValue.Measured(50));
+        new(category, Frozen.WeightLoss.Name, component, food => ComponentValue.Measured(50));
 
     [Fact]
     public void Find_PairingNobodyRegistered_ReturnsNull()
     {
-        Assert.Null(CategoryRules.None.Find("Pizza", Lens.WeightLoss, ScoreComponent.Density));
+        Assert.Null(CategoryRules.None.Find("Pizza", Frozen.WeightLoss, ScoreComponent.Density));
     }
 
     [Fact]
@@ -16,7 +16,7 @@ public class CategoryRulesTests
     {
         var rules = new CategoryRules([Rule("Butter and animal fats", ScoreComponent.Density)]);
 
-        Assert.NotNull(rules.Find("Butter and animal fats", Lens.WeightLoss, ScoreComponent.Density));
+        Assert.NotNull(rules.Find("Butter and animal fats", Frozen.WeightLoss, ScoreComponent.Density));
     }
 
     [Fact]
@@ -24,7 +24,7 @@ public class CategoryRulesTests
     {
         var rules = new CategoryRules([Rule("Butter and animal fats", ScoreComponent.Density)]);
 
-        Assert.Null(rules.Find("Butter and animal fats", Lens.WeightLoss, ScoreComponent.Satiety));
+        Assert.Null(rules.Find("Butter and animal fats", Frozen.WeightLoss, ScoreComponent.Satiety));
     }
 
     [Fact]
@@ -46,6 +46,6 @@ public class CategoryRulesTests
             Rule("Butter and animal fats", ScoreComponent.Satiety)
         ]);
 
-        Assert.NotNull(rules.Find("Butter and animal fats", Lens.WeightLoss, ScoreComponent.Satiety));
+        Assert.NotNull(rules.Find("Butter and animal fats", Frozen.WeightLoss, ScoreComponent.Satiety));
     }
 }

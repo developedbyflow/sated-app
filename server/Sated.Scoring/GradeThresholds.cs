@@ -5,24 +5,10 @@ namespace Sated.Scoring;
 /// </summary>
 public sealed class GradeThresholds
 {
-    // The 20th, 40th, 60th and 80th percentiles of the combined score, measured once on
-    // FNDDS 2021-2023 by tools/LetterThresholdQuery and then frozen (P28): a food's letter must
-    // not change because other foods joined the catalogue. Provisional in the same way as the
-    // percentile breakpoints of Story 1.6 — both are tied to the catalogue they were read from.
-    // Architecture §Butoane de reglaj moves these to a versioned JSON file, together with the
-    // lens weights and the breakpoints; until that story exists, they live here.
-    // Recalibrated 2026-08-22 after Story 1.8 gave every food a protein component: the previous
-    // cutoffs were measured when that axis was empty, and the A cutoff moved from 76.77 to 66.90.
-    // See 04_delivery/5.letter-threshold-report.
-    // Recalibrated 2026-08-22 a second time, after the protein component moved to a 300 g
-    // reference meal: the cutoffs it replaced were measured while that component occupied the
-    // bottom fifth of the scale. See 04_delivery/7.protein-scale-report.
-
-    public static GradeThresholds WeightLoss { get; } =
-        new(dStartsAt: 31.81, cStartsAt: 45.55, bStartsAt: 58.64, aStartsAt: 71.77);
-
-    public static GradeThresholds Fitness { get; } =
-        new(dStartsAt: 32.80, cStartsAt: 46.89, bStartsAt: 57.18, aStartsAt: 71.50);
+    // The cutoffs themselves are measured, frozen (P28) and read from calibration.json, together
+    // with the lens they belong to — a food's letter must not change because other foods joined
+    // the catalogue, and the file carries which catalogue and when. This class only decides which
+    // letter a score falls into.
 
     private readonly double _dStartsAt;
     private readonly double _cStartsAt;
@@ -50,18 +36,6 @@ public sealed class GradeThresholds
         _bStartsAt = bStartsAt;
         _aStartsAt = aStartsAt;
     }
-
-    /// <summary>
-    /// The thresholds calibrated for a lens. Throws for a lens nobody has calibrated, rather
-    /// than falling back to another lens's numbers and grading everything slightly wrong.
-    /// </summary>
-    public static GradeThresholds For(Lens lens) => lens.Name switch
-    {
-        "Weight Loss" => WeightLoss,
-        "Fitness" => Fitness,
-        _ => throw new ArgumentException(
-            $"No calibrated thresholds for the {lens.Name} lens.", nameof(lens))
-    };
 
     /// <param name="score">A combined score between 0 and 100.</param>
     public Grade GradeFor(double score) =>

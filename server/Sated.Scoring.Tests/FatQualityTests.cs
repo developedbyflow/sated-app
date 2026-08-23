@@ -51,40 +51,7 @@ public class FatQualityTests
         Assert.Null(FatQuality.UnsaturatedShare(OliveOil with { Calories = 0 }));
     }
 
-    [Fact]
-    public void Standard_CoversBothLensesForEveryFatCategory()
-    {
-        foreach (var food in new[] { OliveOil, Butter, Mayonnaise })
-        {
-            Assert.NotNull(CategoryRules.Standard.Find(
-                food.Category, Lens.WeightLoss, ScoreComponent.Satiety));
-            Assert.NotNull(CategoryRules.Standard.Find(
-                food.Category, Lens.Fitness, ScoreComponent.Satiety));
-        }
-    }
 
-    [Fact]
-    public void Standard_LeavesTheDensityOfTheFatCategoriesToTheGeneralFormula()
-    {
-        Assert.Null(CategoryRules.Standard.Find(
-            OliveOil.Category, Lens.WeightLoss, ScoreComponent.Density));
-    }
 
-    [Fact]
-    public void Standard_ReplacesTheDensityOfNutsAndNotTheirSatiety()
-    {
-        Assert.NotNull(CategoryRules.Standard.Find(
-            "Nuts and seeds", Lens.WeightLoss, ScoreComponent.Density));
-        Assert.Null(CategoryRules.Standard.Find(
-            "Nuts and seeds", Lens.WeightLoss, ScoreComponent.Satiety));
-    }
 
-    [Fact]
-    public void Standard_LeavesEveryOtherCategoryToTheGeneralFormula()
-    {
-        Assert.Null(CategoryRules.Standard.Find(
-            "Chicken, whole pieces", Lens.WeightLoss, ScoreComponent.Satiety));
-        Assert.Null(CategoryRules.Standard.Find(
-            "Chicken, whole pieces", Lens.WeightLoss, ScoreComponent.Density));
-    }
 }

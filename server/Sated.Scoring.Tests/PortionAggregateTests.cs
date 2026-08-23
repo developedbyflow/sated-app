@@ -32,7 +32,8 @@ public class PortionAggregateTests
         Calcium: 15, Iron: 1, Magnesium: 29, Potassium: 256, SaturatedFat: 1, Sodium: 74);
 
     private static ScoreCombiner Combiner() =>
-        new(new PercentileScale(MeasuredSatiety), new PercentileScale(MeasuredDensity));
+        new(new PercentileScale(MeasuredSatiety), new PercentileScale(MeasuredDensity),
+            Frozen.ReferenceMealGrams);
 
     [Fact]
     public void Aggregate_SinglePortion_RestatesTheFoodPer100g()
@@ -64,10 +65,10 @@ public class PortionAggregateTests
     {
         var combiner = Combiner();
         var mixture = PortionAggregate.Aggregate([new Portion(Spinach, 100), new Portion(Butter, 100)]);
-        var averaged = (combiner.Combine(Spinach, Lens.WeightLoss).Value
-            + combiner.Combine(Butter, Lens.WeightLoss).Value) / 2;
+        var averaged = (combiner.Combine(Spinach, Frozen.WeightLoss).Value
+            + combiner.Combine(Butter, Frozen.WeightLoss).Value) / 2;
 
-        var score = combiner.Combine(mixture, Lens.WeightLoss).Value;
+        var score = combiner.Combine(mixture, Frozen.WeightLoss).Value;
 
         Assert.True(score < averaged);
     }
@@ -76,13 +77,17 @@ public class PortionAggregateTests
     public void Aggregate_OnlyFatPortions_LosesTheCategoryRule()
     {
         var combiner = new ScoreCombiner(
-            new GeneralStrategies(new PercentileScale(MeasuredSatiety), new PercentileScale(MeasuredDensity)),
-            CategoryRules.Standard);
+            new GeneralStrategies(
+                new PercentileScale(MeasuredSatiety), new PercentileScale(MeasuredDensity),
+                Frozen.ReferenceMealGrams),
+            new CategoryRules([new CategoryRule(
+                Butter.Category, Frozen.WeightLoss.Name, ScoreComponent.Satiety,
+                FatQuality.UnsaturatedShare)]));
         var mixture = PortionAggregate.Aggregate([new Portion(Butter, 100)]);
 
-        var score = combiner.Combine(mixture, Lens.WeightLoss).Value;
+        var score = combiner.Combine(mixture, Frozen.WeightLoss).Value;
 
-        Assert.NotEqual(combiner.Combine(Butter, Lens.WeightLoss).Value, score);
+        Assert.NotEqual(combiner.Combine(Butter, Frozen.WeightLoss).Value, score);
     }
 
     [Fact]
@@ -161,7 +166,7 @@ public class PortionAggregateTests
     {
         var mixture = PortionAggregate.Aggregate([new Portion(Rice, 100)]);
 
-        var score = Combiner().Combine(mixture, Lens.Fitness);
+        var score = Combiner().Combine(mixture, Frozen.Fitness);
 
         Assert.True(score.ProteinQuality!.IsEstimated);
     }

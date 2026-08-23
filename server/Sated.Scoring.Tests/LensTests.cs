@@ -2,21 +2,7 @@ namespace Sated.Scoring.Tests;
 
 public class LensTests
 {
-    [Fact]
-    public void WeightLoss_MatchesFr25()
-    {
-        Assert.Equal(50, Lens.WeightLoss.Satiety);
-        Assert.Equal(30, Lens.WeightLoss.Density);
-        Assert.Equal(20, Lens.WeightLoss.ProteinQuality);
-    }
 
-    [Fact]
-    public void Fitness_MatchesFr25()
-    {
-        Assert.Equal(25, Lens.Fitness.Satiety);
-        Assert.Equal(25, Lens.Fitness.Density);
-        Assert.Equal(50, Lens.Fitness.ProteinQuality);
-    }
 
     [Fact]
     public void Constructor_WeightsThatDoNotAddUp_Throws()

@@ -9,7 +9,8 @@ using Sated.Scoring;
 var calibration = Calibration.Load();
 
 var combiner = new ScoreCombiner(
-    new GeneralStrategies(calibration.SatietyScale, calibration.DensityScale),
+    new GeneralStrategies(
+        calibration.SatietyScale, calibration.DensityScale, calibration.ReferenceMealGrams),
     calibration.Rules);
 
 var nutrients = ReadCsv("benchmark-nutrients.csv").ToDictionary(
@@ -96,7 +97,7 @@ foreach (var lens in lenses)
     // P35: the 30/30/8 criteria are asked of Weight Loss only — it is the one lens whose required
     // grades were written blind. The ordering pairs are asked of both: they do not depend on the
     // goal, so they are what stands in for a second column of 60 letters.
-    if (lens.Name == Lens.WeightLoss.Name)
+    if (lens.Name == "Weight Loss")
     {
         failed += Tally(lens, "cele 30 de sus", top, 27, ["1", "8", "30"], [Grade.A, Grade.B]);
         failed += Tally(lens, "cele 30 de jos", bottom, 27, ["40"], [Grade.D, Grade.E]);

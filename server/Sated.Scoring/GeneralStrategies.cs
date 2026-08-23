@@ -7,11 +7,14 @@ public sealed class GeneralStrategies
 {
     private readonly PercentileScale _satietyScale;
     private readonly PercentileScale _densityScale;
+    private readonly double _referenceMealGrams;
 
-    public GeneralStrategies(PercentileScale satietyScale, PercentileScale densityScale)
+    public GeneralStrategies(
+        PercentileScale satietyScale, PercentileScale densityScale, double referenceMealGrams)
     {
         _satietyScale = satietyScale;
         _densityScale = densityScale;
+        _referenceMealGrams = referenceMealGrams;
     }
 
     public ComponentValue? Satiety(FoodInput food) =>
@@ -38,7 +41,7 @@ public sealed class GeneralStrategies
     public ComponentValue? ProteinQuality(FoodInput food)
     {
         var measured = ProteinQualityScore.Calculate(
-            food.LeucinePer100g, ProteinQualityScore.ReferenceMealGrams);
+            food.LeucinePer100g, _referenceMealGrams);
 
         if (measured is not null)
         {
@@ -56,6 +59,6 @@ public sealed class GeneralStrategies
             ProteinCompleteness.EstimateLeucinePer100g(food.Protein, food.Category);
 
         return ComponentValue.Estimated(ProteinQualityScore.Calculate(
-            estimatedLeucine, ProteinQualityScore.ReferenceMealGrams));
+            estimatedLeucine, _referenceMealGrams));
     }
 }

@@ -10,25 +10,29 @@ public class CalibrationTests
         Path.Combine(AppContext.BaseDirectory, "calibration.json");
 
     [Fact]
-    public void Lenses_FromShippedFile_MatchTheWeightsStillInCode()
+    public void Lenses_FromShippedFile_MatchTheFrozenWeights()
     {
         var lens = Shipped.Lenses.Single(candidate => candidate.Name == "Weight Loss");
 
-        Assert.Equal(Lens.WeightLoss.Satiety, lens.Satiety);
-        Assert.Equal(Lens.WeightLoss.Density, lens.Density);
-        Assert.Equal(Lens.WeightLoss.ProteinQuality, lens.ProteinQuality);
+        Assert.Equal(Frozen.WeightLoss.Satiety, lens.Satiety);
+        Assert.Equal(Frozen.WeightLoss.Density, lens.Density);
+        Assert.Equal(Frozen.WeightLoss.ProteinQuality, lens.ProteinQuality);
     }
 
     [Fact]
-    public void ThresholdsFor_EachLens_GradeEveryScoreLikeTheCutoffsStillInCode()
+    public void ThresholdsFor_EachLens_GradeEveryScoreLikeTheFrozenCutoffs()
     {
-        foreach (var lens in new[] { Lens.WeightLoss, Lens.Fitness })
+        var frozen = new[]
+        {
+            (Lens: Frozen.WeightLoss, Cutoffs: Frozen.WeightLossCutoffs),
+            (Lens: Frozen.Fitness, Cutoffs: Frozen.FitnessCutoffs)
+        };
+
+        foreach (var (lens, cutoffs) in frozen)
         {
             for (var score = 0.0; score <= 100.0; score += 0.01)
             {
-                Assert.Equal(
-                    GradeThresholds.For(lens).GradeFor(score),
-                    Shipped.ThresholdsFor(lens).GradeFor(score));
+                Assert.Equal(cutoffs.GradeFor(score), Shipped.ThresholdsFor(lens).GradeFor(score));
             }
         }
     }
@@ -54,22 +58,51 @@ public class CalibrationTests
     }
 
     [Fact]
-    public void Rules_FromShippedFile_ReplaceTheSameComponentsAsTheTableStillInCode()
+    public void Rules_FromShippedFile_ReplaceTheSatietyOfEveryFatCategoryUnderBothLenses()
     {
-        Assert.NotNull(Shipped.Rules.Find(
-            "Salad dressings and vegetable oils", Lens.WeightLoss, ScoreComponent.Satiety));
-        Assert.NotNull(Shipped.Rules.Find(
-            "Nuts and seeds", Lens.Fitness, ScoreComponent.Density));
-        Assert.Null(Shipped.Rules.Find(
-            "Nuts and seeds", Lens.Fitness, ScoreComponent.Satiety));
-        Assert.Null(Shipped.Rules.Find(
-            "Chicken, whole pieces", Lens.WeightLoss, ScoreComponent.Density));
+        var fatCategories = new[]
+        {
+            "Salad dressings and vegetable oils", "Butter and animal fats", "Margarine", "Mayonnaise"
+        };
+
+        foreach (var category in fatCategories)
+        {
+            Assert.NotNull(Shipped.Rules.Find(category, Frozen.WeightLoss, ScoreComponent.Satiety));
+            Assert.NotNull(Shipped.Rules.Find(category, Frozen.Fitness, ScoreComponent.Satiety));
+            Assert.Null(Shipped.Rules.Find(category, Frozen.WeightLoss, ScoreComponent.Density));
+        }
     }
 
     [Fact]
-    public void ReferenceMealGrams_FromShippedFile_MatchesTheConstantStillInCode()
+    public void Rules_FromShippedFile_ReplaceTheDensityOfNutsAndNotTheirSatiety()
     {
-        Assert.Equal(ProteinQualityScore.ReferenceMealGrams, Shipped.ReferenceMealGrams);
+        Assert.NotNull(Shipped.Rules.Find(
+            "Nuts and seeds", Frozen.WeightLoss, ScoreComponent.Density));
+        Assert.Null(Shipped.Rules.Find(
+            "Nuts and seeds", Frozen.WeightLoss, ScoreComponent.Satiety));
+    }
+
+    [Fact]
+    public void Rules_FromShippedFile_LeaveEveryOtherCategoryToTheGeneralFormula()
+    {
+        Assert.Null(Shipped.Rules.Find(
+            "Chicken, whole pieces", Frozen.WeightLoss, ScoreComponent.Satiety));
+        Assert.Null(Shipped.Rules.Find(
+            "Chicken, whole pieces", Frozen.WeightLoss, ScoreComponent.Density));
+    }
+
+    [Fact]
+    public void ReferenceMealGrams_FromShippedFile_MatchesTheFrozenMeal()
+    {
+        Assert.Equal(Frozen.ReferenceMealGrams, Shipped.ReferenceMealGrams);
+    }
+
+    [Fact]
+    public void Load_FileWithoutNotes_Throws()
+    {
+        var path = CopyWith("\"notes\"", "\"remarks\"");
+
+        Assert.Throws<JsonException>(() => Calibration.Load(path));
     }
 
     [Fact]

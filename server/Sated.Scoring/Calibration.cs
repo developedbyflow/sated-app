@@ -42,6 +42,7 @@ public sealed class Calibration
     {
         Catalogue = file.Catalogue;
         MeasuredOn = file.MeasuredOn;
+        Notes = file.Notes;
         ReferenceMealGrams = file.ReferenceMealGrams;
 
         Lenses = [.. file.Lenses.Select(lens =>
@@ -72,6 +73,9 @@ public sealed class Calibration
     public string Catalogue { get; }
 
     public string MeasuredOn { get; }
+
+    /// <summary>Why these numbers are what they are: the file carries its own reasoning.</summary>
+    public IReadOnlyList<string> Notes { get; }
     public double ReferenceMealGrams { get; }
     public Lens[] Lenses { get; }
     public PercentileScale SatietyScale { get; }
@@ -101,6 +105,7 @@ internal sealed record CalibrationFile
 {
     public required string Catalogue { get; init; }
     public required string MeasuredOn { get; init; }
+    public required string[] Notes { get; init; }
     public required double ReferenceMealGrams { get; init; }
     public required LensFile[] Lenses { get; init; }
     public required RuleFile[] CategoryRules { get; init; }
