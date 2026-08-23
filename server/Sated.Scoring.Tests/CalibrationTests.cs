@@ -83,6 +83,23 @@ public class CalibrationTests
     }
 
     [Fact]
+    public void Rules_FromShippedFile_SilenceTheSatietyOfDrinksThatCarryCaloriesAndOnlyThose()
+    {
+        foreach (var category in new[] { "Soft drinks", "Sport and energy drinks" })
+        {
+            Assert.NotNull(Shipped.Rules.Find(category, Frozen.WeightLoss, ScoreComponent.Satiety));
+            Assert.NotNull(Shipped.Rules.Find(category, Frozen.Fitness, ScoreComponent.Satiety));
+            Assert.Null(Shipped.Rules.Find(category, Frozen.WeightLoss, ScoreComponent.Density));
+        }
+
+        foreach (var category in new[] { "Diet soft drinks", "Diet sport and energy drinks" })
+        {
+            Assert.Null(Shipped.Rules.Find(category, Frozen.WeightLoss, ScoreComponent.Satiety));
+            Assert.Null(Shipped.Rules.Find(category, Frozen.Fitness, ScoreComponent.Satiety));
+        }
+    }
+
+    [Fact]
     public void Rules_FromShippedFile_LeaveEveryOtherCategoryToTheGeneralFormula()
     {
         Assert.Null(Shipped.Rules.Find(
