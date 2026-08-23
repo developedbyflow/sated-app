@@ -60,9 +60,13 @@ public sealed class CategoryRules
     private readonly Dictionary<(string Category, string Lens, ScoreComponent Component),
         ComponentStrategy> _byKey = [];
 
+    private readonly CategoryRule[] _rules;
+
     public CategoryRules(IEnumerable<CategoryRule> rules)
     {
-        foreach (var rule in rules)
+        _rules = [.. rules];
+
+        foreach (var rule in _rules)
         {
             var key = Key(rule.Category, rule.LensName, rule.Component);
 
@@ -76,6 +80,12 @@ public sealed class CategoryRules
             }
         }
     }
+
+    /// <summary>
+    /// Every pairing the table holds, so a caller can report which ones a run exercised. A rule
+    /// no food matched is not an error: the category may simply be absent from that food set.
+    /// </summary>
+    public IReadOnlyList<CategoryRule> All => _rules;
 
     /// <returns>The strategy registered for this pairing, or null to use the general formula.</returns>
     public ComponentStrategy? Find(string category, Lens lens, ScoreComponent component) =>

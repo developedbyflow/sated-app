@@ -2,18 +2,15 @@ using System.Globalization;
 using Sated.Scoring;
 
 // The G0 harness (Story 1.11). It reads only committed files: the 68 benchmark foods with their
-// nutrients, the grades required of them, and the frozen percentile breakpoints. The 63 MB FNDDS
-// catalogue is deliberately not one of them — a gate that cannot run on a push is not a gate.
-// Architecture §Butoane de reglaj (Story 1.12) gathers the breakpoints with the other four
-// calibration tables; until that story exists they are read from the tool that measured them.
+// nutrients, the grades required of them, and calibration.json — the five tables the engine is
+// told rather than computes (Story 1.12). The 63 MB FNDDS catalogue is deliberately not one of
+// them: a gate that cannot run on a push is not a gate.
 
-var breakpoints = ReadCsv("../../tools/GradeDistributionQuery/percentiles.csv");
+var calibration = Calibration.Load();
 
 var combiner = new ScoreCombiner(
-    new GeneralStrategies(
-        new PercentileScale([.. breakpoints.Select(row => Number(row[1]))]),
-        new PercentileScale([.. breakpoints.Select(row => Number(row[2]))])),
-    CategoryRules.Standard);
+    new GeneralStrategies(calibration.SatietyScale, calibration.DensityScale),
+    calibration.Rules);
 
 var nutrients = ReadCsv("benchmark-nutrients.csv").ToDictionary(
     row => row[0],
@@ -38,13 +35,14 @@ var benchmark = ReadCsv("benchmark.csv")
     .ToArray();
 
 Console.WriteLine($"Set etalon: {benchmark.Length} rânduri · {nutrients.Count} alimente distincte");
+Console.WriteLine($"Calibrare: {calibration.Catalogue}, măsurată {calibration.MeasuredOn}");
 
-var lenses = new[] { Lens.WeightLoss, Lens.Fitness };
+var lenses = calibration.Lenses;
 var grades = new Dictionary<(string Lens, string Id), (double Score, Grade Grade)>();
 
 foreach (var lens in lenses)
 {
-    var thresholds = GradeThresholds.For(lens);
+    var thresholds = calibration.ThresholdsFor(lens);
 
     Console.WriteLine();
     Console.WriteLine($"── {lens.Name} ".PadRight(100, '─'));
@@ -62,8 +60,26 @@ foreach (var lens in lenses)
         Console.WriteLine($"{food.Id,-4} {Truncate(food.Description, 34),-34} " +
             $"{food.RequiredGrade,6} {score.Value,6:F1} {grade,4} " +
             $"{score.Satiety.Score,6:F1} {Cell(score.Density),6} {Cell(score.ProteinQuality),6}" +
-            $"  {Signs(food, input, score, lens)}");
+            $"  {Signs(food, input, score, lens, calibration.Rules)}");
     }
+}
+
+// Which category rules this set actually exercises. Never a failure: two of the five categories
+// with a rule have no food among the 68, and a rule for a category FNDDS holds but the benchmark
+// does not is still a correct rule. Checking that a rule names a category the catalogue really
+// has needs the catalogue itself, so it belongs to a tool that reads FNDDS — not to a gate whose
+// whole point is running without those 63 MB.
+var setCategories = nutrients.Values
+    .Select(food => food.Category)
+    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+Console.WriteLine();
+Console.WriteLine("── Reguli de categorie ".PadRight(100, '─'));
+
+foreach (var rule in calibration.Rules.All.DistinctBy(rule => (rule.Category, rule.Component)))
+{
+    Console.WriteLine($"{(setCategories.Contains(rule.Category) ? "atinsă  " : "neatinsă")} " +
+        $"{rule.Category,-40} {rule.Component}");
 }
 
 var pairs = ReadCsv("benchmark-pairs.csv");
@@ -182,7 +198,8 @@ static bool Numbered(string id, int from, int to) =>
 // Everything the report has to show beyond the grade itself: whether a component was missing,
 // whether one was guessed, which category rule fired, and whether FNDDS forced a substitution.
 // The last one matters most — a substituted food that grades badly is not the formula's fault.
-static string Signs(BenchmarkFood food, FoodInput input, CombinedScore score, Lens lens)
+static string Signs(
+    BenchmarkFood food, FoodInput input, CombinedScore score, Lens lens, CategoryRules rules)
 {
     var signs = new List<string>();
 
@@ -198,8 +215,7 @@ static string Signs(BenchmarkFood food, FoodInput input, CombinedScore score, Le
 
     var ruled = new[]
         { ScoreComponent.Satiety, ScoreComponent.Density, ScoreComponent.ProteinQuality }
-        .Where(component =>
-            CategoryRules.Standard.Find(input.Category, lens, component) is not null)
+        .Where(component => rules.Find(input.Category, lens, component) is not null)
         .ToArray();
 
     if (ruled.Length > 0)
