@@ -115,6 +115,51 @@ public class CalibrationTests
     }
 
     [Fact]
+    public void DensityFloor_FromShippedFile_MatchesTheFrozenFloor()
+    {
+        Assert.Equal(Frozen.DensityFloor, Shipped.DensityFloor);
+    }
+
+    [Fact]
+    public void GradeFor_BaconBelowTheDensityFloor_CannotBeatE()
+    {
+        var bacon = new CombinedScore(
+            47.5,
+            ComponentValue.Measured(52.2),
+            ComponentValue.Measured(4.5),
+            ComponentValue.Measured(100));
+
+        Assert.Equal(Grade.E, Shipped.GradeFor(bacon, Frozen.WeightLoss));
+    }
+
+    [Fact]
+    public void GradeFor_FlaxseedOilBelowTheFloorButInARuledCategory_KeepsItsLetter()
+    {
+        var flaxseedOil = new CombinedScore(
+            47.44,
+            ComponentValue.Measured(91.02),
+            ComponentValue.Measured(5.78),
+            ComponentValue.Measured(0.97))
+        {
+            CategoryIsRuled = true
+        };
+
+        Assert.Equal(Grade.C, Shipped.GradeFor(flaxseedOil, Frozen.WeightLoss));
+    }
+
+    [Fact]
+    public void GradeFor_WaterWithNoDensityAtAll_IsNotFloored()
+    {
+        var water = new CombinedScore(
+            68.6,
+            ComponentValue.Measured(96),
+            Density: null,
+            ProteinQuality: ComponentValue.Measured(0));
+
+        Assert.Equal(Grade.B, Shipped.GradeFor(water, Frozen.WeightLoss));
+    }
+
+    [Fact]
     public void Load_FileWithoutNotes_Throws()
     {
         var path = CopyWith("\"notes\"", "\"remarks\"");

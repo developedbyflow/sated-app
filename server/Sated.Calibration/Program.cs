@@ -43,8 +43,6 @@ var grades = new Dictionary<(string Lens, string Id), (double Score, Grade Grade
 
 foreach (var lens in lenses)
 {
-    var thresholds = calibration.ThresholdsFor(lens);
-
     Console.WriteLine();
     Console.WriteLine($"── {lens.Name} ".PadRight(100, '─'));
     Console.WriteLine($"{"#",-4} {"aliment",-34} {"cerut",6} {"scor",6} {"dat",4} " +
@@ -54,7 +52,7 @@ foreach (var lens in lenses)
     {
         var input = nutrients[food.FdcId];
         var score = combiner.Combine(input, lens);
-        var grade = thresholds.GradeFor(score.Value);
+        var grade = calibration.GradeFor(score, lens);
 
         grades[(lens.Name, food.Id)] = (score.Value, grade);
 

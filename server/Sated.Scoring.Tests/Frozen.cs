@@ -18,4 +18,6 @@ internal static class Frozen
         new(dStartsAt: 32.80, cStartsAt: 46.89, bStartsAt: 57.18, aStartsAt: 71.50);
 
     public const double ReferenceMealGrams = 300;
+
+    public const double DensityFloor = 8;
 }

@@ -57,7 +57,10 @@ public sealed class ScoreCombiner
             usedWeight += lens.ProteinQuality;
         }
 
-        return new CombinedScore(weighted / usedWeight, satiety, density, proteinQuality);
+        return new CombinedScore(weighted / usedWeight, satiety, density, proteinQuality)
+        {
+            CategoryIsRuled = _rules.Has(food.Category, lens)
+        };
     }
 
     private ComponentValue? Component(

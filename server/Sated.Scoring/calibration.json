@@ -9,10 +9,13 @@
     "The cost of both is measured in 04_delivery/11: a light Italian dressing falls from 39.0 to 26.7, because the category is a loose proxy for mostly fat.",
     "FNDDS reports no trans fat, so the unsaturated share credits it as good. Margarine is the food this flatters.",
     "300 g is the reference meal because it is a plausible one. Changing it changes every grade and requires refitting the cutoffs above.",
-    "Soft drinks and sport and energy drinks take a rule on satiety, not density: the Fullness Factor pays a food for having few calories per 100 g, and a soda collects all of it \u2014 cola scores 91.0 where chicken breast scores 86.4. The diet categories are deliberately absent; they carry no calories to dilute, and their fault was the density denominator instead."
+    "Soft drinks and sport and energy drinks take a rule on satiety, not density: the Fullness Factor pays a food for having few calories per 100 g, and a soda collects all of it \u2014 cola scores 91.0 where chicken breast scores 86.4. The diet categories are deliberately absent; they carry no calories to dilute, and their fault was the density denominator instead.",
+    "The density floor is 8, not 15: at 15 the cottage cheese dry curd falls from B to E, and without exempting the ruled categories 28 oils and dressings fall too. Measured over the whole catalogue, the floor moves 134 foods, almost all of them cured meats, sausages, fatty cheeses, dips and pickles."
   ],
 
   "referenceMealGrams": 300,
+
+  "densityFloor": 8,
 
   "lenses": [
     {

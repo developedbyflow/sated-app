@@ -45,6 +45,7 @@ public sealed class Calibration
         MeasuredOn = file.MeasuredOn;
         Notes = file.Notes;
         ReferenceMealGrams = file.ReferenceMealGrams;
+        DensityFloor = file.DensityFloor;
 
         Lenses = [.. file.Lenses.Select(lens =>
             new Lens(lens.Name, lens.Satiety, lens.Density, lens.ProteinQuality))];
@@ -78,6 +79,9 @@ public sealed class Calibration
     /// <summary>Why these numbers are what they are: the file carries its own reasoning.</summary>
     public IReadOnlyList<string> Notes { get; }
     public double ReferenceMealGrams { get; }
+
+    /// <summary>The density below which no food may beat E, whatever its other components (P44).</summary>
+    public double DensityFloor { get; }
     public Lens[] Lenses { get; }
     public PercentileScale SatietyScale { get; }
     public PercentileScale DensityScale { get; }
@@ -92,6 +96,18 @@ public sealed class Calibration
             ? thresholds
             : throw new ArgumentException(
                 $"No calibrated thresholds for the {lens.Name} lens.", nameof(lens));
+
+    /// <summary>The letter a score earns under a lens, once the density floor has had its say.</summary>
+    // A weighted average lets one catastrophic component be outvoted. Bacon scores 4.5 on density
+    // and 100 on protein: the engine had already diagnosed the food correctly and was simply
+    // outnumbered, coming out C under Weight Loss and B under Fitness. No weighting repairs that,
+    // and no category rule either — the strategy it would need does not exist as a measurement.
+    // A food with no density is never floored: null compares false against the floor, which is the
+    // answer wanted here. Water has no density to be bad at.
+    public Grade GradeFor(CombinedScore score, Lens lens) =>
+        !score.CategoryIsRuled && score.Density?.Score < DensityFloor
+            ? Grade.E
+            : ThresholdsFor(lens).GradeFor(score.Value);
 
     private static ComponentStrategy StrategyNamed(string name) =>
         KnownStrategies.TryGetValue(name, out var strategy)
@@ -108,6 +124,7 @@ internal sealed record CalibrationFile
     public required string MeasuredOn { get; init; }
     public required string[] Notes { get; init; }
     public required double ReferenceMealGrams { get; init; }
+    public required double DensityFloor { get; init; }
     public required LensFile[] Lenses { get; init; }
     public required RuleFile[] CategoryRules { get; init; }
     public required PercentileFile Percentiles { get; init; }

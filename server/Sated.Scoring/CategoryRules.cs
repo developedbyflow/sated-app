@@ -52,6 +52,16 @@ public sealed class CategoryRules
     /// </summary>
     public IReadOnlyList<CategoryRule> All => _rules;
 
+    /// <returns>
+    /// True when this category carries any rule at all under this lens, on any component. Not the
+    /// question Find answers: olive oil's rule sits on satiety, and what exempts it from the
+    /// density floor is that somebody judged the category, not which component was replaced.
+    /// </returns>
+    public bool Has(string category, Lens lens) =>
+        _rules.Any(rule =>
+            rule.Category.Equals(category, StringComparison.OrdinalIgnoreCase) &&
+            rule.LensName.Equals(lens.Name, StringComparison.OrdinalIgnoreCase));
+
     /// <returns>The strategy registered for this pairing, or null to use the general formula.</returns>
     public ComponentStrategy? Find(string category, Lens lens, ScoreComponent component) =>
         _byKey.GetValueOrDefault(Key(category, lens.Name, component));
