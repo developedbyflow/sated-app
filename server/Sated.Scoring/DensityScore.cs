@@ -24,7 +24,7 @@ public static class DensityScore
     // 85 out of 100 on sodium and iron residue alone, which graded it A. Satiety has had the same
     // guard since Story 1.3; density never got one. Measured over FNDDS: 70 foods of 5,403 sit
     // below this floor, and the 41 vegetables under 40 kcal are untouched. See P42.
-    private const double CalorieFloor = 10;
+    internal const double CalorieFloor = 10;
 
     /// <summary>
     /// Calculates the Density Score from a food's per-100g nutrient values.

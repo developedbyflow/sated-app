@@ -4,14 +4,16 @@
 
   "notes": [
     "Letter cutoffs recalibrated twice on 2026-08-22, see 04_delivery/5 and 7: first when every food gained a protein component, then when that component moved onto a reference meal.",
-    "Olive oil takes the fat rule on satiety rather than density: satiety carries 50% of the Weight Loss lens and olive oil scores 0.0 on it, so a density of 84.5 still graded E.",
-    "Nuts take the same rule on density: NRF9.2 counts nutrients per calorie and cannot see that the calories are unsaturated fat.",
+    "Salad dressings and vegetable oils take the fat rule on satiety rather than density: satiety carries 50% of the Weight Loss lens and olive oil scores 0.0 on it, so a density of 84.5 still graded E. Butter and animal fats, Margarine and Mayonnaise carry the same rule for the same reason.",
+    "Nuts and seeds take the same rule on density: NRF9.2 counts nutrients per calorie and cannot see that the calories are unsaturated fat.",
     "The cost of both is measured in 04_delivery/11: a light Italian dressing falls from 39.0 to 26.7, because the category is a loose proxy for mostly fat.",
-    "FNDDS reports no trans fat, so the unsaturated share credits it as good. Margarine is the food this flatters.",
+    "FNDDS reports no trans fat. SR Legacy does, reachable through the same recipe join as leucine, and it puts stick margarine at 14.9 g per 100 g \u2014 but those are 2018 values, from before the FDA ban on partially hydrogenated oils took full effect on 1 January 2020. FNDDS 2021-2023 is from after it, so a margarine reading 80% unsaturated there really is. Grading it on the 2018 number would grade a product that no longer exists.",
     "300 g is the reference meal because it is a plausible one. Changing it changes every grade and requires refitting the cutoffs above.",
     "Soft drinks and sport and energy drinks take a rule on satiety, not density: the Fullness Factor pays a food for having few calories per 100 g, and a soda collects all of it \u2014 cola scores 91.0 where chicken breast scores 86.4. The diet categories are deliberately absent; they carry no calories to dilute, and their fault was the density denominator instead.",
     "The density floor is 8, not 15: at 15 the cottage cheese dry curd falls from B to E, and without exempting the ruled categories 28 oils and dressings fall too. Measured over the whole catalogue, the floor moves 134 foods, almost all of them cured meats, sausages, fatty cheeses, dips and pickles.",
-    "The density percentiles were re-measured on 2026-08-23, after the calorie floor changed the formula. The satiety column is untouched because its formula was not. The letter cutoffs above were deliberately not refitted: across the benchmark the scores moved 0.09 on average and 0.30 at most, and exactly one letter changed \u2014 black beans reaching the A it is asked for under Fitness. Refitting would move every food's letter for a reason that is not the food, which is what P28 exists to prevent."
+    "The density percentiles were re-measured on 2026-08-23, after the calorie floor changed the formula. The satiety column is untouched because its formula was not. The letter cutoffs above were deliberately not refitted: across the benchmark the scores moved 0.09 on average and 0.30 at most, and exactly one letter changed \u2014 black beans reaching the A it is asked for under Fitness. Refitting would move every food's letter for a reason that is not the food, which is what P28 exists to prevent.",
+    "Diet sport and energy drinks take the same satiety rule as their sugared twins (P47). The diet soft drinks deliberately do not: a diet cola is water with sweetener and lands C, while an energy drink is a fortified 4 kcal that collected a density of 91.2 and graded A. Powerade Zero carries 0 kcal, so it had no density at all and was scored on satiety alone, coming out B \u2014 the same letter as tap water. Four letters move, all four wrong today.",
+    "The density floor does not fire on a density the calorie floor produced (P49): below 10 kcal the number was divided by 10 rather than by the food's own calories, so it describes no food. Three letters move, all of them up and all of them right: broth, diet iced tea and flavoured water leave E for C."
   ],
 
   "referenceMealGrams": 300,
@@ -126,6 +128,18 @@
     },
     {
       "category": "Sport and energy drinks",
+      "lens": "Fitness",
+      "component": "Satiety",
+      "strategy": "noSatiety"
+    },
+    {
+      "category": "Diet sport and energy drinks",
+      "lens": "Weight Loss",
+      "component": "Satiety",
+      "strategy": "noSatiety"
+    },
+    {
+      "category": "Diet sport and energy drinks",
       "lens": "Fitness",
       "component": "Satiety",
       "strategy": "noSatiety"

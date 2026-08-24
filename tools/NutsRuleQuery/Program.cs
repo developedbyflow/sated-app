@@ -161,8 +161,8 @@ foreach (var lens in shipped.Lenses)
         var food = nutrients[row.FdcId];
         var old = before.Combine(food, lens).Value;
         var fresh = after.Combine(food, lens).Value;
-        var oldGrade = thresholds.GradeFor(old);
-        var freshGrade = thresholds.GradeFor(fresh);
+        var oldGrade = thresholds.GradeForScoreAlone(old);
+        var freshGrade = thresholds.GradeForScoreAlone(fresh);
         var accepted = Accepted(row.Required);
 
         Console.WriteLine($"{row.Id,-4} {Truncate(row.Description, 32),-32} {row.Required,6} " +
@@ -171,18 +171,18 @@ foreach (var lens in shipped.Lenses)
 
     var passedBefore = benchmark.Where(row => row.Id.StartsWith('C')).Count(row =>
         Accepted(row.Required).Contains(
-            thresholds.GradeFor(before.Combine(nutrients[row.FdcId], lens).Value)));
+            thresholds.GradeForScoreAlone(before.Combine(nutrients[row.FdcId], lens).Value)));
     var passedAfter = benchmark.Where(row => row.Id.StartsWith('C')).Count(row =>
         Accepted(row.Required).Contains(
-            thresholds.GradeFor(after.Combine(nutrients[row.FdcId], lens).Value)));
+            thresholds.GradeForScoreAlone(after.Combine(nutrients[row.FdcId], lens).Value)));
 
     Console.WriteLine();
     Console.WriteLine($"capcane trecute: {passedBefore}/8 azi → {passedAfter}/8 cu regula" +
         $"{(lens.Name == "Weight Loss" ? " · prag 6" : " · nu se numără (P35)")}");
 
     var moved = benchmark
-        .Where(row => thresholds.GradeFor(before.Combine(nutrients[row.FdcId], lens).Value)
-            != thresholds.GradeFor(after.Combine(nutrients[row.FdcId], lens).Value))
+        .Where(row => thresholds.GradeForScoreAlone(before.Combine(nutrients[row.FdcId], lens).Value)
+            != thresholds.GradeForScoreAlone(after.Combine(nutrients[row.FdcId], lens).Value))
         .ToArray();
 
     Console.WriteLine($"rânduri din {benchmark.Length} care schimbă litera: {moved.Length}" +

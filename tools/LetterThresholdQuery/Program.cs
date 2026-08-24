@@ -153,12 +153,52 @@ foreach (var needle in new[] { "Cheese, Cheddar", "Chicken breast, NS", "Spinach
         $"prot {fitness.ProteinQuality?.Score ?? 0,5:F1}");
 }
 
-Section("Praguri recalibrate — de copiat în GradeThresholds");
+Section("Praguri recalibrate — de copiat în calibration.json");
 foreach (var lens in lenses)
 {
     var cuts = thresholds[lens.Name];
     Console.WriteLine($"{lens.Name,-12} dStartsAt: {cuts[0]:F2}, cStartsAt: {cuts[1]:F2}, " +
         $"bStartsAt: {cuts[2]:F2}, aStartsAt: {cuts[3]:F2}");
+}
+
+// A letter is defined as a fifth of the catalogue, and the shipped cutoffs stop being one every
+// time the formula changes. P28 and P45 both decided against refitting — moving every food's
+// letter for a reason that is not the food is the failure they exist to prevent — so the drift is
+// accepted debt. Debt that nothing prints is debt that grows in silence: the log recorded 0.09
+// after P45 and it was 2.57 by P48, because nobody measured it again. Now it is measured on every
+// run, next to what each letter's band is actually worth.
+Section("Deriva pragurilor livrate față de cuartilele reale");
+Console.WriteLine($"{"lentilă",-12}{"prag",-11}{"în fișier",11}{"cuartilă",11}{"derivă",9}{"banda ei",11}");
+
+foreach (var lens in lenses)
+{
+    var shippedCuts = shipped.ThresholdsFor(lens);
+    var values = scored.Select(food => food.ByLens[lens.Name].Value).ToArray();
+
+    var rows = new[]
+    {
+        ("D≥", shippedCuts.DStartsAt, thresholds[lens.Name][0]),
+        ("C≥", shippedCuts.CStartsAt, thresholds[lens.Name][1]),
+        ("B≥", shippedCuts.BStartsAt, thresholds[lens.Name][2]),
+        ("A≥", shippedCuts.AStartsAt, thresholds[lens.Name][3])
+    };
+
+    foreach (var (name, inFile, quartile) in rows)
+    {
+        // What share of the catalogue actually sits in the band this cutoff opens, against the
+        // 20% it is meant to be. The drift in points says how far the number moved; this says
+        // whether it mattered.
+        var band = name switch
+        {
+            "D≥" => values.Count(value => value >= inFile && value < shippedCuts.CStartsAt),
+            "C≥" => values.Count(value => value >= inFile && value < shippedCuts.BStartsAt),
+            "B≥" => values.Count(value => value >= inFile && value < shippedCuts.AStartsAt),
+            _ => values.Count(value => value >= inFile)
+        };
+
+        Console.WriteLine($"{(name == "D≥" ? lens.Name : ""),-12}{name,-11}{inFile,11:F2}" +
+            $"{quartile,11:F2}{quartile - inFile,9:F2}{(double)band / values.Length,11:P1}");
+    }
 }
 
 Section("Câte alimente stau la un punct de altă literă");

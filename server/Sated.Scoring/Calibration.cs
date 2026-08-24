@@ -105,9 +105,11 @@ public sealed class Calibration
     // A food with no density is never floored: null compares false against the floor, which is the
     // answer wanted here. Water has no density to be bad at.
     public Grade GradeFor(CombinedScore score, Lens lens) =>
-        !score.CategoryIsRuled && score.Density?.Score < DensityFloor
+        !score.CategoryIsRuled
+        && score.Density is { IsEstimated: false } density
+        && density.Score < DensityFloor
             ? Grade.E
-            : ThresholdsFor(lens).GradeFor(score.Value);
+            : ThresholdsFor(lens).GradeForScoreAlone(score.Value);
 
     private static ComponentStrategy StrategyNamed(string name) =>
         KnownStrategies.TryGetValue(name, out var strategy)

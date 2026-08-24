@@ -30,7 +30,16 @@ public sealed class GeneralStrategies
             return null;
         }
 
-        return ComponentValue.Measured(_densityScale.Normalize(raw.Value));
+        var score = _densityScale.Normalize(raw.Value);
+
+        // Below the calorie floor the number was divided by 10 rather than by the food's own
+        // calories, so it describes a food that does not exist. Keeping it still beats dropping
+        // the component — a diet cola with no density would be graded on satiety alone and come
+        // out B, the letter tap water gets — but it is not a measurement, and P44's floor must
+        // not sentence a food to E on a number nobody measured. See P49.
+        return food.Calories < DensityScore.CalorieFloor
+            ? ComponentValue.Estimated(score)
+            : ComponentValue.Measured(score);
     }
 
     // No scale here: this one is already 0-100, being a percentage of the leucine threshold

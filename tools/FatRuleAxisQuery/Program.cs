@@ -202,7 +202,7 @@ Section("Verificarea de credibilitate — ce păţesc grăsimile din catalog");
         var after = proposed.Combine(food, weightLoss).Value;
 
         Console.WriteLine($"{Truncate(description, 46),-46} {before,6:F1} " +
-            $"{oldCut.GradeFor(before),2} {after,7:F1} {newCut.GradeFor(after),2}");
+            $"{oldCut.GradeForScoreAlone(before),2} {after,7:F1} {newCut.GradeForScoreAlone(after),2}");
     }
 }
 
@@ -225,7 +225,7 @@ void Detail(CategoryRules rules)
     foreach (var row in benchmark.Where(row => row.Id.StartsWith('C')))
     {
         var score = combiner.Combine(nutrients[row.FdcId], weightLoss);
-        var grade = thresholds.GradeFor(score.Value);
+        var grade = thresholds.GradeForScoreAlone(score.Value);
 
         Console.WriteLine($"{row.Id,-4} {Truncate(row.Description, 30),-30} {row.Required,5} " +
             $"{score.Value,6:F1} {grade,4} {(Accepted(row.Required, []).Contains(grade) ? "trece" : "")}" +
@@ -254,7 +254,7 @@ Report Evaluate(CategoryRules rules)
     int Passing(Func<string, bool> pick, Grade[] band) => benchmark
         .Where(row => pick(row.Id))
         .Count(row => Accepted(row.Required, band)
-            .Contains(thresholds.GradeFor(scores[(weightLoss.Name, row.Id)])));
+            .Contains(thresholds.GradeForScoreAlone(scores[(weightLoss.Name, row.Id)])));
 
     int Holding(Lens lens) => pairs.Count(pair =>
         scores[(lens.Name, pair[0])] > scores[(lens.Name, pair[1])]);

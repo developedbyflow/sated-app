@@ -120,7 +120,7 @@ foreach (var row in benchmark.Where(row => row.Id.StartsWith('C')))
     }
 
     var ceiling = weighted / used;
-    var cutoff = Cutoff(row.Required);
+    var cutoff = Cutoff(row.Required, shipped.ThresholdsFor(lens));
 
     Console.WriteLine($"{row.Id,-4} {Truncate(row.Description, 30),-30} {row.Required,5} " +
         $"{score.Satiety.Score,6:F1} {Cell(score.Density),6} {Cell(score.ProteinQuality),6} " +
@@ -199,7 +199,7 @@ void Detail(double w)
     foreach (var row in benchmark.Where(row => row.Id.StartsWith('C')))
     {
         var score = Combined(nutrients[row.FdcId]);
-        var grade = rebuilt.GradeFor(score);
+        var grade = rebuilt.GradeForScoreAlone(score);
         var ok = Accepted(row.Required, []).Contains(grade);
 
         Console.WriteLine($"{row.Id,-4} {Truncate(row.Description, 30),-30} {row.Required,5} " +
@@ -264,7 +264,7 @@ Report Evaluate(double w)
     int Passing(Func<string, bool> pick, Grade[] band) => benchmark
         .Where(row => pick(row.Id))
         .Count(row => Accepted(row.Required, band)
-            .Contains(rebuilt.GradeFor(scores[(weightLoss.Name, row.Id)])));
+            .Contains(rebuilt.GradeForScoreAlone(scores[(weightLoss.Name, row.Id)])));
 
     int Holding(Lens lens) => pairs.Count(pair =>
         scores[(lens.Name, pair[0])] > scores[(lens.Name, pair[1])]);
@@ -279,19 +279,19 @@ Report Evaluate(double w)
         scores[(weightLoss.Name, "C4")]);
 }
 
-// The Weight Loss cutoffs, spelled out because GradeThresholds keeps its four numbers private and
-// only answers which letter a score falls into. A dead local read them until now and nothing used
-// it. If calibration.json is refitted, these four go stale and the tool has to be told.
-static double Cutoff(string required)
+// The score a food must reach for the worst letter its row still accepts. The four numbers used to
+// be copied in here, because GradeThresholds kept them private; they now come from the same file
+// the engine grades against, so a refit cannot leave this tool measuring against last month's scale.
+static double Cutoff(string required, GradeThresholds cutoffs)
 {
     var lowest = Accepted(required, []).Max();
 
     return lowest switch
     {
-        Grade.A => 71.77,
-        Grade.B => 58.64,
-        Grade.C => 45.55,
-        Grade.D => 31.81,
+        Grade.A => cutoffs.AStartsAt,
+        Grade.B => cutoffs.BStartsAt,
+        Grade.C => cutoffs.CStartsAt,
+        Grade.D => cutoffs.DStartsAt,
         _ => 0
     };
 }

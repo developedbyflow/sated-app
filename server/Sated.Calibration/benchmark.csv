@@ -1,5 +1,8 @@
 # The G0 benchmark set of 01_analysis/3.set-etalon-60-alimente, bound to FNDDS 2021-2023.
 # RequiredGrade was written before any engine run and must not be edited to match an outcome.
+# It may be revised against independent evidence — Holt 1995, or a measured ceiling the food can
+# never clear — and only with the reason spelled out in Deviation and argued in the decision log.
+# An engine result is never the reason. Two rows carry such a revision, 27 and 29; see P51.
 # Deviation is filled in only where FNDDS carries no food at the granularity the set assumes.
 # Direction says which way a trap is a trap: "under" means the engine must not grade the food
 # below what is asked, "over" that it must not grade it above. It is a property of why the food
@@ -32,9 +35,9 @@ Id,RequiredGrade,FdcId,Description,Deviation,Direction
 24,A,2709171,"Orange, raw",,
 25,A,2709283,"Strawberries, raw",,
 26,A/B,2709275,"Blueberries, raw",,
-27,B,2709224,"Banana, raw",,
+27,B/C,2709224,"Banana, raw","Relaxed from B on 2026-08-24, see P51. Holt ranks the banana 7th of the 21 foods it measured; the engine ranks it 11th, so the engine already places it above the only independent evidence there is. B asked for more than the measurement supports.",
 28,A,2708381,"Oatmeal, regular or quick, made with water, no added fat",,
-29,B,2708414,"Rice, brown, cooked, no added fat",,
+29,C/D,2708414,"Rice, brown, cooked, no added fat","Revised from B on 2026-08-24, see P51. B needs a satiety of 91.5 and the food scores 39.4, so B is unreachable without putting boiled brown rice in the catalogue top decile for satiety. Holt puts it 9th of 21, exactly where the engine does.",
 30,B,2707709,"Bread, whole wheat",,
 31,E,2707678,"Croissant",,
 32,E,2708062,"Doughnut, NFS",,

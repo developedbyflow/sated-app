@@ -3,37 +3,37 @@ namespace Sated.Scoring.Tests;
 public class GradeThresholdsTests
 {
     [Fact]
-    public void GradeFor_ScoreExactlyAtACutoff_TakesTheHigherLetter()
+    public void GradeForScoreAlone_ScoreExactlyAtACutoff_TakesTheHigherLetter()
     {
-        Assert.Equal(Grade.A, Frozen.WeightLossCutoffs.GradeFor(71.77));
+        Assert.Equal(Grade.A, Frozen.WeightLossCutoffs.GradeForScoreAlone(71.77));
     }
 
     [Fact]
-    public void GradeFor_ScoreJustBelowACutoff_TakesTheLowerLetter()
+    public void GradeForScoreAlone_ScoreJustBelowACutoff_TakesTheLowerLetter()
     {
-        Assert.Equal(Grade.B, Frozen.WeightLossCutoffs.GradeFor(71.76));
+        Assert.Equal(Grade.B, Frozen.WeightLossCutoffs.GradeForScoreAlone(71.76));
     }
 
     [Fact]
-    public void GradeFor_CatalogueFloor_ReturnsE()
+    public void GradeForScoreAlone_CatalogueFloor_ReturnsE()
     {
-        Assert.Equal(Grade.E, Frozen.WeightLossCutoffs.GradeFor(0));
+        Assert.Equal(Grade.E, Frozen.WeightLossCutoffs.GradeForScoreAlone(0));
     }
 
     [Fact]
-    public void GradeFor_CatalogueCeiling_ReturnsA()
+    public void GradeForScoreAlone_CatalogueCeiling_ReturnsA()
     {
-        Assert.Equal(Grade.A, Frozen.WeightLossCutoffs.GradeFor(100));
+        Assert.Equal(Grade.A, Frozen.WeightLossCutoffs.GradeForScoreAlone(100));
     }
 
     [Fact]
-    public void GradeFor_EveryBand_IsReachable()
+    public void GradeForScoreAlone_EveryBand_IsReachable()
     {
         var thresholds = Frozen.WeightLossCutoffs;
 
         Assert.Equal(
             new[] { Grade.E, Grade.D, Grade.C, Grade.B, Grade.A },
-            new[] { 10.0, 40.0, 50.0, 65.0, 90.0 }.Select(thresholds.GradeFor));
+            new[] { 10.0, 40.0, 50.0, 65.0, 90.0 }.Select(thresholds.GradeForScoreAlone));
     }
 
 

@@ -32,7 +32,7 @@ public class CalibrationTests
         {
             for (var score = 0.0; score <= 100.0; score += 0.01)
             {
-                Assert.Equal(cutoffs.GradeFor(score), Shipped.ThresholdsFor(lens).GradeFor(score));
+                Assert.Equal(cutoffs.GradeForScoreAlone(score), Shipped.ThresholdsFor(lens).GradeForScoreAlone(score));
             }
         }
     }
@@ -83,20 +83,26 @@ public class CalibrationTests
     }
 
     [Fact]
-    public void Rules_FromShippedFile_SilenceTheSatietyOfDrinksThatCarryCaloriesAndOnlyThose()
+    public void Rules_FromShippedFile_SilenceTheSatietyOfEveryDrinkExceptDietSoftDrinks()
     {
-        foreach (var category in new[] { "Soft drinks", "Sport and energy drinks" })
+        var silenced = new[]
+        {
+            "Soft drinks", "Sport and energy drinks", "Diet sport and energy drinks"
+        };
+
+        foreach (var category in silenced)
         {
             Assert.NotNull(Shipped.Rules.Find(category, Frozen.WeightLoss, ScoreComponent.Satiety));
             Assert.NotNull(Shipped.Rules.Find(category, Frozen.Fitness, ScoreComponent.Satiety));
             Assert.Null(Shipped.Rules.Find(category, Frozen.WeightLoss, ScoreComponent.Density));
         }
 
-        foreach (var category in new[] { "Diet soft drinks", "Diet sport and energy drinks" })
-        {
-            Assert.Null(Shipped.Rules.Find(category, Frozen.WeightLoss, ScoreComponent.Satiety));
-            Assert.Null(Shipped.Rules.Find(category, Frozen.Fitness, ScoreComponent.Satiety));
-        }
+        // The one drink category deliberately left on the general formula. A diet cola carries no
+        // calories to dilute and lands C, which is the order the product wants — tap water above
+        // it, sugared cola below. A diet energy drink is not the same food: it is fortified, so
+        // its density read 91.2 at 4 kcal and graded A until P47.
+        Assert.Null(Shipped.Rules.Find("Diet soft drinks", Frozen.WeightLoss, ScoreComponent.Satiety));
+        Assert.Null(Shipped.Rules.Find("Diet soft drinks", Frozen.Fitness, ScoreComponent.Satiety));
     }
 
     [Fact]
@@ -157,6 +163,33 @@ public class CalibrationTests
             ProteinQuality: ComponentValue.Measured(0));
 
         Assert.Equal(Grade.B, Shipped.GradeFor(water, Frozen.WeightLoss));
+    }
+
+    [Fact]
+    public void GradeFor_DietIcedTeaWhoseDensityCameFromTheCalorieFloor_IsNotFloored()
+    {
+        // 1 kcal per 100 g: its density of 6.0 was reached by dividing by the 10 kcal floor, so it
+        // describes no food. Flooring on it sent the tea to E while a diet cola, identical in every
+        // way that matters, kept its C. Same numbers marked Measured still floor — see below.
+        var dietIcedTea = new CombinedScore(
+            49.8,
+            ComponentValue.Measured(96),
+            ComponentValue.Estimated(6.0),
+            ComponentValue.Measured(0));
+
+        Assert.Equal(Grade.C, Shipped.GradeFor(dietIcedTea, Frozen.WeightLoss));
+    }
+
+    [Fact]
+    public void GradeFor_TheSameScoreWithAMeasuredDensity_IsStillFloored()
+    {
+        var measuredInstead = new CombinedScore(
+            49.8,
+            ComponentValue.Measured(96),
+            ComponentValue.Measured(6.0),
+            ComponentValue.Measured(0));
+
+        Assert.Equal(Grade.E, Shipped.GradeFor(measuredInstead, Frozen.WeightLoss));
     }
 
     [Fact]

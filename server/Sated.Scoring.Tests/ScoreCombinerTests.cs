@@ -92,6 +92,34 @@ public class ScoreCombinerTests
     }
 
     [Fact]
+    public void Combine_DietIcedTeaUnderTheCalorieFloor_MarksItsDensityEstimated()
+    {
+        var dietIcedTea = ChickenBreast with
+        {
+            Category = "Tea",
+            Calories = 1, Protein = 0, Fat = 0, Fiber = 0, VitaminA = 0, VitaminC = 0,
+            VitaminE = 0, Calcium = 1, Iron = 0.02, Magnesium = 1, Potassium = 12,
+            SaturatedFat = 0, Sodium = 17
+        };
+
+        Assert.True(Combiner().Combine(dietIcedTea, Frozen.WeightLoss).Density!.IsEstimated);
+    }
+
+    [Fact]
+    public void Combine_TheSameTeaAtTenCalories_MarksItsDensityMeasured()
+    {
+        var teaAtTheFloor = ChickenBreast with
+        {
+            Category = "Tea",
+            Calories = 10, Protein = 0, Fat = 0, Fiber = 0, VitaminA = 0, VitaminC = 0,
+            VitaminE = 0, Calcium = 1, Iron = 0.02, Magnesium = 1, Potassium = 12,
+            SaturatedFat = 0, Sodium = 17
+        };
+
+        Assert.False(Combiner().Combine(teaAtTheFloor, Frozen.WeightLoss).Density!.IsEstimated);
+    }
+
+    [Fact]
     public void Combine_RuleForAnotherCategory_DoesNotApply()
     {
         var combiner = CombinerWith(new CategoryRule(
@@ -199,7 +227,7 @@ public class ScoreCombinerTests
     {
         var score = Combiner().Combine(ChickenBreast, Frozen.WeightLoss);
 
-        var grade = Frozen.WeightLossCutoffs.GradeFor(score.Value);
+        var grade = Frozen.WeightLossCutoffs.GradeForScoreAlone(score.Value);
 
         Assert.True(grade == Grade.A || grade == Grade.B);
     }
@@ -216,6 +244,6 @@ public class ScoreCombinerTests
             {
                 combiner.Combine(ChickenBreast, Frozen.WeightLoss),
                 combiner.Combine(ChickenBreast with { LeucinePer100g = 0 }, Frozen.WeightLoss)
-            }.Select(score => thresholds.GradeFor(score.Value)));
+            }.Select(score => thresholds.GradeForScoreAlone(score.Value)));
     }
 }
