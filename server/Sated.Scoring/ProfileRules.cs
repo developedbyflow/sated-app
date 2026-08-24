@@ -35,6 +35,14 @@ public static class ProfileRules
     // that fat accounts for, not the grams, because grams cannot compare a dressing to an oil.
     private const double CaloriesPerGramOfFat = 9;
 
+    /// <returns>
+    /// True when this profile is one of the three these rules recognise. It exempts the food from
+    /// the density floor for the same reason a ruled category is exempt: something measured has
+    /// judged it, and a blanket floor must not overrule that.
+    /// </returns>
+    public static bool Judges(FoodInput food) =>
+        Satiety(food) is not null || Density(food) is not null;
+
     /// <returns>The satiety replacement for this profile, or null to use the general formula.</returns>
     public static ComponentValue? Satiety(FoodInput food) =>
         IsCaloricDrink(food) ? LiquidCalories.NoSatiety(food)

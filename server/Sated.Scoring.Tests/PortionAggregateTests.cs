@@ -158,4 +158,32 @@ public class PortionAggregateTests
 
         Assert.True(score.ProteinQuality!.IsEstimated);
     }
+
+    [Fact]
+    public void Combine_PlateThatIsAlmostEntirelyOil_TakesTheProfileFallback()
+    {
+        var oil = new FoodInput(
+            Category: "Salad dressings and vegetable oils",
+            Calories: 884, Protein: 0, Fat: 100, Fiber: 0, VitaminA: 0, VitaminC: 0, VitaminE: 14,
+            Calcium: 1, Iron: 0.6, Magnesium: 0, Potassium: 1, SaturatedFat: 13.8, Sodium: 2,
+            VitaminD: 0, Thiamine: 0);
+
+        var lettuce = new FoodInput(
+            Category: "Lettuce and lettuce salads",
+            Calories: 15, Protein: 1.4, Fat: 0.2, Fiber: 1.3, VitaminA: 370, VitaminC: 9.2,
+            VitaminE: 0.2, Calcium: 36, Iron: 0.9, Magnesium: 13, Potassium: 194,
+            SaturatedFat: 0, Sodium: 28, VitaminD: 0, Thiamine: 0.07);
+
+        var plate = PortionAggregate.Aggregate([new Portion(oil, 100), new Portion(lettuce, 10)]);
+
+        var combiner = new ScoreCombiner(
+            new GeneralStrategies(new PercentileScale(MeasuredSatiety),
+                new PercentileScale(MeasuredDensity), Frozen.ReferenceMealGrams),
+            new CategoryRules([], new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                { "Salad dressings and vegetable oils", "Lettuce and lettuce salads" }));
+
+        Assert.Equal(
+            FatQuality.UnsaturatedShare(plate)!.Score,
+            combiner.Combine(plate, Frozen.WeightLoss).Satiety.Score);
+    }
 }

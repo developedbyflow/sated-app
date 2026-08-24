@@ -60,9 +60,20 @@ public sealed class ScoreCombiner
 
         return new CombinedScore(weighted / usedWeight, satiety, density, proteinQuality)
         {
+            // A profile rule exempts a food from the density floor exactly as a category rule does.
+            // Replacing a component by one route and being floored anyway by the other would grade
+            // a hand-entered olive oil on a rule and then overrule it, which is the whole point of
+            // the exemption at P44.
             CategoryIsRuled = _rules.Has(food.Category, lens)
+                || (IsUnrecognised(food) && ProfileRules.Judges(food))
         };
     }
+
+    // A Recipe or a Meal lands here too: PortionAggregate gives a plate a category that belongs to
+    // no catalogue, on purpose, so a plate that is nine tenths oil by calories is judged as the fat
+    // it is rather than by a formula written for foods.
+    private bool IsUnrecognised(FoodInput food) =>
+        food.Category is null || !_rules.Recognises(food.Category);
 
     private ComponentValue? Component(
         ScoreComponent component,
@@ -87,7 +98,7 @@ public sealed class ScoreCombiner
         // somewhere else. A category the catalogue does know but nobody ruled has been looked at —
         // whipped cream and avocado are both in that state — and guessing over their heads from
         // the profile is what P50 measured and killed.
-        if (food.Category is null || !_rules.Recognises(food.Category))
+        if (IsUnrecognised(food))
         {
             var profile = component switch
             {
