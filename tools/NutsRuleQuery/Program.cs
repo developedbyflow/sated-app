@@ -56,12 +56,14 @@ foreach (var food in foods)
         SaturatedFat: amounts["606"], Sodium: amounts["307"]));
 }
 
-var breakpoints = ReadCsv("../GradeDistributionQuery/percentiles.csv");
+// The shipped calibration, not percentiles.csv: since Story 1.12 the scales, the lenses, the
+// rules and the reference meal all live in calibration.json, and a tool comparing a proposed
+// table against today's must start from the table the engine actually runs.
+var shipped = Calibration.Load();
 var general = new GeneralStrategies(
-    new PercentileScale([.. breakpoints.Select(row => Number(row[1]))]),
-    new PercentileScale([.. breakpoints.Select(row => Number(row[2]))]));
+    shipped.SatietyScale, shipped.DensityScale, shipped.ReferenceMealGrams);
 
-// The proposed table, built from the same shape CategoryRules.Standard uses. Nothing in the
+// The proposed table, built from the same shape the shipped one uses. Nothing in the
 // engine changes: the tool hands the combiner a different table and reads what comes out.
 var proposed = new CategoryRules([
     .. from category in new[]
@@ -69,11 +71,11 @@ var proposed = new CategoryRules([
            "Salad dressings and vegetable oils", "Butter and animal fats",
            "Margarine", "Mayonnaise", nuts
        }
-       from lens in new[] { Lens.WeightLoss, Lens.Fitness }
+       from lens in shipped.Lenses
        select new CategoryRule(
            category, lens.Name, ScoreComponent.Density, FatQuality.UnsaturatedShare)]);
 
-var before = new ScoreCombiner(general, CategoryRules.Standard);
+var before = new ScoreCombiner(general, shipped.Rules);
 var after = new ScoreCombiner(general, proposed);
 
 Console.WriteLine($"FNDDS: {catalogue.Count} alimente punctabile");
@@ -146,9 +148,9 @@ Console.WriteLine($"{"distanţă",-12} " +
 Console.WriteLine();
 Console.WriteLine("N4 prezis: peste 20 azi, sub 5 cu regula.");
 
-foreach (var lens in new[] { Lens.WeightLoss, Lens.Fitness })
+foreach (var lens in shipped.Lenses)
 {
-    var thresholds = GradeThresholds.For(lens);
+    var thresholds = shipped.ThresholdsFor(lens);
 
     Section($"N2 / N3 — capcanele · {lens.Name}");
     Console.WriteLine($"{"#",-4} {"aliment",-32} {"cerut",6} " +
@@ -176,7 +178,7 @@ foreach (var lens in new[] { Lens.WeightLoss, Lens.Fitness })
 
     Console.WriteLine();
     Console.WriteLine($"capcane trecute: {passedBefore}/8 azi → {passedAfter}/8 cu regula" +
-        $"{(lens.Name == Lens.WeightLoss.Name ? " · prag 6" : " · nu se numără (P35)")}");
+        $"{(lens.Name == "Weight Loss" ? " · prag 6" : " · nu se numără (P35)")}");
 
     var moved = benchmark
         .Where(row => thresholds.GradeFor(before.Combine(nutrients[row.FdcId], lens).Value)
@@ -190,7 +192,7 @@ foreach (var lens in new[] { Lens.WeightLoss, Lens.Fitness })
 Section("Cere schimbarea o recalibrare a pragurilor de literă?");
 Console.WriteLine($"{"lentilă",-12} {"prag",6} {"azi",8} {"cu regula",10} {"dif",7}");
 
-foreach (var lens in new[] { Lens.WeightLoss, Lens.Fitness })
+foreach (var lens in shipped.Lenses)
 {
     var old = catalogue.Select(food => before.Combine(food, lens).Value).ToArray();
     var fresh = catalogue.Select(food => after.Combine(food, lens).Value).ToArray();

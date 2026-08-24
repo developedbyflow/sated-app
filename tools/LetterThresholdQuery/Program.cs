@@ -8,23 +8,21 @@ using Sated.Scoring;
 // that Story 1.6 normalises two of the three components by rank.
 // Predictions P1-P6 were written before this ran — see 04_delivery/5.letter-threshold-report.
 
-var breakpoints = File.ReadAllLines("../GradeDistributionQuery/percentiles.csv")
-    .Skip(1)
-    .Select(line => line.Split(','))
-    .ToArray();
-
-var satietyScale = new PercentileScale(
-    [.. breakpoints.Select(row => double.Parse(row[1], CultureInfo.InvariantCulture))]);
-var densityScale = new PercentileScale(
-    [.. breakpoints.Select(row => double.Parse(row[2], CultureInfo.InvariantCulture))]);
+// The shipped calibration, not percentiles.csv: since Story 1.12 the scales, the rules, the lenses
+// and the reference meal all live in calibration.json, and this tool exists to refit the cutoffs
+// that sit in the same file. Reading them from anywhere else would fit against a scale the engine
+// does not use.
+var shipped = Calibration.Load();
 
 var combiner = new ScoreCombiner(
-    new GeneralStrategies(satietyScale, densityScale), CategoryRules.Standard);
+    new GeneralStrategies(
+        shipped.SatietyScale, shipped.DensityScale, shipped.ReferenceMealGrams),
+    shipped.Rules);
 
 var json = File.ReadAllText("../UsdaCoverageQuery/data/surveyDownload.json");
 var foods = JsonSerializer.Deserialize<SurveyFoodsFile>(json)!.Foods;
 
-var lenses = new[] { Lens.WeightLoss, Lens.Fitness };
+var lenses = shipped.Lenses;
 var scored = new List<Scored>();
 
 foreach (var food in foods)
@@ -67,23 +65,11 @@ Console.WriteLine($"FNDDS: {foods.Count} alimente · punctate: {scored.Count}");
 
 // P1 — the plant-protein exception list names categories in this catalogue. Nothing else checks
 // it: a renamed category would leave the rule registered and never matching.
-var realCategories = foods
-    .Select(food => food.WweiaFoodCategory?.Description ?? "")
-    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+// P1 checked that the twenty-five plant-protein category names still existed in the catalogue.
+// The list is gone (P46): the animal/plant split it fed was measured at 0.31 points wide, and one
+// measured share replaced it. Nothing here can go stale in silence any more, so the check retires
+// with the list rather than being rewritten against something it no longer guards.
 
-var missing = ProteinCompleteness.PlantProteinCategoryNames
-    .Where(name => !realCategories.Contains(name))
-    .ToArray();
-
-if (missing.Length > 0)
-{
-    throw new InvalidOperationException(
-        "Plant-protein categories that no longer exist in the catalogue: " +
-        string.Join(", ", missing));
-}
-
-Console.WriteLine($"P1 — cele {ProteinCompleteness.PlantProteinCategoryNames.Count} " +
-    "categorii vegetale există toate în catalog.");
 Console.WriteLine($"Partial Grade: {Share(scored.Count(f => f.ByLens.Values.All(s => s.IsPartial)))}");
 
 var thresholds = new Dictionary<string, double[]>();

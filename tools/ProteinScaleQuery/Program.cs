@@ -29,7 +29,12 @@ var satietyScale = new PercentileScale(
 var densityScale = new PercentileScale(
     [.. breakpoints.Select(row => double.Parse(row[2], CultureInfo.InvariantCulture))]);
 
-var general = new GeneralStrategies(satietyScale, densityScale);
+// The reference meal comes from the shipped calibration even though this tool exists to question
+// it: the sweep below overrides it per run, and starting anywhere else would compare the
+// candidates against a scale the engine does not use.
+var shipped = Calibration.Load();
+
+var general = new GeneralStrategies(satietyScale, densityScale, shipped.ReferenceMealGrams);
 
 var json = File.ReadAllText("../UsdaCoverageQuery/data/surveyDownload.json");
 var foods = JsonSerializer.Deserialize<SurveyFoodsFile>(json)!.Foods;
@@ -64,12 +69,12 @@ foreach (var food in foods)
         Sodium: amounts["307"])));
 }
 
-var lenses = new[] { Lens.WeightLoss, Lens.Fitness };
+var lenses = shipped.Lenses;
 var references = new double[] { 100, 125, 150, 175, 200, 250, 300, 400 };
 
 Console.WriteLine($"FNDDS: {foods.Count} alimente · punctate: {inputs.Count}");
 
-// Mirrors the four categories of CategoryRules.Standard, whose list is private. Without them
+// Mirrors the four fat categories the shipped rules name, whose table is keyed privately. Without them
 // the fat foods would fall back to the general formula and the sweep would stop describing the
 // engine it claims to measure.
 string[] fatCategories =
@@ -111,7 +116,7 @@ static ComponentStrategy ProteinAt(double reference) => food =>
     }
 
     return ComponentValue.Estimated(ProteinQualityScore.Calculate(
-        ProteinCompleteness.EstimateLeucinePer100g(food.Protein, food.Category), reference));
+        ProteinCompleteness.EstimateLeucinePer100g(food.Protein), reference));
 };
 
 Section("Componenta de proteină, pe măsura de referință");

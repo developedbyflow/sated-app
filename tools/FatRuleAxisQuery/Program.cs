@@ -64,10 +64,15 @@ foreach (var food in JsonSerializer.Deserialize<SurveyFoodsFile>(json)!.Foods)
     named.Add((food.Description, input));
 }
 
-var breakpoints = ReadCsv("../GradeDistributionQuery/percentiles.csv");
+// The shipped calibration, not percentiles.csv: since Story 1.12 the scales, the lenses and the
+// reference meal live in calibration.json, and a tool that measures which axis a rule belongs on
+// has to start from the numbers the engine runs.
+var shipped = Calibration.Load();
+var weightLoss = shipped.Lenses.Single(lens => lens.Name == "Weight Loss");
+var fitness = shipped.Lenses.Single(lens => lens.Name == "Fitness");
+
 var general = new GeneralStrategies(
-    new PercentileScale([.. breakpoints.Select(row => Number(row[1]))]),
-    new PercentileScale([.. breakpoints.Select(row => Number(row[2]))]));
+    shipped.SatietyScale, shipped.DensityScale, shipped.ReferenceMealGrams);
 
 var nutrients = ReadCsv(calibration + "benchmark-nutrients.csv").ToDictionary(
     row => row[0],
@@ -122,7 +127,7 @@ ComponentStrategy ForAxis(ScoreComponent component) => component == ScoreCompone
 
 CategoryRule[] Build(ScoreComponent component, params string[] categories) =>
     [.. from category in categories
-        from lens in new[] { Lens.WeightLoss, Lens.Fitness }
+        from lens in shipped.Lenses
         select new CategoryRule(category, lens.Name, component, ForAxis(component))];
 
 string[] withNuts = [.. fatCategories, "Nuts and seeds"];
@@ -168,7 +173,7 @@ Section("Verificarea de credibilitate — ce păţesc grăsimile din catalog");
 
     GradeThresholds Cut(ScoreCombiner c)
     {
-        var all = catalogue.Select(food => c.Combine(food, Lens.WeightLoss).Value).ToArray();
+        var all = catalogue.Select(food => c.Combine(food, weightLoss).Value).ToArray();
 
         return new GradeThresholds(Percentile(all, 20), Percentile(all, 40),
             Percentile(all, 60), Percentile(all, 80));
@@ -193,8 +198,8 @@ Section("Verificarea de credibilitate — ce păţesc grăsimile din catalog");
 
     foreach (var (description, food) in watched)
     {
-        var before = today.Combine(food, Lens.WeightLoss).Value;
-        var after = proposed.Combine(food, Lens.WeightLoss).Value;
+        var before = today.Combine(food, weightLoss).Value;
+        var after = proposed.Combine(food, weightLoss).Value;
 
         Console.WriteLine($"{Truncate(description, 46),-46} {before,6:F1} " +
             $"{oldCut.GradeFor(before),2} {after,7:F1} {newCut.GradeFor(after),2}");
@@ -210,7 +215,7 @@ foreach (var (name, rules) in configurations.Where(c => c.Name != "azi — densi
 void Detail(CategoryRules rules)
 {
     var combiner = new ScoreCombiner(general, rules);
-    var all = catalogue.Select(food => combiner.Combine(food, Lens.WeightLoss).Value).ToArray();
+    var all = catalogue.Select(food => combiner.Combine(food, weightLoss).Value).ToArray();
     var thresholds = new GradeThresholds(
         Percentile(all, 20), Percentile(all, 40), Percentile(all, 60), Percentile(all, 80));
 
@@ -219,7 +224,7 @@ void Detail(CategoryRules rules)
 
     foreach (var row in benchmark.Where(row => row.Id.StartsWith('C')))
     {
-        var score = combiner.Combine(nutrients[row.FdcId], Lens.WeightLoss);
+        var score = combiner.Combine(nutrients[row.FdcId], weightLoss);
         var grade = thresholds.GradeFor(score.Value);
 
         Console.WriteLine($"{row.Id,-4} {Truncate(row.Description, 30),-30} {row.Required,5} " +
@@ -232,13 +237,13 @@ void Detail(CategoryRules rules)
 Report Evaluate(CategoryRules rules)
 {
     var combiner = new ScoreCombiner(general, rules);
-    var all = catalogue.Select(food => combiner.Combine(food, Lens.WeightLoss).Value).ToArray();
+    var all = catalogue.Select(food => combiner.Combine(food, weightLoss).Value).ToArray();
     var thresholds = new GradeThresholds(
         Percentile(all, 20), Percentile(all, 40), Percentile(all, 60), Percentile(all, 80));
 
     var scores = new Dictionary<(string, string), double>();
 
-    foreach (var lens in new[] { Lens.WeightLoss, Lens.Fitness })
+    foreach (var lens in shipped.Lenses)
     {
         foreach (var row in benchmark)
         {
@@ -249,7 +254,7 @@ Report Evaluate(CategoryRules rules)
     int Passing(Func<string, bool> pick, Grade[] band) => benchmark
         .Where(row => pick(row.Id))
         .Count(row => Accepted(row.Required, band)
-            .Contains(thresholds.GradeFor(scores[(Lens.WeightLoss.Name, row.Id)])));
+            .Contains(thresholds.GradeFor(scores[(weightLoss.Name, row.Id)])));
 
     int Holding(Lens lens) => pairs.Count(pair =>
         scores[(lens.Name, pair[0])] > scores[(lens.Name, pair[1])]);
@@ -258,7 +263,7 @@ Report Evaluate(CategoryRules rules)
         Passing(id => Numbered(id, 1, 30), [Grade.A, Grade.B]),
         Passing(id => Numbered(id, 31, 60), [Grade.D, Grade.E]),
         Passing(id => id.StartsWith('C'), []),
-        Holding(Lens.WeightLoss), Holding(Lens.Fitness));
+        Holding(weightLoss), Holding(fitness));
 }
 
 static HashSet<Grade> Accepted(string required, Grade[] band) =>

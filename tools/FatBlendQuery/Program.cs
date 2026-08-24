@@ -65,8 +65,15 @@ foreach (var food in JsonSerializer.Deserialize<SurveyFoodsFile>(json)!.Foods)
 var breakpoints = ReadCsv("../GradeDistributionQuery/percentiles.csv");
 var satietyScale = new PercentileScale([.. breakpoints.Select(row => Number(row[1]))]);
 var densityScale = new PercentileScale([.. breakpoints.Select(row => Number(row[2]))]);
-var general = new GeneralStrategies(satietyScale, densityScale);
-var engine = new ScoreCombiner(general, CategoryRules.Standard);
+// The shipped calibration, not the tool's own copy: since Story 1.12 the lenses, the rules, the
+// cutoffs and the reference meal all live in calibration.json, and a term proposed against a
+// different set of numbers would answer a question nobody asked.
+var shipped = Calibration.Load();
+var weightLoss = shipped.Lenses.Single(lens => lens.Name == "Weight Loss");
+var fitness = shipped.Lenses.Single(lens => lens.Name == "Fitness");
+
+var general = new GeneralStrategies(satietyScale, densityScale, shipped.ReferenceMealGrams);
+var engine = new ScoreCombiner(general, shipped.Rules);
 
 Console.WriteLine($"FNDDS: {catalogue.Count} alimente punctabile");
 
@@ -98,8 +105,8 @@ Console.WriteLine($"{"#",-4} {"aliment",-30} {"cerut",5} {"sat",6} {"den",6} {"p
 foreach (var row in benchmark.Where(row => row.Id.StartsWith('C')))
 {
     var food = nutrients[row.FdcId];
-    var score = engine.Combine(food, Lens.WeightLoss);
-    var lens = Lens.WeightLoss;
+    var score = engine.Combine(food, weightLoss);
+    var lens = weightLoss;
 
     // The same arithmetic Combine uses, with density pinned at its maximum: the weight of a
     // missing component is left out of the divisor rather than counted as a zero.
@@ -156,26 +163,26 @@ void Detail(double w)
 
     double Combined(FoodInput food)
     {
-        var rule = CategoryRules.Standard.Find(
-            food.Category, Lens.WeightLoss, ScoreComponent.Density);
+        var rule = shipped.Rules.Find(
+            food.Category, weightLoss, ScoreComponent.Density);
         var density = rule is not null
             ? rule(food)?.Score
             : scale.Normalize(Nrf(food)!.Value + w * Share(food));
 
         var protein = general.ProteinQuality(food);
-        var weighted = Lens.WeightLoss.Satiety * general.Satiety(food)!.Score;
-        var used = Lens.WeightLoss.Satiety;
+        var weighted = weightLoss.Satiety * general.Satiety(food)!.Score;
+        var used = weightLoss.Satiety;
 
         if (density is not null)
         {
-            weighted += Lens.WeightLoss.Density * density.Value;
-            used += Lens.WeightLoss.Density;
+            weighted += weightLoss.Density * density.Value;
+            used += weightLoss.Density;
         }
 
         if (protein is not null)
         {
-            weighted += Lens.WeightLoss.ProteinQuality * protein.Score;
-            used += Lens.WeightLoss.ProteinQuality;
+            weighted += weightLoss.ProteinQuality * protein.Score;
+            used += weightLoss.ProteinQuality;
         }
 
         return weighted / used;
@@ -215,7 +222,7 @@ Report Evaluate(double w)
         var satiety = general.Satiety(food)!.Score;
         var protein = general.ProteinQuality(food);
 
-        var rule = CategoryRules.Standard.Find(food.Category, lens, ScoreComponent.Density);
+        var rule = shipped.Rules.Find(food.Category, lens, ScoreComponent.Density);
         var density = rule is not null
             ? rule(food)?.Score
             : scale.Normalize(Nrf(food)!.Value + w * Share(food));
@@ -240,7 +247,7 @@ Report Evaluate(double w)
 
     var scores = new Dictionary<(string, string), double>();
 
-    foreach (var lens in new[] { Lens.WeightLoss, Lens.Fitness })
+    foreach (var lens in shipped.Lenses)
     {
         foreach (var row in benchmark)
         {
@@ -248,8 +255,8 @@ Report Evaluate(double w)
         }
     }
 
-    var thresholds = GradeThresholds.For(Lens.WeightLoss);
-    var catalogueScores = catalogue.Select(food => Combined(food, Lens.WeightLoss)).ToArray();
+    var thresholds = shipped.ThresholdsFor(weightLoss);
+    var catalogueScores = catalogue.Select(food => Combined(food, weightLoss)).ToArray();
     var rebuilt = new GradeThresholds(
         Percentile(catalogueScores, 20), Percentile(catalogueScores, 40),
         Percentile(catalogueScores, 60), Percentile(catalogueScores, 80));
@@ -257,7 +264,7 @@ Report Evaluate(double w)
     int Passing(Func<string, bool> pick, Grade[] band) => benchmark
         .Where(row => pick(row.Id))
         .Count(row => Accepted(row.Required, band)
-            .Contains(rebuilt.GradeFor(scores[(Lens.WeightLoss.Name, row.Id)])));
+            .Contains(rebuilt.GradeFor(scores[(weightLoss.Name, row.Id)])));
 
     int Holding(Lens lens) => pairs.Count(pair =>
         scores[(lens.Name, pair[0])] > scores[(lens.Name, pair[1])]);
@@ -266,15 +273,17 @@ Report Evaluate(double w)
         Passing(id => Numbered(id, 1, 30), [Grade.A, Grade.B]),
         Passing(id => Numbered(id, 31, 60), [Grade.D, Grade.E]),
         Passing(id => id.StartsWith('C'), []),
-        Holding(Lens.WeightLoss),
-        Holding(Lens.Fitness),
-        scores[(Lens.WeightLoss.Name, "C3")],
-        scores[(Lens.WeightLoss.Name, "C4")]);
+        Holding(weightLoss),
+        Holding(fitness),
+        scores[(weightLoss.Name, "C3")],
+        scores[(weightLoss.Name, "C4")]);
 }
 
+// The Weight Loss cutoffs, spelled out because GradeThresholds keeps its four numbers private and
+// only answers which letter a score falls into. A dead local read them until now and nothing used
+// it. If calibration.json is refitted, these four go stale and the tool has to be told.
 static double Cutoff(string required)
 {
-    var thresholds = GradeThresholds.WeightLoss;
     var lowest = Accepted(required, []).Max();
 
     return lowest switch

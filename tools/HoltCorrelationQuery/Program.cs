@@ -9,13 +9,15 @@ using Sated.Scoring;
 
 const string calibration = "../../server/Sated.Calibration/";
 
-var breakpoints = ReadCsv("../GradeDistributionQuery/percentiles.csv");
+// The shipped calibration, not the tool's own copy of it: since Story 1.12 the scales and the
+// reference meal live in calibration.json, and reading percentiles.csv here would measure whatever
+// the last tool run happened to leave on disk.
+var shipped = Calibration.Load();
 
 // The engine's own path, not a re-implementation of it: SatietyInput is internal on purpose, and
 // a tool that recomputed the formula would be measuring its own copy of it.
 var general = new GeneralStrategies(
-    new PercentileScale([.. breakpoints.Select(row => Number(row[1]))]),
-    new PercentileScale([.. breakpoints.Select(row => Number(row[2]))]));
+    shipped.SatietyScale, shipped.DensityScale, shipped.ReferenceMealGrams);
 
 var nutrients = ReadCsv(calibration + "benchmark-nutrients.csv").ToDictionary(
     row => row[0],
