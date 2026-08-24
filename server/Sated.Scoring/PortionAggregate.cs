@@ -40,12 +40,14 @@ public static class PortionAggregate
         double Per100g(Func<FoodInput, double> nutrient) =>
             portions.Sum(portion => nutrient(portion.Food) * portion.Grams) / totalGrams;
 
-        // Leucine is resolved before the nutrients are merged, never after. The animal/plant
-        // share is a property of the ingredient's category, and the aggregate has none — reading
-        // it off the mixed profile would hand a plate of rice and beans the animal share.
+        // Leucine is still resolved per portion, though no longer for the reason it was: with one
+        // share the arithmetic would commute. What does not commute is provenance — one portion
+        // may carry a leucine the catalogue measured while the next has none, and merging first
+        // would hand the measured half of a plate to the guessed half.
         var leucine = portions.Sum(portion =>
-            (portion.Food.LeucinePer100g ?? ProteinCompleteness.EstimateLeucinePer100g(
-                portion.Food.Protein, portion.Food.Category)) * portion.Grams) / totalGrams;
+            (portion.Food.LeucinePer100g
+                ?? ProteinCompleteness.EstimateLeucinePer100g(portion.Food.Protein))
+            * portion.Grams) / totalGrams;
 
         // One guessed ingredient makes the whole plate a guess. A Recipe nested in a Meal
         // carries its own flag, so the answer stays right however deep the portions go.

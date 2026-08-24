@@ -1,73 +1,26 @@
 namespace Sated.Scoring;
 
 /// <summary>
-/// Estimates a food's leucine from its protein and the protein class of its category (FR-6).
-/// The catalogue carries no amino acid data, so the class stands in for a measurement.
+/// The leucine a food carries, for the case the catalogue could not supply it (FR-6).
 /// </summary>
 public static class ProteinCompleteness
 {
-    // Leucine as a share of protein: animal 8.8% ± 0.7, plant 7.1% ± 0.8.
-    // Gorissen et al., Amino Acids 2018 — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6245118/
-    // The two shares differ by 24%, while protein content differs between foods by an order of
-    // magnitude, so the class barely moves a grade. What moves it is the component existing at
-    // all: on FNDDS every food is missing leucine, so without this the third axis is empty and
-    // the lenses land on the same letter for 87.6% of the catalogue.
+    // Leucine as a share of protein, measured rather than borrowed: the median across the 2,286
+    // FNDDS foods whose own recipes resolve into SR Legacy amino acid data, joined through the
+    // ingredient codes each survey food carries (tools/LeucineJoinQuery).
+    // It replaces an animal 8.8% / plant 7.1% split from Gorissen et al. 2018 and the twenty-five
+    // category names that decided which half applied. Measured on this catalogue the two groups
+    // sit 0.31 points apart — 7.59% against 7.28% — not the 1.7 the paper reports, and swapping
+    // the split for this one number changes no letter in the benchmark's 138 rows.
+    // A share, not an amount: it survives a food whose recipe only partly resolved. See P46.
 
-    private const double AnimalLeucineShare = 0.088;
-    private const double PlantLeucineShare = 0.071;
-
-    // Complete is the default and this is the exception list (P29). WWEIA categories name
-    // dishes, not ingredients: a whitelist of complete-protein categories classified only 54.6%
-    // of protein-rich foods, and the 45.4% it missed were pizza, burgers, deli sandwiches and
-    // meat dishes — foods whose protein is complete. Inverting the default covers the whole
-    // catalogue instead of denying the axis to anything that arrives cooked.
-    // Every name here was checked against FNDDS: a typo would disable a rule in silence.
-
-    private static readonly HashSet<string> PlantProteinCategories =
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            "Bean, pea, legume dishes",
-            "Beans, peas, legumes",
-            "Nuts and seeds",
-            "Peanut butter and jelly sandwiches",
-            "Yeast breads",
-            "Rolls and buns",
-            "Bagels and English muffins",
-            "Biscuits, muffins, quick breads",
-            "Tortillas",
-            "Rice",
-            "Pasta, noodles, cooked grains",
-            "Oatmeal",
-            "Grits and other cooked cereals",
-            "Ready-to-eat cereal, higher sugar (>21.2g/100g)",
-            "Ready-to-eat cereal, lower sugar (=<21.2g/100g)",
-            "Crackers, excludes saltines",
-            "Saltine crackers",
-            "Popcorn",
-            "Pretzels/snack mix",
-            "Corn",
-            "Plant-based milk",
-            "Plant-based yogurt",
-            "Soy and meat-alternative products",
-            "Vegetable dishes",
-            "Vegetable sandwiches/burgers"
-        };
-
-    /// <summary>
-    /// The exception list, so a calibration run can check it against the catalogue it claims to
-    /// describe. A category USDA renames would otherwise disable a rule in silence.
-    /// </summary>
-    public static IReadOnlyCollection<string> PlantProteinCategoryNames => PlantProteinCategories;
-
-    public static bool IsPlantProtein(string category) =>
-        PlantProteinCategories.Contains(category);
+    private const double LeucineShareOfProtein = 0.0752;
 
     /// <returns>Grams of leucine per 100 g of food, estimated rather than measured.</returns>
-    public static double EstimateLeucinePer100g(double proteinPer100g, string category)
+    public static double EstimateLeucinePer100g(double proteinPer100g)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(proteinPer100g);
 
-        return proteinPer100g *
-            (IsPlantProtein(category) ? PlantLeucineShare : AnimalLeucineShare);
+        return proteinPer100g * LeucineShareOfProtein;
     }
 }

@@ -104,23 +104,11 @@ public class PortionAggregateTests
     }
 
     [Fact]
-    public void Aggregate_PortionWithoutLeucineData_EstimatesFromItsOwnCategory()
+    public void Aggregate_PortionWithoutLeucineData_EstimatesFromItsProtein()
     {
         var profile = PortionAggregate.Aggregate([new Portion(Rice, 200)]);
 
-        Assert.Equal(Rice.Protein * 0.071, profile.LeucinePer100g!.Value, tolerance: 0.0001);
-    }
-
-    [Fact]
-    public void Aggregate_PlantAndAnimalPortions_UsesADifferentShareForEach()
-    {
-        var profile = PortionAggregate.Aggregate(
-            [new Portion(Rice, 100), new Portion(ChickenBreast, 100)]);
-
-        Assert.Equal(
-            (Rice.Protein * 0.071 + ChickenBreast.Protein * 0.088) / 2,
-            profile.LeucinePer100g!.Value,
-            tolerance: 0.0001);
+        Assert.Equal(Rice.Protein * 0.0752, profile.LeucinePer100g!.Value, tolerance: 0.0001);
     }
 
     [Fact]

@@ -13,6 +13,14 @@ var combiner = new ScoreCombiner(
         calibration.SatietyScale, calibration.DensityScale, calibration.ReferenceMealGrams),
     calibration.Rules);
 
+// Measured leucine, joined from SR Legacy through each food's own recipe (tools/LeucineJoinQuery).
+// Source separates a food whose recipe resolved from one standing on its category's median: the
+// first is a measurement, the second is not, and SM-C4 counts a guess that reads as a measurement
+// as a failure of the product, not a detail of the engine.
+var leucine = ReadCsv("benchmark-leucine.csv").ToDictionary(
+    row => row[0],
+    row => (Grams: Number(row[1]), IsEstimated: row[2] != "recipe"));
+
 var nutrients = ReadCsv("benchmark-nutrients.csv").ToDictionary(
     row => row[0],
     row => new FoodInput(
@@ -29,7 +37,9 @@ var nutrients = ReadCsv("benchmark-nutrients.csv").ToDictionary(
         Magnesium: Number(row[11]),
         Potassium: Number(row[12]),
         SaturatedFat: Number(row[13]),
-        Sodium: Number(row[14])));
+        Sodium: Number(row[14]),
+        LeucinePer100g: leucine.TryGetValue(row[0], out var measured) ? measured.Grams : null,
+        LeucineIsEstimated: measured.IsEstimated));
 
 var benchmark = ReadCsv("benchmark.csv")
     .Select(row => new BenchmarkFood(row[0], row[1], row[2], row[3], row[4], row[5]))

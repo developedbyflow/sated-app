@@ -55,8 +55,7 @@ public sealed class GeneralStrategies
         // Fitness from Weight Loss, and the two lenses would land on the same letter for 87.6%
         // of the catalogue (P29). The estimate is marked as such: SM-C4 counts a guess that
         // reads as a measurement as a failure of the product, not a shortcut in the engine.
-        var estimatedLeucine =
-            ProteinCompleteness.EstimateLeucinePer100g(food.Protein, food.Category);
+        var estimatedLeucine = ProteinCompleteness.EstimateLeucinePer100g(food.Protein);
 
         return ComponentValue.Estimated(ProteinQualityScore.Calculate(
             estimatedLeucine, _referenceMealGrams));
