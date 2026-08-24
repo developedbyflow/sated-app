@@ -57,14 +57,16 @@ public sealed class CategoryRules
     /// question Find answers: olive oil's rule sits on satiety, and what exempts it from the
     /// density floor is that somebody judged the category, not which component was replaced.
     /// </returns>
-    public bool Has(string category, Lens lens) =>
-        _rules.Any(rule =>
+    public bool Has(string? category, Lens lens) =>
+        category is not null && _rules.Any(rule =>
             rule.Category.Equals(category, StringComparison.OrdinalIgnoreCase) &&
             rule.LensName.Equals(lens.Name, StringComparison.OrdinalIgnoreCase));
 
     /// <returns>The strategy registered for this pairing, or null to use the general formula.</returns>
-    public ComponentStrategy? Find(string category, Lens lens, ScoreComponent component) =>
-        _byKey.GetValueOrDefault(Key(category, lens.Name, component));
+    public ComponentStrategy? Find(string? category, Lens lens, ScoreComponent component) =>
+        category is null
+            ? null
+            : _byKey.GetValueOrDefault(Key(category, lens.Name, component));
 
     // Categories are matched the same way ProteinCompleteness matches them: a catalogue that
     // comes back with different capitalisation must not silently stop matching its own rules.

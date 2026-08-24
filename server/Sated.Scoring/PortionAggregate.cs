@@ -40,6 +40,16 @@ public static class PortionAggregate
         double Per100g(Func<FoodInput, double> nutrient) =>
             portions.Sum(portion => nutrient(portion.Food) * portion.Grams) / totalGrams;
 
+        // One portion that does not know its vitamin C makes the plate not know it either. Summing
+        // only the portions that do would report the spinach's vitamin C spread over the butter as
+        // well, which is a larger claim than any ingredient made. Absent stays absent all the way
+        // up, the same way one guessed leucine makes the whole plate a guess below.
+        double? Per100gOrNull(Func<FoodInput, double?> nutrient) =>
+            portions.Any(portion => nutrient(portion.Food) is null)
+                ? null
+                : portions.Sum(portion => nutrient(portion.Food)!.Value * portion.Grams)
+                    / totalGrams;
+
         // Leucine is still resolved per portion, though no longer for the reason it was: with one
         // share the arithmetic would commute. What does not commute is provenance — one portion
         // may carry a leucine the catalogue measured while the next has none, and merging first
@@ -60,17 +70,17 @@ public static class PortionAggregate
             Protein: Per100g(food => food.Protein),
             Fat: Per100g(food => food.Fat),
             Fiber: Per100g(food => food.Fiber),
-            VitaminA: Per100g(food => food.VitaminA),
-            VitaminC: Per100g(food => food.VitaminC),
-            VitaminE: Per100g(food => food.VitaminE),
-            Calcium: Per100g(food => food.Calcium),
-            Iron: Per100g(food => food.Iron),
-            Magnesium: Per100g(food => food.Magnesium),
-            Potassium: Per100g(food => food.Potassium),
+            VitaminA: Per100gOrNull(food => food.VitaminA),
+            VitaminC: Per100gOrNull(food => food.VitaminC),
+            VitaminE: Per100gOrNull(food => food.VitaminE),
+            Calcium: Per100gOrNull(food => food.Calcium),
+            Iron: Per100gOrNull(food => food.Iron),
+            Magnesium: Per100gOrNull(food => food.Magnesium),
+            Potassium: Per100gOrNull(food => food.Potassium),
             SaturatedFat: Per100g(food => food.SaturatedFat),
             Sodium: Per100g(food => food.Sodium),
-            VitaminD: Per100g(food => food.VitaminD),
-            Thiamine: Per100g(food => food.Thiamine),
+            VitaminD: Per100gOrNull(food => food.VitaminD),
+            Thiamine: Per100gOrNull(food => food.Thiamine),
             LeucinePer100g: leucine,
             LeucineIsEstimated: estimated);
     }

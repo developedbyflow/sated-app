@@ -2,9 +2,9 @@ namespace Sated.Scoring;
 
 /// <summary>
 /// One nutrient in the density formula: how much of it a food carries per 100 g, and the Daily
-/// Value that turns that amount into a percentage.
+/// Value that turns that amount into a percentage. The amount is null when the food does not say.
 /// </summary>
-public sealed record DensityNutrient(Func<DensityInput, double> AmountPer100g, double DailyValue);
+public sealed record DensityNutrient(Func<DensityInput, double?> AmountPer100g, double DailyValue);
 
 /// <summary>
 /// Which nutrients a density score counts (FR-26). A lens is not only three weights: the GLP-1

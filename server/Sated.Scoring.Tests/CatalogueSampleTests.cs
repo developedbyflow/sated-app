@@ -53,22 +53,25 @@ public class CatalogueSampleTests
                     Protein: Number(cells[2]),
                     Fat: Number(cells[3]),
                     Fiber: Number(cells[4]),
-                    VitaminA: Number(cells[5]),
-                    VitaminC: Number(cells[6]),
-                    VitaminE: Number(cells[7]),
-                    Calcium: Number(cells[8]),
-                    Iron: Number(cells[9]),
-                    Magnesium: Number(cells[10]),
-                    Potassium: Number(cells[11]),
+                    VitaminA: Absent(cells[5]),
+                    VitaminC: Absent(cells[6]),
+                    VitaminE: Absent(cells[7]),
+                    Calcium: Absent(cells[8]),
+                    Iron: Absent(cells[9]),
+                    Magnesium: Absent(cells[10]),
+                    Potassium: Absent(cells[11]),
                     SaturatedFat: Number(cells[12]),
                     Sodium: Number(cells[13]),
-                    VitaminD: Number(cells[14]),
-                    Thiamine: Number(cells[15])));
+                    VitaminD: Absent(cells[14]),
+                    Thiamine: Absent(cells[15])));
         }
     }
 
     private static double Number(string cell) =>
         double.Parse(cell, CultureInfo.InvariantCulture);
+
+    private static double? Absent(string cell) =>
+        cell.Length == 0 ? null : Number(cell);
 
     private record SampleFood(string Description, Grade[] Grades, FoodInput Input);
 }

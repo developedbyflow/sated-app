@@ -7,6 +7,9 @@ namespace Sated.Scoring;
 /// <param name="Category">
 /// The catalogue's own category name, verbatim. It selects the category rule (FR-6), so a
 /// renamed or normalised category silently changes which rule applies.
+/// Null means the food carries no category at all, which is what a food typed in by a person is.
+/// That is not the same as a category nobody wrote a rule for: somebody looked at those. Only a
+/// null category reaches ProfileRules.
 /// </param>
 /// <param name="LeucineIsEstimated">
 /// Where <see cref="LeucinePer100g"/> came from, not a second value for it. A catalogue food
@@ -15,22 +18,22 @@ namespace Sated.Scoring;
 /// in and would otherwise read as measured. SM-C4 counts that as a failure of the product.
 /// </param>
 public record FoodInput(
-    string Category,
+    string? Category,
     double Calories,
     double Protein,
     double Fat,
     double Fiber,
-    double VitaminA,
-    double VitaminC,
-    double VitaminE,
-    double Calcium,
-    double Iron,
-    double Magnesium,
-    double Potassium,
+    double? VitaminA,
+    double? VitaminC,
+    double? VitaminE,
+    double? Calcium,
+    double? Iron,
+    double? Magnesium,
+    double? Potassium,
     double SaturatedFat,
     double Sodium,
-    double VitaminD,
-    double Thiamine,
+    double? VitaminD,
+    double? Thiamine,
     double? LeucinePer100g = null,
     bool LeucineIsEstimated = false
 )

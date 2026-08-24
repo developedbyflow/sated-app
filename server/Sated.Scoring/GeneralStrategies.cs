@@ -62,7 +62,11 @@ public sealed class GeneralStrategies
         // the component — a diet cola with no density would be graded on satiety alone and come
         // out B, the letter tap water gets — but it is not a measurement, and P44's floor must
         // not sentence a food to E on a number nobody measured. See P49.
+        // Two separate reasons the number is not a measurement. Below the calorie floor it
+        // describes a food that does not exist; incomplete, it was rescaled over the nutrients the
+        // food happened to carry. Either way SM-C4 says it must not read as measured.
         return food.Calories < DensityScore.CalorieFloor
+            || !DensityScore.IsComplete(food.ForDensity(), nutrients)
             ? ComponentValue.Estimated(score)
             : ComponentValue.Measured(score);
     }

@@ -312,11 +312,11 @@ void WriteSample()
 
         file.AppendLine(string.Join(',',
             [id.ToString(CultureInfo.InvariantCulture),
-             .. new[] { food.Calories, food.Protein, food.Fat, food.Fiber, food.VitaminA,
+             .. new double?[] { food.Calories, food.Protein, food.Fat, food.Fiber, food.VitaminA,
                         food.VitaminC, food.VitaminE, food.Calcium, food.Iron, food.Magnesium,
                         food.Potassium, food.SaturatedFat, food.Sodium, food.VitaminD,
                         food.Thiamine }
-                .Select(value => value.ToString("0.####", CultureInfo.InvariantCulture)),
+                .Select(Cell),
              .. current[id].Grades,
              $"\"{food.Category}\"",
              current[id].Description]));
@@ -326,6 +326,11 @@ void WriteSample()
     Console.WriteLine();
     Console.WriteLine($"{path}: {ids.Count} alimente, {new FileInfo(path).Length / 1024} KB.");
 }
+
+// An empty cell is a nutrient the food does not report, which is not the same as a zero one.
+// Writing 0 for both is the defect that cost twenty of the gate's foods a letter each.
+static string Cell(double? value) =>
+    value?.ToString("0.####", CultureInfo.InvariantCulture) ?? string.Empty;
 
 void Section(string title)
 {

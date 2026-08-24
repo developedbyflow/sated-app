@@ -41,7 +41,7 @@ public class PortionAggregateTests
         var profile = PortionAggregate.Aggregate([new Portion(Spinach, 250)]);
 
         Assert.Equal(Spinach.Calories, profile.Calories, tolerance: 0.0001);
-        Assert.Equal(Spinach.Potassium, profile.Potassium, tolerance: 0.0001);
+        Assert.Equal(Spinach.Potassium!.Value, profile.Potassium!.Value, tolerance: 0.0001);
     }
 
     [Fact]

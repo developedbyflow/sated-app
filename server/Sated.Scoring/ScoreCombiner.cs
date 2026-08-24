@@ -78,6 +78,29 @@ public sealed class ScoreCombiner
         // a component is for data that is missing (FR-7), not for a strategy that does not apply.
         // On satiety the fallback is what keeps the guard above from firing on a real catalogue
         // food; the guard stays for a general strategy that could one day come back empty.
-        return rule is null ? general(food) : rule(food) ?? general(food);
+        if (rule is not null)
+        {
+            return rule(food) ?? general(food);
+        }
+
+        // Only for a food with no category at all. A category that exists but carries no rule has
+        // been looked at by somebody — whipped cream and avocado are both in that state — and
+        // guessing over their heads from the profile is what P50 measured and killed.
+        if (food.Category is null)
+        {
+            var profile = component switch
+            {
+                ScoreComponent.Satiety => ProfileRules.Satiety(food),
+                ScoreComponent.Density => ProfileRules.Density(food),
+                _ => null
+            };
+
+            if (profile is not null)
+            {
+                return profile;
+            }
+        }
+
+        return general(food);
     }
 }

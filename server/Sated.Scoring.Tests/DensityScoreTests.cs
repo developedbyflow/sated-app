@@ -149,4 +149,40 @@ public class DensityScoreTests
             DensityScore.Calculate(dietCola with { Calories = 10 }),
             DensityScore.Calculate(dietCola with { Calories = 20 }));
     }
+
+    [Fact]
+    public void Calculate_FoodMissingMicronutrients_ScoresAboveTheSameFoodReportingThemAsZero()
+    {
+        var reported = new DensityInput(
+            Calories: 100, Protein: 10, Fiber: 2, VitaminA: 0, VitaminC: 0, VitaminE: 0,
+            Calcium: 0, Iron: 0, Magnesium: 0, Potassium: 0, SaturatedFat: 1, Sodium: 50);
+
+        var unknown = reported with { VitaminA = null, VitaminC = null, VitaminE = null };
+
+        Assert.True(DensityScore.Calculate(unknown) > DensityScore.Calculate(reported));
+    }
+
+    [Fact]
+    public void Calculate_FoodMissingEveryEncouragedNutrient_HasNoValue()
+    {
+        var nothing = new DensityInput(
+            Calories: 100, Protein: 0, Fiber: 0, VitaminA: null, VitaminC: null, VitaminE: null,
+            Calcium: null, Iron: null, Magnesium: null, Potassium: null,
+            SaturatedFat: 1, Sodium: 50);
+
+        Assert.Null(DensityScore.Calculate(nothing, new DensityNutrients(
+            "none", [], DensityScore.Nrf92.Limited)));
+    }
+
+    [Fact]
+    public void IsComplete_FoodMissingOneNutrient_IsFalse()
+    {
+        var complete = new DensityInput(
+            Calories: 100, Protein: 10, Fiber: 2, VitaminA: 1, VitaminC: 1, VitaminE: 1,
+            Calcium: 1, Iron: 1, Magnesium: 1, Potassium: 1, SaturatedFat: 1, Sodium: 50);
+
+        Assert.True(DensityScore.IsComplete(complete, DensityScore.Nrf92));
+        Assert.False(DensityScore.IsComplete(complete with { Magnesium = null },
+            DensityScore.Nrf92));
+    }
 }

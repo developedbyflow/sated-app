@@ -92,23 +92,52 @@ public static class DensityScore
         // the order they did when the shipped percentiles were measured. Floating-point addition
         // does not associate, and a re-ordered sum would move the scale under every food.
         var encouraged = 0.0;
+        var counted = 0;
 
         foreach (var nutrient in nutrients.Encouraged)
         {
-            encouraged += CappedPercentDv(
-                nutrient.AmountPer100g(food) * scaleTo100Kcal, nutrient.DailyValue);
+            var amount = nutrient.AmountPer100g(food);
+
+            if (amount is null)
+            {
+                continue;
+            }
+
+            encouraged += CappedPercentDv(amount.Value * scaleTo100Kcal, nutrient.DailyValue);
+            counted++;
         }
+
+        if (counted == 0)
+        {
+            return null;
+        }
+
+        // The nutrients nobody supplied are assumed to behave like the ones somebody did. That is
+        // an estimate and IsComplete says so, but it is the only honest one available: counting
+        // them as zero is a claim the food contains none, and measured on the gate's 68 foods that
+        // claim costs exactly one letter on twenty of them. Rescaling recovers thirteen.
+        encouraged *= (double)nutrients.Encouraged.Count / counted;
 
         var limited = 0.0;
 
         foreach (var nutrient in nutrients.Limited)
         {
+            // Never absent: the two limiters are non-nullable on DensityInput, on purpose. Skipping
+            // one would raise a food's score, and that is the direction a missing value must never
+            // move it in.
             limited += PercentDv(
-                nutrient.AmountPer100g(food) * scaleTo100Kcal, nutrient.DailyValue);
+                nutrient.AmountPer100g(food)!.Value * scaleTo100Kcal, nutrient.DailyValue);
         }
 
         return encouraged - limited;
     }
+
+    /// <summary>
+    /// True when the food carries every nutrient this set counts. False means the score above was
+    /// rescaled over the ones it had, and the component must be reported as an estimate.
+    /// </summary>
+    public static bool IsComplete(DensityInput food, DensityNutrients nutrients) =>
+        nutrients.Encouraged.All(nutrient => nutrient.AmountPer100g(food) is not null);
 
     private static double PercentDv(double amount, double dailyValue) =>
         amount / dailyValue * 100;
