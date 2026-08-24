@@ -26,6 +26,12 @@ public static class DensityScore
     // 85 out of 100 on sodium and iron residue alone, which graded it A. Satiety has had the same
     // guard since Story 1.3; density never got one. Measured over FNDDS: 70 foods of 5,403 sit
     // below this floor, and the 41 vegetables under 40 kcal are untouched. See P42.
+    // Nothing carries more energy than fat's 9 kcal per gram, so 100 g of anything tops out near
+    // 900; lard, the densest food in FNDDS, reads 902 and nothing in the catalogue exceeds it. A
+    // value above this is not a food, it is kilojoules — European data reports energy in kJ, and
+    // 4.184 times a real number passes every other check in this engine and simply grades wrong.
+    private const double MaxCaloriesPer100g = 950;
+
     internal const double CalorieFloor = 10;
 
     /// <summary>NRF9.2 as Drewnowski published it: the set every lens uses unless it says otherwise.</summary>
@@ -78,6 +84,7 @@ public static class DensityScore
     public static double? Calculate(DensityInput food, DensityNutrients nutrients)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(food.Calories);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(food.Calories, MaxCaloriesPer100g);
 
         // FNDDS reports energy in whole kcal — all 5,431 values, none between 0 and 1 —
         // so this equality is exact, not the usual floating-point trap.

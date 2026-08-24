@@ -81,11 +81,13 @@ public sealed class Calibration
             entry => new PercentileScale(entry.Value),
             StringComparer.OrdinalIgnoreCase);
 
+        CatalogueCategories = file.CatalogueCategories.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
         Rules = new CategoryRules(file.CategoryRules.Select(rule => new CategoryRule(
             rule.Category,
             rule.Lens,
             Enum.Parse<ScoreComponent>(rule.Component, ignoreCase: true),
-            StrategyNamed(rule.Strategy))));
+            StrategyNamed(rule.Strategy))), CatalogueCategories);
     }
 
     /// <summary>The catalogue these numbers were measured on, and the date they were read.</summary>
@@ -108,6 +110,13 @@ public sealed class Calibration
     /// <summary>The NRF9.2 scale, which is what a tool measuring the general formula wants.</summary>
     public PercentileScale DensityScale => DensityScales[DensityScore.Nrf92.Name];
     public CategoryRules Rules { get; }
+
+    /// <summary>
+    /// Every category name the reference catalogue uses. A food carrying a category that is not in
+    /// here did not come from that catalogue, so the rules table has no opinion about it — which is
+    /// a different thing from a category somebody looked at and wrote no rule for.
+    /// </summary>
+    public IReadOnlySet<string> CatalogueCategories { get; }
 
     /// <summary>
     /// The cutoffs calibrated for a lens. Throws for a lens the file does not calibrate, rather
@@ -156,6 +165,7 @@ internal sealed record CalibrationFile
     public required double DensityFloor { get; init; }
     public required LensFile[] Lenses { get; init; }
     public required RuleFile[] CategoryRules { get; init; }
+    public required string[] CatalogueCategories { get; init; }
     public required PercentileFile Percentiles { get; init; }
 }
 

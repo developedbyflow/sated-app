@@ -83,10 +83,11 @@ public sealed class ScoreCombiner
             return rule(food) ?? general(food);
         }
 
-        // Only for a food with no category at all. A category that exists but carries no rule has
-        // been looked at by somebody — whipped cream and avocado are both in that state — and
-        // guessing over their heads from the profile is what P50 measured and killed.
-        if (food.Category is null)
+        // For a food this catalogue does not recognise: no category at all, or a category from
+        // somewhere else. A category the catalogue does know but nobody ruled has been looked at —
+        // whipped cream and avocado are both in that state — and guessing over their heads from
+        // the profile is what P50 measured and killed.
+        if (food.Category is null || !_rules.Recognises(food.Category))
         {
             var profile = component switch
             {

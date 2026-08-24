@@ -73,4 +73,31 @@ public class ProfileRulesTests
             Combiner().Combine(OliveOil, Frozen.WeightLoss).Satiety.Score,
             Combiner().Combine(named, Frozen.WeightLoss).Satiety.Score);
     }
+
+    private static ScoreCombiner CombinerKnowing(params string[] categories) =>
+        new(new GeneralStrategies(new PercentileScale(MeasuredSatiety),
+                new PercentileScale(MeasuredDensity), Frozen.ReferenceMealGrams),
+            new CategoryRules([], categories.ToHashSet(StringComparer.OrdinalIgnoreCase)));
+
+    [Fact]
+    public void Combine_CategoryFromAnotherCatalogue_TakesTheProfileFallback()
+    {
+        var combiner = CombinerKnowing("Salad dressings and vegetable oils");
+        var imported = OliveOil with { Category = "Huiles d'olive" };
+
+        Assert.Equal(
+            FatQuality.UnsaturatedShare(imported)!.Score,
+            combiner.Combine(imported, Frozen.WeightLoss).Satiety.Score);
+    }
+
+    [Fact]
+    public void Combine_CategoryTheCatalogueKnowsButNobodyRuled_IsLeftToTheGeneralFormula()
+    {
+        var combiner = CombinerKnowing("Cream cheese, sour cream, whipped cream");
+        var known = OliveOil with { Category = "Cream cheese, sour cream, whipped cream" };
+
+        Assert.NotEqual(
+            FatQuality.UnsaturatedShare(known)!.Score,
+            combiner.Combine(known, Frozen.WeightLoss).Satiety.Score);
+    }
 }

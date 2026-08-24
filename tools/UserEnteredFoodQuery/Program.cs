@@ -127,6 +127,36 @@ for (var i = 0; i < codes.Length; i++)
     Console.WriteLine($"{labels[i],-12}{sorted[sorted.Length / 2],12:F2}{shares[i].Average(),9:F2}");
 }
 
+// ── Alt catalog: categorie reală, dar cu alt nume ───────────────────────────────────────────────
+// Open Food Facts calls olive oil "Huiles d'olive". That is a category — it is simply not one this
+// engine's table knows. P68 fires the profile fallback only for a null category, on the grounds
+// that a category which exists has been looked at by somebody. That reasoning holds inside FNDDS
+// and breaks the moment the food comes from anywhere else.
+Section("Categorie dintr-un catalog străin");
+
+var foreign = 0;
+
+Console.WriteLine($"{"aliment",-42}{"USDA",6}{"fără categorie",16}{"nume străin",14}");
+
+foreach (var row in rows)
+{
+    var usda = Read(row);
+    var truth = GradeOf(usda);
+    var elsewhere = usda with { Category = $"Catégorie {row[1]}" };
+    var grade = GradeOf(elsewhere);
+
+    if (grade != truth)
+    {
+        foreign++;
+        Console.WriteLine($"{Truncate(names.GetValueOrDefault(row[0], row[1]), 42),-42}{truth,6}" +
+            $"{Mark(GradeOf(WithoutCategory(usda)), truth),16}{Mark(grade, truth),14}");
+    }
+}
+
+Console.WriteLine();
+Console.WriteLine($"cu nume de categorie străin: {foreign} din {rows.Length} greșite " +
+    $"({(double)foreign / rows.Length * 100:F1}%)");
+
 // ── Cele trei tratamente ale nutrientului absent, pe tot setul ──────────────────────────────────
 Section("Zero · renormalizare (în motor azi) · mediana catalogului");
 

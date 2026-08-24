@@ -26,10 +26,13 @@ public sealed class CategoryRules
         ComponentStrategy> _byKey = [];
 
     private readonly CategoryRule[] _rules;
+    private readonly IReadOnlySet<string>? _catalogue;
 
-    public CategoryRules(IEnumerable<CategoryRule> rules)
+    public CategoryRules(
+        IEnumerable<CategoryRule> rules, IReadOnlySet<string>? catalogueCategories = null)
     {
         _rules = [.. rules];
+        _catalogue = catalogueCategories;
 
         foreach (var rule in _rules)
         {
@@ -61,6 +64,16 @@ public sealed class CategoryRules
         category is not null && _rules.Any(rule =>
             rule.Category.Equals(category, StringComparison.OrdinalIgnoreCase) &&
             rule.LensName.Equals(lens.Name, StringComparison.OrdinalIgnoreCase));
+
+    /// <returns>
+    /// True when this category belongs to the catalogue these rules were written against. False
+    /// means the food came from somewhere else, and then the absence of a rule says nothing about
+    /// it: measured, olive oil carrying a European catalogue's category name falls back to E and a
+    /// cola reads C, which is the whole of the damage P68 was meant to close.
+    /// A table built without a catalogue cannot tell, and says yes rather than guessing.
+    /// </returns>
+    public bool Recognises(string category) =>
+        _catalogue is null || _catalogue.Contains(category);
 
     /// <returns>The strategy registered for this pairing, or null to use the general formula.</returns>
     public ComponentStrategy? Find(string? category, Lens lens, ScoreComponent component) =>

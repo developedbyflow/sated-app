@@ -83,4 +83,22 @@ public class SatietyScoreTests
 
         Assert.Equal(0.5, SatietyScore.Calculate(oliveOil));
     }
+
+    [Fact]
+    public void Calculate_EnergyReportedInKilojoules_Throws()
+    {
+        var lardInKilojoules = new SatietyInput(
+            Calories: 902 * 4.184, Protein: 0, Fat: 100, Fiber: 0);
+
+        Assert.Throws<ArgumentOutOfRangeException>(
+            () => SatietyScore.Calculate(lardInKilojoules));
+    }
+
+    [Fact]
+    public void Calculate_TheDensestFoodInTheCatalogue_IsAccepted()
+    {
+        var lard = new SatietyInput(Calories: 902, Protein: 0, Fat: 100, Fiber: 0);
+
+        Assert.InRange(SatietyScore.Calculate(lard), 0.5, 5);
+    }
 }

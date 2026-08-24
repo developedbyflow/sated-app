@@ -6,6 +6,12 @@ public static class SatietyScore
     // The five coefficients were fitted together — do not tune one alone.
     // The four limits are the boundary of the measured data: past them the cubed terms diverge.
 
+    // Nothing carries more energy than fat's 9 kcal per gram, so 100 g of anything tops out near
+    // 900; lard, the densest food in FNDDS, reads 902 and nothing in the catalogue exceeds it. A
+    // value above this is not a food, it is kilojoules — European data reports energy in kJ, and
+    // 4.184 times a real number passes every other check in this engine and simply grades wrong.
+    private const double MaxCaloriesPer100g = 950;
+
     private const double CalorieFloor = 30;
     private const double ProteinCap = 30;
     private const double FiberCap = 12;
@@ -17,6 +23,8 @@ public static class SatietyScore
     /// <returns>A score between 0.5 and 5. Higher means more filling per calorie.</returns>
     public static double Calculate(SatietyInput profile)
     {
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(profile.Calories, MaxCaloriesPer100g);
+
         var cal = Math.Max(CalorieFloor, profile.Calories);
         var pr = Math.Min(ProteinCap, profile.Protein);
         var df = Math.Min(FiberCap, profile.Fiber);

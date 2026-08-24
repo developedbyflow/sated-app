@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 
 namespace Sated.Scoring.Tests;
 
@@ -41,14 +42,14 @@ public class CatalogueSampleTests
 
         foreach (var line in lines.Where(line => line.Length > 0))
         {
-            var cells = line.Split(',');
+            var cells = Split(line);
             var lenses = Shipped.Lenses.Length;
 
             yield return new SampleFood(
                 Description: string.Join(',', cells.Skip(17 + lenses)),
                 Grades: [.. cells.Skip(16).Take(lenses).Select(Enum.Parse<Grade>)],
                 Input: new FoodInput(
-                    Category: cells[16 + lenses].Trim('"'),
+                    Category: cells[16 + lenses],
                     Calories: Number(cells[1]),
                     Protein: Number(cells[2]),
                     Fat: Number(cells[3]),
@@ -65,6 +66,37 @@ public class CatalogueSampleTests
                     VitaminD: Absent(cells[14]),
                     Thiamine: Absent(cells[15])));
         }
+    }
+
+    // Half the category names carry a comma — "Olives, pickles, pickled vegetables" — so the file
+    // quotes them and this has to honour it. Splitting on every comma reads the category short and
+    // shifts every column after it, which is how a green test can still be reading nonsense.
+    private static string[] Split(string line)
+    {
+        var cells = new List<string>();
+        var cell = new StringBuilder();
+        var quoted = false;
+
+        foreach (var character in line)
+        {
+            if (character == '"')
+            {
+                quoted = !quoted;
+            }
+            else if (character == ',' && !quoted)
+            {
+                cells.Add(cell.ToString());
+                cell.Clear();
+            }
+            else
+            {
+                cell.Append(character);
+            }
+        }
+
+        cells.Add(cell.ToString());
+
+        return [.. cells];
     }
 
     private static double Number(string cell) =>
