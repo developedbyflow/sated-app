@@ -19,6 +19,15 @@ public sealed class Calibration
             ["noSatiety"] = LiquidCalories.NoSatiety
         };
 
+    // The one density formula the engine has. A lens is not three weights: SATED.md defines the
+    // GLP-1 lens as a different set of nutrients in density — vitamin D and thiamine enter — and
+    // neither DensityScore nor DensityInput can express that. Measured: a lens named GLP-1 with
+    // weights and cutoffs loads and grades all 5,431 foods with the ordinary formula, in silence.
+    // Naming the set makes that impossible. A second set also needs its own measured percentiles,
+    // because density is normalised against a distribution this one does not share.
+    private static readonly HashSet<string> KnownNutrientSets =
+        new(StringComparer.OrdinalIgnoreCase) { "nrf9.2" };
+
     private static readonly JsonSerializerOptions Format = new(JsonSerializerDefaults.Web);
 
     /// <summary>Reads calibration.json from the folder the binary runs in.</summary>
@@ -52,6 +61,14 @@ public sealed class Calibration
 
         foreach (var lens in file.Lenses)
         {
+            if (!KnownNutrientSets.Contains(lens.DensityNutrients))
+            {
+                throw new ArgumentException(
+                    $"The {lens.Name} lens asks for the {lens.DensityNutrients} nutrient set, " +
+                    $"and the engine only computes {string.Join(", ", KnownNutrientSets)}.",
+                    nameof(file));
+            }
+
             // Add, not the indexer: two lenses under the same name would leave the winner
             // decided by file order, exactly as two rules over one component would.
             _thresholds.Add(lens.Name, new GradeThresholds(
@@ -138,6 +155,7 @@ internal sealed record LensFile
     public required double Satiety { get; init; }
     public required double Density { get; init; }
     public required double ProteinQuality { get; init; }
+    public required string DensityNutrients { get; init; }
     public required ThresholdFile Thresholds { get; init; }
 }
 

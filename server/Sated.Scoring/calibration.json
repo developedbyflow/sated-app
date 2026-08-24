@@ -26,6 +26,7 @@
       "satiety": 50,
       "density": 30,
       "proteinQuality": 20,
+      "densityNutrients": "nrf9.2",
       "thresholds": {
         "dStartsAt": 31.81,
         "cStartsAt": 45.55,
@@ -38,6 +39,7 @@
       "satiety": 25,
       "density": 25,
       "proteinQuality": 50,
+      "densityNutrients": "nrf9.2",
       "thresholds": {
         "dStartsAt": 32.80,
         "cStartsAt": 46.89,

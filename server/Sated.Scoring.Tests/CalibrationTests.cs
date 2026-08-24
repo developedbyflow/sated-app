@@ -240,6 +240,15 @@ public class CalibrationTests
         Assert.Throws<ArgumentException>(() => Shipped.ThresholdsFor(glp1));
     }
 
+    [Fact]
+    public void Load_LensAskingForANutrientSetTheEngineDoesNotHave_Throws()
+    {
+        var path = CopyWith(
+            "\"densityNutrients\": \"nrf9.2\"", "\"densityNutrients\": \"nrf11.2-glp1\"");
+
+        Assert.Throws<ArgumentException>(() => Calibration.Load(path));
+    }
+
     private static string CopyWith(string original, string replacement)
     {
         var path = Path.Combine(Path.GetTempPath(), $"calibration-{Guid.NewGuid()}.json");
