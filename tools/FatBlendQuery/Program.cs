@@ -247,7 +247,10 @@ Report Evaluate(double w)
 
     var scores = new Dictionary<(string, string), double>();
 
-    foreach (var lens in shipped.Lenses)
+    // Only the lenses this tool has a scale for: it reads percentiles.csv, which holds the
+    // NRF9.2 column alone, and a lens on another nutrient set would be ranked against the
+    // wrong distribution — GeneralStrategies refuses it rather than doing so quietly.
+    foreach (var lens in shipped.Lenses.Where(lens => lens.DensityNutrients.Name == DensityScore.Nrf92.Name))
     {
         foreach (var row in benchmark)
         {

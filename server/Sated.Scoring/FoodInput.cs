@@ -29,6 +29,8 @@ public record FoodInput(
     double Potassium,
     double SaturatedFat,
     double Sodium,
+    double VitaminD = 0,
+    double Thiamine = 0,
     double? LeucinePer100g = null,
     bool LeucineIsEstimated = false
 )
@@ -41,5 +43,5 @@ public record FoodInput(
 
     internal DensityInput ForDensity() => new(
         Calories, Protein, Fiber, VitaminA, VitaminC, VitaminE,
-        Calcium, Iron, Magnesium, Potassium, SaturatedFat, Sodium);
+        Calcium, Iron, Magnesium, Potassium, SaturatedFat, Sodium, VitaminD, Thiamine);
 }

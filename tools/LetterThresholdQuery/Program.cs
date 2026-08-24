@@ -16,7 +16,7 @@ var shipped = Calibration.Load();
 
 var combiner = new ScoreCombiner(
     new GeneralStrategies(
-        shipped.SatietyScale, shipped.DensityScale, shipped.ReferenceMealGrams),
+        shipped.SatietyScale, shipped.DensityScales, shipped.ReferenceMealGrams),
     shipped.Rules);
 
 var json = File.ReadAllText("../UsdaCoverageQuery/data/surveyDownload.json");

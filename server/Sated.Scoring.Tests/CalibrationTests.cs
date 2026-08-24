@@ -235,9 +235,9 @@ public class CalibrationTests
     [Fact]
     public void ThresholdsFor_LensTheFileDoesNotCalibrate_Throws()
     {
-        var glp1 = new Lens("GLP-1", satiety: 40, density: 30, proteinQuality: 30);
+        var uncalibrated = new Lens("Maintenance", satiety: 40, density: 30, proteinQuality: 30);
 
-        Assert.Throws<ArgumentException>(() => Shipped.ThresholdsFor(glp1));
+        Assert.Throws<ArgumentException>(() => Shipped.ThresholdsFor(uncalibrated));
     }
 
     [Fact]

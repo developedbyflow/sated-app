@@ -69,7 +69,10 @@ foreach (var food in foods)
         Sodium: amounts["307"])));
 }
 
-var lenses = shipped.Lenses;
+// Only the lenses this tool has a scale for: it reads percentiles.csv, which holds the
+// NRF9.2 column alone, and a lens on another nutrient set would be ranked against the
+// wrong distribution — GeneralStrategies refuses it rather than doing so quietly.
+var lenses = shipped.Lenses.Where(lens => lens.DensityNutrients.Name == DensityScore.Nrf92.Name).ToArray();
 var references = new double[] { 100, 125, 150, 175, 200, 250, 300, 400 };
 
 Console.WriteLine($"FNDDS: {foods.Count} alimente · punctate: {inputs.Count}");

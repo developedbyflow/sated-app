@@ -17,7 +17,7 @@ var shipped = Calibration.Load();
 // The engine's own path, not a re-implementation of it: SatietyInput is internal on purpose, and
 // a tool that recomputed the formula would be measuring its own copy of it.
 var general = new GeneralStrategies(
-    shipped.SatietyScale, shipped.DensityScale, shipped.ReferenceMealGrams);
+    shipped.SatietyScale, shipped.DensityScales, shipped.ReferenceMealGrams);
 
 var nutrients = ReadCsv(calibration + "benchmark-nutrients.csv").ToDictionary(
     row => row[0],

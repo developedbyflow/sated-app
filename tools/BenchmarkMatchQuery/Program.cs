@@ -24,7 +24,10 @@ if (args.Contains("--extract"))
     var codes = new[]
     {
         "208", "203", "204", "291", "320", "401", "323",
-        "301", "303", "304", "306", "606", "307"
+        "301", "303", "304", "306", "606", "307",
+        // Vitamin D and thiamine: NRF9.2 ignores them, the GLP-1 lens counts them (FR-26), and
+        // a benchmark without them would grade the gate's 68 foods as if both were zero.
+        "328", "404"
     };
 
     var rows = new List<string>
@@ -34,7 +37,7 @@ if (args.Contains("--extract"))
         "# runs in CI: the catalogue itself is 63 MB and cannot live in the repository.",
         "# Values are per 100 g, in the units of DensityInput. Decimal point, never comma.",
         "FdcId,Category,Calories,Protein,Fat,Fiber,VitaminA,VitaminC,VitaminE," +
-            "Calcium,Iron,Magnesium,Potassium,SaturatedFat,Sodium"
+            "Calcium,Iron,Magnesium,Potassium,SaturatedFat,Sodium,VitaminD,Thiamine"
     };
 
     foreach (var fdcId in wanted)

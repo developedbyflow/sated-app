@@ -17,5 +17,7 @@ public record DensityInput(
     double Magnesium,
     double Potassium,
     double SaturatedFat,
-    double Sodium
+    double Sodium,
+    double VitaminD = 0,
+    double Thiamine = 0
 );

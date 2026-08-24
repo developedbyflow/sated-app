@@ -72,7 +72,11 @@ var weightLoss = shipped.Lenses.Single(lens => lens.Name == "Weight Loss");
 var fitness = shipped.Lenses.Single(lens => lens.Name == "Fitness");
 
 var general = new GeneralStrategies(
-    shipped.SatietyScale, shipped.DensityScale, shipped.ReferenceMealGrams);
+    shipped.SatietyScale, shipped.DensityScales, shipped.ReferenceMealGrams);
+
+// Density now depends on the lens, because a lens chooses which nutrients it counts (FR-26).
+// This tool measures the general NRF9.2 formula, so it asks for the lens that carries that set.
+var nrf92Lens = shipped.Lenses.First(lens => lens.DensityNutrients.Name == DensityScore.Nrf92.Name);
 
 var nutrients = ReadCsv(calibration + "benchmark-nutrients.csv").ToDictionary(
     row => row[0],
@@ -97,7 +101,7 @@ foreach (var category in fatCategories)
 {
     var group = catalogue.Where(food => food.Category == category).ToArray();
     var satiety = group.Select(food => general.Satiety(food)!.Score).ToArray();
-    var density = group.Select(food => general.Density(food)!.Score).ToArray();
+    var density = group.Select(food => general.Density(food, nrf92Lens)!.Score).ToArray();
 
     Console.WriteLine($"{Truncate(category, 38),-38} {group.Length,4} " +
         $"{Percentile(satiety, 10),8:F1} {Percentile(satiety, 90),8:F1} " +
@@ -123,7 +127,7 @@ Console.WriteLine($"Categoria lui C5 cartof:  \"{nutrients[benchmark.First(r => 
 // data the catalogue lacks, not for a strategy that does not apply.
 ComponentStrategy ForAxis(ScoreComponent component) => component == ScoreComponent.Satiety
     ? food => FatQuality.UnsaturatedShare(food) ?? general.Satiety(food)
-    : food => FatQuality.UnsaturatedShare(food) ?? general.Density(food);
+    : food => FatQuality.UnsaturatedShare(food) ?? general.Density(food, nrf92Lens);
 
 CategoryRule[] Build(ScoreComponent component, params string[] categories) =>
     [.. from category in categories

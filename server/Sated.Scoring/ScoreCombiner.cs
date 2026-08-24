@@ -32,7 +32,8 @@ public sealed class ScoreCombiner
             ?? throw new InvalidOperationException(
                 $"The satiety strategy returned nothing for a food in {food.Category}.");
 
-        var density = Component(ScoreComponent.Density, _general.Density, food, lens);
+        var density = Component(
+            ScoreComponent.Density, food => _general.Density(food, lens), food, lens);
 
         var proteinQuality = Component(
             ScoreComponent.ProteinQuality, _general.ProteinQuality, food, lens);

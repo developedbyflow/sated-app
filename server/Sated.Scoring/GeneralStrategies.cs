@@ -6,14 +6,28 @@ namespace Sated.Scoring;
 public sealed class GeneralStrategies
 {
     private readonly PercentileScale _satietyScale;
-    private readonly PercentileScale _densityScale;
+    private readonly IReadOnlyDictionary<string, PercentileScale> _densityScales;
     private readonly double _referenceMealGrams;
 
+    /// <summary>One nutrient set, one scale — the engine before FR-26 needed a third lens.</summary>
     public GeneralStrategies(
         PercentileScale satietyScale, PercentileScale densityScale, double referenceMealGrams)
+        : this(satietyScale,
+               new Dictionary<string, PercentileScale>(StringComparer.OrdinalIgnoreCase)
+               {
+                   [DensityScore.Nrf92.Name] = densityScale
+               },
+               referenceMealGrams)
+    {
+    }
+
+    public GeneralStrategies(
+        PercentileScale satietyScale,
+        IReadOnlyDictionary<string, PercentileScale> densityScales,
+        double referenceMealGrams)
     {
         _satietyScale = satietyScale;
-        _densityScale = densityScale;
+        _densityScales = densityScales;
         _referenceMealGrams = referenceMealGrams;
     }
 
@@ -21,16 +35,27 @@ public sealed class GeneralStrategies
         ComponentValue.Measured(
             _satietyScale.Normalize(SatietyScore.Calculate(food.ForSatiety())));
 
-    public ComponentValue? Density(FoodInput food)
+    public ComponentValue? Density(FoodInput food, Lens lens)
     {
-        var raw = DensityScore.Calculate(food.ForDensity());
+        var nutrients = lens.DensityNutrients;
+        var raw = DensityScore.Calculate(food.ForDensity(), nutrients);
 
         if (raw is null)
         {
             return null;
         }
 
-        var score = _densityScale.Normalize(raw.Value);
+        // A missing scale is not a food with no density: it is a lens asking to be ranked against
+        // a distribution nobody measured. Falling back to another set's ranks would grade every
+        // food on this lens against a formula it was not computed with, and nothing would say so.
+        if (!_densityScales.TryGetValue(nutrients.Name, out var scale))
+        {
+            throw new InvalidOperationException(
+                $"The {lens.Name} lens asks for the {nutrients.Name} scale, and only " +
+                $"{string.Join(", ", _densityScales.Keys)} was measured.");
+        }
+
+        var score = scale.Normalize(raw.Value);
 
         // Below the calorie floor the number was divided by 10 rather than by the food's own
         // calories, so it describes a food that does not exist. Keeping it still beats dropping

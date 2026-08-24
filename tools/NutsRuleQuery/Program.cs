@@ -61,7 +61,11 @@ foreach (var food in foods)
 // table against today's must start from the table the engine actually runs.
 var shipped = Calibration.Load();
 var general = new GeneralStrategies(
-    shipped.SatietyScale, shipped.DensityScale, shipped.ReferenceMealGrams);
+    shipped.SatietyScale, shipped.DensityScales, shipped.ReferenceMealGrams);
+
+// Density now depends on the lens, because a lens chooses which nutrients it counts (FR-26).
+// This tool measures the general NRF9.2 formula, so it asks for the lens that carries that set.
+var nrf92Lens = shipped.Lenses.First(lens => lens.DensityNutrients.Name == DensityScore.Nrf92.Name);
 
 // The proposed table, built from the same shape the shipped one uses. Nothing in the
 // engine changes: the tool hands the combiner a different table and reads what comes out.
@@ -90,7 +94,7 @@ foreach (var category in new[]
 {
     var densities = catalogue
         .Where(food => food.Category == category)
-        .Select(food => general.Density(food)?.Score)
+        .Select(food => general.Density(food, nrf92Lens)?.Score)
         .Where(score => score is not null)
         .Select(score => score!.Value)
         .ToArray();
@@ -112,7 +116,7 @@ Console.WriteLine("N1 prezis: nucile peste 40, fiecare categorie de grăsime sub
 
 Section("Cât mișcă regula întreaga categorie");
 var nutFoods = catalogue.Where(food => food.Category == nuts).ToArray();
-var generalDensities = nutFoods.Select(food => general.Density(food)!.Score).ToArray();
+var generalDensities = nutFoods.Select(food => general.Density(food, nrf92Lens)!.Score).ToArray();
 var ruleDensities = nutFoods.Select(food => FatQuality.UnsaturatedShare(food)?.Score)
     .Where(score => score is not null).Select(score => score!.Value).ToArray();
 
@@ -138,12 +142,12 @@ var almond = nutrients[benchmark.First(row => row.Id == "C2").FdcId];
 var walnut = nutrients[benchmark.First(row => row.Id == "C3").FdcId];
 
 Console.WriteLine($"{"",-12} {"azi",8} {"cu regula",10}");
-Console.WriteLine($"{"migdale",-12} {general.Density(almond)!.Score,8:F1} " +
+Console.WriteLine($"{"migdale",-12} {general.Density(almond, nrf92Lens)!.Score,8:F1} " +
     $"{FatQuality.UnsaturatedShare(almond)!.Score,10:F1}");
-Console.WriteLine($"{"nucă",-12} {general.Density(walnut)!.Score,8:F1} " +
+Console.WriteLine($"{"nucă",-12} {general.Density(walnut, nrf92Lens)!.Score,8:F1} " +
     $"{FatQuality.UnsaturatedShare(walnut)!.Score,10:F1}");
 Console.WriteLine($"{"distanţă",-12} " +
-    $"{general.Density(almond)!.Score - general.Density(walnut)!.Score,8:F1} " +
+    $"{general.Density(almond, nrf92Lens)!.Score - general.Density(walnut, nrf92Lens)!.Score,8:F1} " +
     $"{FatQuality.UnsaturatedShare(almond)!.Score - FatQuality.UnsaturatedShare(walnut)!.Score,10:F1}");
 Console.WriteLine();
 Console.WriteLine("N4 prezis: peste 20 azi, sub 5 cu regula.");

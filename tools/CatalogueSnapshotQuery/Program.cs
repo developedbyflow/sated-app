@@ -37,7 +37,7 @@ var shipped = Calibration.Load();
 
 var combiner = new ScoreCombiner(
     new GeneralStrategies(
-        shipped.SatietyScale, shipped.DensityScale, shipped.ReferenceMealGrams),
+        shipped.SatietyScale, shipped.DensityScales, shipped.ReferenceMealGrams),
     shipped.Rules);
 
 var lenses = shipped.Lenses;
@@ -118,8 +118,17 @@ if (!previous.Lenses.SequenceEqual(lenses.Select(lens => lens.Name)))
     Console.WriteLine($"calibrare:   {string.Join(", ", lenses.Select(lens => lens.Name))}");
     Console.WriteLine();
     Console.WriteLine("Setul de lentile s-a schimbat — coloanele nu se mai compară aliniat.");
-    Console.WriteLine("Rulează cu --write; diff-ul din commit e costul.");
-    return 1;
+
+    if (!write)
+    {
+        Console.WriteLine("Rulează cu --write; diff-ul din commit e costul.");
+        return 1;
+    }
+
+    WriteSnapshot();
+    Console.WriteLine($"{SnapshotPath} rescris cu {current.Count} alimente pe " +
+        $"{lenses.Length} lentile. Diff-ul din commit e costul măsurat.");
+    return 0;
 }
 
 var added = current.Keys.Except(previous.Rows.Keys).ToArray();

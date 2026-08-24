@@ -10,7 +10,7 @@ var calibration = Calibration.Load();
 
 var combiner = new ScoreCombiner(
     new GeneralStrategies(
-        calibration.SatietyScale, calibration.DensityScale, calibration.ReferenceMealGrams),
+        calibration.SatietyScale, calibration.DensityScales, calibration.ReferenceMealGrams),
     calibration.Rules);
 
 // Measured leucine, joined from SR Legacy through each food's own recipe (tools/LeucineJoinQuery).
@@ -38,6 +38,8 @@ var nutrients = ReadCsv("benchmark-nutrients.csv").ToDictionary(
         Potassium: Number(row[12]),
         SaturatedFat: Number(row[13]),
         Sodium: Number(row[14]),
+        VitaminD: Number(row[15]),
+        Thiamine: Number(row[16]),
         LeucinePer100g: leucine.TryGetValue(row[0], out var measured) ? measured.Grams : null,
         LeucineIsEstimated: measured.IsEstimated));
 
