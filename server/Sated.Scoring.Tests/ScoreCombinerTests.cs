@@ -13,12 +13,12 @@ public class ScoreCombinerTests
     private static readonly FoodInput ChickenBreast = new(
         Category: "Chicken, whole pieces",
         Calories: 165, Protein: 31, Fat: 3.6, Fiber: 0, VitaminA: 9, VitaminC: 0, VitaminE: 0.27,
-        Calcium: 15, Iron: 1, Magnesium: 29, Potassium: 256, SaturatedFat: 1, Sodium: 74);
+        Calcium: 15, Iron: 1, Magnesium: 29, Potassium: 256, SaturatedFat: 1, Sodium: 74, VitaminD: 0, Thiamine: 0);
 
     private static readonly FoodInput SparklingWater = new(
         Category: "Enhanced water",
         Calories: 0, Protein: 0, Fat: 0, Fiber: 0, VitaminA: 0, VitaminC: 0, VitaminE: 0,
-        Calcium: 0, Iron: 0, Magnesium: 0, Potassium: 0, SaturatedFat: 0, Sodium: 4);
+        Calcium: 0, Iron: 0, Magnesium: 0, Potassium: 0, SaturatedFat: 0, Sodium: 4, VitaminD: 0, Thiamine: 0);
 
     private static ScoreCombiner Combiner() =>
         new(new PercentileScale(MeasuredSatiety), new PercentileScale(MeasuredDensity),

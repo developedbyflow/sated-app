@@ -27,7 +27,11 @@ var nutrients = ReadCsv(calibration + "benchmark-nutrients.csv").ToDictionary(
         Fiber: Number(row[5]), VitaminA: Number(row[6]), VitaminC: Number(row[7]),
         VitaminE: Number(row[8]), Calcium: Number(row[9]), Iron: Number(row[10]),
         Magnesium: Number(row[11]), Potassium: Number(row[12]),
-        SaturatedFat: Number(row[13]), Sodium: Number(row[14])));
+        SaturatedFat: Number(row[13]), Sodium: Number(row[14]),
+        // Vitamin D and thiamine: NRF9.2 ignores them, the GLP-1 lens counts them, and a zero
+        // here would grade that lens as if no food carried either.
+        VitaminD: Number(row[15]),
+        Thiamine: Number(row[16])));
 
 var byId = ReadCsv(calibration + "benchmark.csv")
     .ToDictionary(row => row[0], row => (FdcId: row[2], Description: row[3]));

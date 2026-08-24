@@ -6,7 +6,7 @@ public class FatQualityTests
         double saturatedFat, double sodium) =>
         new(Category: category, Calories: calories, Protein: 0, Fat: fat, Fiber: 0,
             VitaminA: 0, VitaminC: 0, VitaminE: 0, Calcium: 0, Iron: 0, Magnesium: 0,
-            Potassium: 0, SaturatedFat: saturatedFat, Sodium: sodium);
+            Potassium: 0, SaturatedFat: saturatedFat, Sodium: sodium, VitaminD: 0, Thiamine: 0);
 
     private static readonly FoodInput OliveOil = Fat(
         "Salad dressings and vegetable oils", calories: 884, fat: 100, saturatedFat: 15.5, sodium: 2);

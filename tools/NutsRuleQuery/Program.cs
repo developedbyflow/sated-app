@@ -29,7 +29,7 @@ const string calibration = "../../server/Sated.Calibration/";
 const string nuts = "Nuts and seeds";
 
 string[] required = ["208", "203", "204", "291", "320", "401", "323",
-    "301", "303", "304", "306", "606", "307"];
+    "301", "303", "304", "306", "606", "307", "328", "404"];
 
 var json = File.ReadAllText("../UsdaCoverageQuery/data/surveyDownload.json");
 var foods = JsonSerializer.Deserialize<SurveyFoodsFile>(json)!.Foods;
@@ -53,7 +53,9 @@ foreach (var food in foods)
         Fiber: amounts["291"], VitaminA: amounts["320"], VitaminC: amounts["401"],
         VitaminE: amounts["323"], Calcium: amounts["301"], Iron: amounts["303"],
         Magnesium: amounts["304"], Potassium: amounts["306"],
-        SaturatedFat: amounts["606"], Sodium: amounts["307"]));
+        SaturatedFat: amounts["606"], Sodium: amounts["307"],
+        VitaminD: amounts["328"],
+        Thiamine: amounts["404"]));
 }
 
 // The shipped calibration, not percentiles.csv: since Story 1.12 the scales, the lenses, the
@@ -131,7 +133,11 @@ var nutrients = ReadCsv(calibration + "benchmark-nutrients.csv").ToDictionary(
         Fat: Number(row[4]), Fiber: Number(row[5]), VitaminA: Number(row[6]),
         VitaminC: Number(row[7]), VitaminE: Number(row[8]), Calcium: Number(row[9]),
         Iron: Number(row[10]), Magnesium: Number(row[11]), Potassium: Number(row[12]),
-        SaturatedFat: Number(row[13]), Sodium: Number(row[14])));
+        SaturatedFat: Number(row[13]), Sodium: Number(row[14]),
+        // Vitamin D and thiamine: NRF9.2 ignores them, the GLP-1 lens counts them, and a zero
+        // here would grade that lens as if no food carried either.
+        VitaminD: Number(row[15]),
+        Thiamine: Number(row[16])));
 
 var benchmark = ReadCsv(calibration + "benchmark.csv")
     .Select(row => (Id: row[0], Required: row[1], FdcId: row[2], Description: row[3]))

@@ -50,7 +50,9 @@ foreach (var food in foods)
         Magnesium: amounts["304"],
         Potassium: amounts["306"],
         SaturatedFat: amounts["606"],
-        Sodium: amounts["307"]);
+        Sodium: amounts["307"],
+        VitaminD: amounts["328"],
+        Thiamine: amounts["404"]);
 
     // FNDDS carries no amino acid data at all, so leucine is null for every food and every
     // score below is a Partial Grade. That is the measurement, not a flaw in it.
@@ -244,7 +246,7 @@ public record Scored(string Description, Dictionary<string, CombinedScore> ByLen
 public static class Codes
 {
     public static readonly string[] Required =
-        ["208", "203", "204", "291", "320", "401", "323", "301", "303", "304", "306", "606", "307"];
+        ["208", "203", "204", "291", "320", "401", "323", "301", "303", "304", "306", "606", "307", "328", "404"];
 }
 
 public record Nutrient([property: JsonPropertyName("number")] string Number);

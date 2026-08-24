@@ -12,24 +12,24 @@ public class PortionAggregateTests
         Category: "Vegetables, raw",
         Calories: 23, Protein: 2.86, Fat: 0.39, Fiber: 2.2, VitaminA: 469, VitaminC: 28.1,
         VitaminE: 2.03, Calcium: 99, Iron: 2.71, Magnesium: 79, Potassium: 558,
-        SaturatedFat: 0.063, Sodium: 79);
+        SaturatedFat: 0.063, Sodium: 79, VitaminD: 0, Thiamine: 0);
 
     private static readonly FoodInput Butter = new(
         Category: "Butter and animal fats",
         Calories: 717, Protein: 0.85, Fat: 81.11, Fiber: 0, VitaminA: 684, VitaminC: 0,
         VitaminE: 2.32, Calcium: 24, Iron: 0.02, Magnesium: 2, Potassium: 24,
-        SaturatedFat: 51.37, Sodium: 643);
+        SaturatedFat: 51.37, Sodium: 643, VitaminD: 0, Thiamine: 0);
 
     private static readonly FoodInput Rice = new(
         Category: "Rice",
         Calories: 130, Protein: 2.69, Fat: 0.28, Fiber: 0.4, VitaminA: 0, VitaminC: 0,
         VitaminE: 0.04, Calcium: 10, Iron: 1.2, Magnesium: 12, Potassium: 35,
-        SaturatedFat: 0.077, Sodium: 1);
+        SaturatedFat: 0.077, Sodium: 1, VitaminD: 0, Thiamine: 0);
 
     private static readonly FoodInput ChickenBreast = new(
         Category: "Chicken, whole pieces",
         Calories: 165, Protein: 31, Fat: 3.6, Fiber: 0, VitaminA: 9, VitaminC: 0, VitaminE: 0.27,
-        Calcium: 15, Iron: 1, Magnesium: 29, Potassium: 256, SaturatedFat: 1, Sodium: 74);
+        Calcium: 15, Iron: 1, Magnesium: 29, Potassium: 256, SaturatedFat: 1, Sodium: 74, VitaminD: 0, Thiamine: 0);
 
     private static ScoreCombiner Combiner() =>
         new(new PercentileScale(MeasuredSatiety), new PercentileScale(MeasuredDensity),

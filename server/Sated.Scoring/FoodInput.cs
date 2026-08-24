@@ -29,12 +29,18 @@ public record FoodInput(
     double Potassium,
     double SaturatedFat,
     double Sodium,
-    double VitaminD = 0,
-    double Thiamine = 0,
+    double VitaminD,
+    double Thiamine,
     double? LeucinePer100g = null,
     bool LeucineIsEstimated = false
 )
 {
+    // Vitamin D and thiamine carry no default on purpose. They were optional for one build, and
+    // in that build PortionAggregate silently dropped them and two tools graded the GLP-1 lens
+    // with both at zero — a lens defined by those two nutrients, scored as if no food had any.
+    // Required, the compiler names every caller. FR-7 says the same thing about the components:
+    // zero never means absent.
+
     // The three scores read overlapping nutrients, and used to be handed their own input record
     // each. Two records meant calories could read 165 in one and 200 in the other, producing a
     // grade for a food that does not exist without anything failing. One record, derived twice.

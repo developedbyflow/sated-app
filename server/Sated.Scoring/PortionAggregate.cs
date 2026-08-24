@@ -69,6 +69,8 @@ public static class PortionAggregate
             Potassium: Per100g(food => food.Potassium),
             SaturatedFat: Per100g(food => food.SaturatedFat),
             Sodium: Per100g(food => food.Sodium),
+            VitaminD: Per100g(food => food.VitaminD),
+            Thiamine: Per100g(food => food.Thiamine),
             LeucinePer100g: leucine,
             LeucineIsEstimated: estimated);
     }
