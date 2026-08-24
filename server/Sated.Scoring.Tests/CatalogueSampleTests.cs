@@ -1,0 +1,74 @@
+using System.Globalization;
+
+namespace Sated.Scoring.Tests;
+
+public class CatalogueSampleTests
+{
+    private static readonly Calibration Shipped = Calibration.Load();
+
+    private static readonly ScoreCombiner Engine = new(
+        new GeneralStrategies(
+            Shipped.SatietyScale, Shipped.DensityScales, Shipped.ReferenceMealGrams),
+        Shipped.Rules);
+
+    [Fact]
+    public void GradeFor_EveryFoodInTheCatalogueSample_MatchesTheRecordedLetter()
+    {
+        var moved = new List<string>();
+
+        foreach (var food in Sample())
+        {
+            for (var index = 0; index < Shipped.Lenses.Length; index++)
+            {
+                var lens = Shipped.Lenses[index];
+                var grade = Shipped.GradeFor(Engine.Combine(food.Input, lens), lens);
+
+                if (grade != food.Grades[index])
+                {
+                    moved.Add($"{food.Description} · {lens.Name} · " +
+                        $"{food.Grades[index]} → {grade}");
+                }
+            }
+        }
+
+        Assert.Empty(moved);
+    }
+
+    private static IEnumerable<SampleFood> Sample()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "catalogue-sample.csv");
+        var lines = File.ReadAllLines(path).Where(line => !line.StartsWith('#')).Skip(1);
+
+        foreach (var line in lines.Where(line => line.Length > 0))
+        {
+            var cells = line.Split(',');
+            var lenses = Shipped.Lenses.Length;
+
+            yield return new SampleFood(
+                Description: string.Join(',', cells.Skip(17 + lenses)),
+                Grades: [.. cells.Skip(16).Take(lenses).Select(Enum.Parse<Grade>)],
+                Input: new FoodInput(
+                    Category: cells[16 + lenses].Trim('"'),
+                    Calories: Number(cells[1]),
+                    Protein: Number(cells[2]),
+                    Fat: Number(cells[3]),
+                    Fiber: Number(cells[4]),
+                    VitaminA: Number(cells[5]),
+                    VitaminC: Number(cells[6]),
+                    VitaminE: Number(cells[7]),
+                    Calcium: Number(cells[8]),
+                    Iron: Number(cells[9]),
+                    Magnesium: Number(cells[10]),
+                    Potassium: Number(cells[11]),
+                    SaturatedFat: Number(cells[12]),
+                    Sodium: Number(cells[13]),
+                    VitaminD: Number(cells[14]),
+                    Thiamine: Number(cells[15])));
+        }
+    }
+
+    private static double Number(string cell) =>
+        double.Parse(cell, CultureInfo.InvariantCulture);
+
+    private record SampleFood(string Description, Grade[] Grades, FoodInput Input);
+}
