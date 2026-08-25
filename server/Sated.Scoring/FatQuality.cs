@@ -27,6 +27,11 @@ public static class FatQuality
         var unsaturated = 100 * (food.Fat - food.SaturatedFat) / food.Fat;
         var sodiumPercentDv = food.Sodium * (100 / food.Calories) / DensityScore.SodiumDv * 100;
 
-        return ComponentValue.Measured(unsaturated - sodiumPercentDv);
+        // Clamped because the sodium penalty is unbounded: a fat-free dressing carries ~20 kcal and
+        // enough sodium to push the penalty past 100, and ComponentStrategy promises 0-100. Found by
+        // a generated food with fat that was entirely saturated; measured on the catalogue it is
+        // real, and two foods came out with a negative combined score — Italian dressing, fat free
+        // at -17.48. Costs nothing: 6 scores move, no letter does.
+        return ComponentValue.Measured(Math.Clamp(unsaturated - sodiumPercentDv, 0, 100));
     }
 }
