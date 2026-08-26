@@ -58,8 +58,12 @@ public class CalibrationTests
     }
 
     [Fact]
-    public void Rules_FromShippedFile_ReplaceTheSatietyOfEveryFatCategoryUnderBothLenses()
+    public void Rules_FromShippedFile_LeaveEveryFatCategoryToFatQualityInstead()
     {
+        // These four carried a rule until fat quality became a component of its own. A rule is a
+        // switch, and the switch was the defect: a food inside one of these names was lifted to
+        // its unsaturated share and a food outside kept the general formula, so honey mustard dip
+        // read 10.5 against 42.7 for regular mayonnaise while beating it on every nutrient.
         var fatCategories = new[]
         {
             "Salad dressings and vegetable oils", "Butter and animal fats", "Margarine", "Mayonnaise"
@@ -67,19 +71,52 @@ public class CalibrationTests
 
         foreach (var category in fatCategories)
         {
-            Assert.NotNull(Shipped.Rules.Find(category, Frozen.WeightLoss, ScoreComponent.Satiety));
-            Assert.NotNull(Shipped.Rules.Find(category, Frozen.Fitness, ScoreComponent.Satiety));
+            Assert.Null(Shipped.Rules.Find(category, Frozen.WeightLoss, ScoreComponent.Satiety));
+            Assert.Null(Shipped.Rules.Find(category, Frozen.Fitness, ScoreComponent.Satiety));
             Assert.Null(Shipped.Rules.Find(category, Frozen.WeightLoss, ScoreComponent.Density));
         }
     }
 
     [Fact]
-    public void Rules_FromShippedFile_ReplaceTheDensityOfNutsAndNotTheirSatiety()
+    public void Rules_FromShippedFile_LeaveNutsToFatQualityToo()
     {
-        Assert.NotNull(Shipped.Rules.Find(
+        Assert.Null(Shipped.Rules.Find(
             "Nuts and seeds", Frozen.WeightLoss, ScoreComponent.Density));
         Assert.Null(Shipped.Rules.Find(
             "Nuts and seeds", Frozen.WeightLoss, ScoreComponent.Satiety));
+    }
+
+    [Fact]
+    public void Rules_FromShippedFile_AreNowAllTheSameOne()
+    {
+        // Every rule left in the file silences the satiety of a drink. Liquidity is the one thing
+        // a nutrient cannot report, so the category name is the only signal there is — and the
+        // test below proves the coverage instead of trusting the list.
+        Assert.All(Shipped.Rules.All, rule => Assert.Equal(ScoreComponent.Satiety, rule.Component));
+    }
+
+    [Fact]
+    public void Rules_FromShippedFile_CoverEveryDrinkCategoryTheCatalogueCarries()
+    {
+        // The gap this closes was measured: tonic water is filed under Flavored or carbonated
+        // water and ginger ale under Soft drinks, they carry the same 34 kcal of sugar water, and
+        // the names alone graded them 49.4 and 4.5. Coffee and Tea are deliberately absent — those
+        // categories hold macchiato and milk tea, which carry nutrition this rule does not cover.
+        var sugarWater = new[]
+        {
+            "Soft drinks", "Sport and energy drinks", "Diet sport and energy drinks",
+            "Fruit drinks", "Other diet drinks", "Flavored or carbonated water", "Enhanced water"
+        };
+
+        foreach (var category in sugarWater)
+        {
+            Assert.Contains(category, Shipped.CatalogueCategories);
+
+            foreach (var lens in Shipped.Lenses)
+            {
+                Assert.NotNull(Shipped.Rules.Find(category, lens, ScoreComponent.Satiety));
+            }
+        }
     }
 
     [Fact]
@@ -203,7 +240,7 @@ public class CalibrationTests
     [Fact]
     public void Load_UnknownStrategyName_Throws()
     {
-        var path = CopyWith("unsaturatedShare", "noSuchStrategy");
+        var path = CopyWith("noSatiety", "noSuchStrategy");
 
         Assert.Throws<ArgumentException>(() => Calibration.Load(path));
     }
@@ -211,7 +248,7 @@ public class CalibrationTests
     [Fact]
     public void Load_UnknownComponentName_Throws()
     {
-        var path = CopyWith("\"component\": \"Density\"", "\"component\": \"Vibes\"");
+        var path = CopyWith("\"component\": \"Satiety\"", "\"component\": \"Vibes\"");
 
         Assert.Throws<ArgumentException>(() => Calibration.Load(path));
     }

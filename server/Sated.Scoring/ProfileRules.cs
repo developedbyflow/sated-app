@@ -15,58 +15,52 @@ public static class ProfileRules
     // ruled, whipped cream and avocado, keep their category and so are never asked. They recover
     // all six foods whose letter breaks without a category.
 
-    // Olive oil is 100 g of fat with no protein and no fibre; pecans are 72 g of fat with 9.2 and
-    // 9.6. The fat share alone cannot separate them, which is what killed the profile rule at P50.
-    private const double PureFatCalorieShare = 0.80;
-    private const double PureFatProteinAndFiber = 3.0;
-
-    // Nuts carry their rule on density, not satiety, so they need their own test. Fat share alone
-    // would take cheddar and bacon with them at 0.74 and 0.72; fibre is what tells them apart.
-    private const double NutCalorieShare = 0.60;
-    private const double NutProteinAndFiber = 5.0;
-    private const double NutFiber = 3.0;
-
-    // A caloric drink is sugar in water. The ceiling keeps sugar and honey out: the same profile at
-    // four times the concentration, and nobody drinks them.
+    // A drink is sugar in water, or water. The ceiling keeps sugar and honey out: the same profile
+    // at four times the concentration, and nobody drinks them.
+    // No calorie minimum, on purpose. It used to require calories above zero, which quietly meant
+    // the rule judged Coke and refused to judge Coke Zero — and the diet drink then collected the
+    // Fullness Factor's payment for carrying few calories per 100 g. Measured on the catalogue,
+    // that put "Fruit flavored drink, diet" at A 76.1 while Powerade Zero read E 0.0, and in five
+    // of six brand pairs the sugar-free version graded below the sugared one. See the audit, A1.
     private const double DrinkCalorieCeiling = 100;
     private const double DrinkProteinFatFiber = 0.5;
-
-    // Atwater: a gram of fat carries nine calories. What matters is the share of the food's energy
-    // that fat accounts for, not the grams, because grams cannot compare a dressing to an oil.
-    private const double CaloriesPerGramOfFat = 9;
 
     /// <returns>
     /// True when this profile is one of the three these rules recognise. It exempts the food from
     /// the density floor for the same reason a ruled category is exempt: something measured has
     /// judged it, and a blanket floor must not overrule that.
     /// </returns>
-    public static bool Judges(FoodInput food) =>
-        Satiety(food) is not null || Density(food) is not null;
+    public static bool Judges(FoodInput food) => Satiety(food) is not null;
 
     /// <returns>The satiety replacement for this profile, or null to use the general formula.</returns>
     public static ComponentValue? Satiety(FoodInput food) =>
-        IsCaloricDrink(food) ? LiquidCalories.NoSatiety(food)
-        : IsPureFat(food) ? FatQuality.UnsaturatedShare(food)
-        : null;
+        IsDrink(food) ? LiquidCalories.NoSatiety(food) : null;
 
-    /// <returns>The density replacement for this profile, or null to use the general formula.</returns>
-    public static ComponentValue? Density(FoodInput food) =>
-        IsNutOrSeed(food) ? FatQuality.UnsaturatedShare(food) : null;
-
-    private static bool IsPureFat(FoodInput food) =>
-        FatShareOfCalories(food) >= PureFatCalorieShare
-        && food.Protein + food.Fiber <= PureFatProteinAndFiber;
-
-    private static bool IsNutOrSeed(FoodInput food) =>
-        FatShareOfCalories(food) >= NutCalorieShare
-        && food.Protein + food.Fiber >= NutProteinAndFiber
-        && food.Fiber >= NutFiber;
-
-    private static bool IsCaloricDrink(FoodInput food) =>
-        food.Calories > 0
-        && food.Calories <= DrinkCalorieCeiling
+    /// <returns>
+    /// True when the food is a drink by its nutrients alone. Unlike the rest of this class this
+    /// one is asked of every food, catalogue or not: the category rules name three drink
+    /// categories out of the catalogue's eleven, and which three was a list somebody wrote rather
+    /// than a fact about the food. Tonic water is filed under "Flavored or carbonated water" and
+    /// ginger ale under "Soft drinks"; they carry the same 34 kcal of sugar water, and the names
+    /// graded them 49.4 and 4.5. A nutrient test cannot miss a category nobody thought of.
+    /// </returns>
+    public static bool IsDrink(FoodInput food) =>
+        food.Calories <= DrinkCalorieCeiling
         && food.Protein + food.Fat + food.Fiber <= DrinkProteinFatFiber;
 
-    private static double FatShareOfCalories(FoodInput food) =>
-        food.Calories <= 0 ? 0 : food.Fat * CaloriesPerGramOfFat / food.Calories;
+    // Five calories per 100 g is a rounding artefact, not a food's energy: FNDDS reports energy in
+    // whole kcal, and the 89 foods under this line are waters, black coffee and tea, diet drinks
+    // and table-top sweeteners. Half a gram of macronutrient is the same line ProfileRules already
+    // draws for a drink.
+    private const double EmptyCalories = 5;
+    private const double EmptyMacros = 0.5;
+
+    /// <returns>
+    /// True when the food carries neither energy nor macronutrients, so no score defined per
+    /// calorie has an answer for it. See <see cref="CombinedScore.IsNutritionallyEmpty"/>.
+    /// </returns>
+    public static bool IsNutritionallyEmpty(FoodInput food) =>
+        food.Calories <= EmptyCalories
+        && food.Protein + food.Fat + food.Fiber <= EmptyMacros;
+
 }

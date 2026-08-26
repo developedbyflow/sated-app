@@ -167,7 +167,16 @@ public class ScoreCombinerTests
     {
         var score = Combiner().Combine(ChickenBreast with { LeucinePer100g = 0.5 }, Frozen.WeightLoss);
 
-        Assert.Equal(73.0553, score.Value, tolerance: 0.0001);
+        // Written as the arithmetic rather than as a number, because a number here means the test
+        // has to be re-typed every time the weights are refitted — and re-typing it against what
+        // the engine just printed is not a test. It still discriminates: a combiner using any
+        // other weights, or handing part of the satiety weight to fat quality for a food that is
+        // 20% fat by calories, lands somewhere else.
+        var expected = (Frozen.WeightLoss.Satiety * score.Satiety.Score
+            + Frozen.WeightLoss.Density * score.Density!.Score
+            + Frozen.WeightLoss.ProteinQuality * score.ProteinQuality!.Score) / 100;
+
+        Assert.Equal(expected, score.Value, tolerance: 0.0001);
     }
 
     [Fact]
@@ -219,7 +228,11 @@ public class ScoreCombinerTests
     {
         var score = Combiner().Combine(SparklingWater, Frozen.WeightLoss);
 
-        Assert.Equal(score.Satiety.Score * 50 / 70, score.Value);
+        Assert.Null(score.Density);
+        Assert.Equal(
+            score.Satiety.Score * Frozen.WeightLoss.Satiety
+                / (Frozen.WeightLoss.Satiety + Frozen.WeightLoss.ProteinQuality),
+            score.Value);
     }
 
     [Fact]

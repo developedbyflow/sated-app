@@ -128,15 +128,21 @@ public sealed class Calibration
             : throw new ArgumentException(
                 $"No calibrated thresholds for the {lens.Name} lens.", nameof(lens));
 
-    /// <summary>The letter a score earns under a lens, once the density floor has had its say.</summary>
+    /// <summary>
+    /// The letter a score earns under a lens, once the density floor has had its say, or null for
+    /// a food there is no letter for. Null is not a bad grade and must not be shown as one: the
+    /// product shows no letter at all. See <see cref="CombinedScore.IsNutritionallyEmpty"/>.
+    /// </summary>
     // A weighted average lets one catastrophic component be outvoted. Bacon scores 4.5 on density
     // and 100 on protein: the engine had already diagnosed the food correctly and was simply
     // outnumbered, coming out C under Weight Loss and B under Fitness. No weighting repairs that,
     // and no category rule either — the strategy it would need does not exist as a measurement.
     // A food with no density is never floored: null compares false against the floor, which is the
     // answer wanted here. Water has no density to be bad at.
-    public Grade GradeFor(CombinedScore score, Lens lens) =>
-        !score.CategoryIsRuled
+    public Grade? GradeFor(CombinedScore score, Lens lens) =>
+        score.IsNutritionallyEmpty
+            ? null
+        : !score.CategoryIsRuled
         && score.Density is { IsEstimated: false } density
         && density.Score < DensityFloor
             ? Grade.E

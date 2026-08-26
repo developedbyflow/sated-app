@@ -48,6 +48,18 @@ public record FoodInput(
     // each. Two records meant calories could read 165 in one and 200 in the other, producing a
     // grade for a food that does not exist without anything failing. One record, derived twice.
 
+    // Atwater: a gram of fat carries nine calories. The share of a food's energy that fat
+    // accounts for, not the grams, because grams cannot compare a dressing to an oil.
+    private const double CaloriesPerGramOfFat = 9;
+
+    /// <summary>
+    /// How much of this food's energy is fat, between 0 and 1. It decides how much of the satiety
+    /// weight fat quality takes: the Fullness Factor cannot read a food that is mostly fat, and
+    /// how mostly is a matter of degree, not of which category somebody filed it under.
+    /// </summary>
+    public double FatShareOfCalories =>
+        Calories <= 0 ? 0 : Math.Clamp(Fat * CaloriesPerGramOfFat / Calories, 0, 1);
+
     internal SatietyInput ForSatiety() => new(Calories, Protein, Fat, Fiber);
 
     internal DensityInput ForDensity() => new(

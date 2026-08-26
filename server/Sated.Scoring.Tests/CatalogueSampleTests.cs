@@ -47,7 +47,7 @@ public class CatalogueSampleTests
 
             yield return new SampleFood(
                 Description: string.Join(',', cells.Skip(17 + lenses)),
-                Grades: [.. cells.Skip(16).Take(lenses).Select(Enum.Parse<Grade>)],
+                Grades: [.. cells.Skip(16).Take(lenses).Select(ParseGrade)],
                 Input: new FoodInput(
                     Category: cells[16 + lenses],
                     Calories: Number(cells[1]),
@@ -105,5 +105,9 @@ public class CatalogueSampleTests
     private static double? Absent(string cell) =>
         cell.Length == 0 ? null : Number(cell);
 
-    private record SampleFood(string Description, Grade[] Grades, FoodInput Input);
+    // A dash is a food the engine gives no letter to, not a letter that failed to parse.
+    private static Grade? ParseGrade(string cell) =>
+        cell == "-" ? null : Enum.Parse<Grade>(cell);
+
+    private record SampleFood(string Description, Grade?[] Grades, FoodInput Input);
 }

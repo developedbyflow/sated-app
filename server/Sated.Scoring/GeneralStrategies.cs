@@ -35,6 +35,14 @@ public sealed class GeneralStrategies
         ComponentValue.Measured(
             _satietyScale.Normalize(SatietyScore.Calculate(food.ForSatiety())));
 
+    // Asked of every food, not of five categories. As a replacement for satiety it was a switch:
+    // a food inside a fat category was lifted to the unsaturated share and a food outside it kept
+    // the general formula, so two foods a nutrient could not tell apart were graded thirty points
+    // apart. The catalogue audit counted 725 pairs where a food better on every number the engine
+    // reads scored lower. As a component it has no inside and no outside.
+    public ComponentValue? FatQuality(FoodInput food) =>
+        Sated.Scoring.FatQuality.UnsaturatedShare(food);
+
     public ComponentValue? Density(FoodInput food, Lens lens)
     {
         var nutrients = lens.DensityNutrients;
@@ -93,7 +101,7 @@ public sealed class GeneralStrategies
         // Fitness from Weight Loss, and the two lenses would land on the same letter for 87.6%
         // of the catalogue (P29). The estimate is marked as such: SM-C4 counts a guess that
         // reads as a measurement as a failure of the product, not a shortcut in the engine.
-        var estimatedLeucine = ProteinCompleteness.EstimateLeucinePer100g(food.Protein);
+        var estimatedLeucine = ProteinCompleteness.EstimateLeucinePer100g(food.Protein, food.Category);
 
         return ComponentValue.Estimated(ProteinQualityScore.Calculate(
             estimatedLeucine, _referenceMealGrams));

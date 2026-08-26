@@ -99,8 +99,10 @@ public class EnginePropertyTests
                     continue;
                 }
 
-                if (Shipped.GradeFor(score, lens)
-                    != Shipped.ThresholdsFor(lens).GradeForScoreAlone(score.Value))
+                // A food with no grade at all was not floored, it was never graded. The floor is
+                // what this property is about, so the two must not be counted as the same event.
+                if (Shipped.GradeFor(score, lens) is { } grade
+                    && grade != Shipped.ThresholdsFor(lens).GradeForScoreAlone(score.Value))
                 {
                     floored.Add($"{food.Category} · {lens.Name}");
                 }

@@ -74,7 +74,7 @@ public class PortionAggregateTests
     }
 
     [Fact]
-    public void Aggregate_OnlyFatPortions_LosesTheCategoryRule()
+    public void Aggregate_OnlyFatPortions_IsGradedLikeTheFatItself()
     {
         var combiner = new ScoreCombiner(
             new GeneralStrategies(
@@ -87,7 +87,9 @@ public class PortionAggregateTests
 
         var score = combiner.Combine(mixture, Frozen.WeightLoss).Value;
 
-        Assert.NotEqual(combiner.Combine(Butter, Frozen.WeightLoss).Value, score);
+        // A plate that is nothing but butter is butter. It used to differ, because the aggregate
+        // is given a category no catalogue carries and so lost the rule the food had.
+        Assert.Equal(combiner.Combine(Butter, Frozen.WeightLoss).Value, score);
     }
 
     [Fact]
@@ -160,7 +162,7 @@ public class PortionAggregateTests
     }
 
     [Fact]
-    public void Combine_PlateThatIsAlmostEntirelyOil_TakesTheProfileFallback()
+    public void Combine_PlateThatIsAlmostEntirelyOil_IsJudgedAsTheFatItIs()
     {
         var oil = new FoodInput(
             Category: "Salad dressings and vegetable oils",
@@ -184,6 +186,6 @@ public class PortionAggregateTests
 
         Assert.Equal(
             FatQuality.UnsaturatedShare(plate)!.Score,
-            combiner.Combine(plate, Frozen.WeightLoss).Satiety.Score);
+            combiner.Combine(plate, Frozen.WeightLoss).FatQuality!.Score);
     }
 }

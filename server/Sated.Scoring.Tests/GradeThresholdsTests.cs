@@ -5,13 +5,13 @@ public class GradeThresholdsTests
     [Fact]
     public void GradeForScoreAlone_ScoreExactlyAtACutoff_TakesTheHigherLetter()
     {
-        Assert.Equal(Grade.A, Frozen.WeightLossCutoffs.GradeForScoreAlone(71.77));
+        Assert.Equal(Grade.A, Frozen.WeightLossCutoffs.GradeForScoreAlone(72.01));
     }
 
     [Fact]
     public void GradeForScoreAlone_ScoreJustBelowACutoff_TakesTheLowerLetter()
     {
-        Assert.Equal(Grade.B, Frozen.WeightLossCutoffs.GradeForScoreAlone(71.76));
+        Assert.Equal(Grade.B, Frozen.WeightLossCutoffs.GradeForScoreAlone(72.00));
     }
 
     [Fact]

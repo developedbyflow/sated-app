@@ -3,8 +3,6 @@
   "measuredOn": "2026-08-24",
   "notes": [
     "Letter cutoffs recalibrated twice on 2026-08-22, see 04_delivery/5 and 7: first when every food gained a protein component, then when that component moved onto a reference meal.",
-    "Salad dressings and vegetable oils take the fat rule on satiety rather than density: satiety carries 50% of the Weight Loss lens and olive oil scores 0.0 on it, so a density of 84.5 still graded E. Butter and animal fats, Margarine and Mayonnaise carry the same rule for the same reason.",
-    "Nuts and seeds take the same rule on density: NRF9.2 counts nutrients per calorie and cannot see that the calories are unsaturated fat.",
     "The cost of both is measured in 04_delivery/11: a light Italian dressing falls from 39.0 to 26.7, because the category is a loose proxy for mostly fat.",
     "FNDDS reports no trans fat. SR Legacy does, reachable through the same recipe join as leucine, and it puts stick margarine at 14.9 g per 100 g — but those are 2018 values, from before the FDA ban on partially hydrogenated oils took full effect on 1 January 2020. FNDDS 2021-2023 is from after it, so a margarine reading 80% unsaturated there really is. Grading it on the 2018 number would grade a product that no longer exists.",
     "300 g is the reference meal because it is a plausible one. Changing it changes every grade and requires refitting the cutoffs above.",
@@ -13,7 +11,12 @@
     "The density percentiles were re-measured on 2026-08-23, after the calorie floor changed the formula. The satiety column is untouched because its formula was not. The letter cutoffs above were deliberately not refitted: across the benchmark the scores moved 0.09 on average and 0.30 at most, and exactly one letter changed — black beans reaching the A it is asked for under Fitness. Refitting would move every food's letter for a reason that is not the food, which is what P28 exists to prevent.",
     "Diet sport and energy drinks take the same satiety rule as their sugared twins (P47). The diet soft drinks deliberately do not: a diet cola is water with sweetener and lands C, while an energy drink is a fortified 4 kcal that collected a density of 91.2 and graded A. Powerade Zero carries 0 kcal, so it had no density at all and was scored on satiety alone, coming out B — the same letter as tap water. Four letters move, all four wrong today.",
     "The density floor does not fire on a density the calorie floor produced (P49): below 10 kcal the number was divided by 10 rather than by the food's own calories, so it describes no food. Three letters move, all of them up and all of them right: broth, diet iced tea and flavoured water leave E for C.",
-    "The GLP-1 lens carries the Weight Loss weighting on purpose: SATED.md defines it by what its density counts, not by how it weighs the three components, and no weighting was ever agreed (FR-26). Measured, the nutrient set alone is enough to make it a distinct lens — with identical weights it gives a different letter to 545 of the 5,431 foods, 10.0% of the catalogue, and the moves run mostly upward as foods rich in vitamin D and thiamine rise. Its density is ranked against its own 101 measured percentiles, never the NRF9.2 ones: NRF11.2 sits 8.24 points above NRF9.2 on the average food, so borrowing that scale would have flattered every food on this lens. Its cutoffs are the p20/p40/p60/p80 of its own combined score across the catalogue, fitted the same way Story 1.7 fitted the first two. It carries the same eight category rules as Weight Loss: a lens without them puts olive oil back at E, which is the Story 1.8 mistake."
+    "The GLP-1 lens carries the Weight Loss weighting on purpose: SATED.md defines it by what its density counts, not by how it weighs the three components, and no weighting was ever agreed (FR-26). Measured, the nutrient set alone is enough to make it a distinct lens — with identical weights it gives a different letter to 545 of the 5,431 foods, 10.0% of the catalogue, and the moves run mostly upward as foods rich in vitamin D and thiamine rise. Its density is ranked against its own 101 measured percentiles, never the NRF9.2 ones: NRF11.2 sits 8.24 points above NRF9.2 on the average food, so borrowing that scale would have flattered every food on this lens. Its cutoffs are the p20/p40/p60/p80 of its own combined score across the catalogue, fitted the same way Story 1.7 fitted the first two. It carries the same eight category rules as Weight Loss: a lens without them puts olive oil back at E, which is the Story 1.8 mistake.",
+    "Flavored or carbonated water, Enhanced water, Fruit drinks and Other diet drinks joined the noSatiety rule. The three names that carried it were a list somebody wrote, not a fact about the food: tonic water is filed under Flavored or carbonated water and ginger ale under Soft drinks, they carry the same 34 kcal of sugar water, and the names graded them 49.4 and 4.5. Coffee and Tea were tried and rejected — those categories hold macchiato and milk tea, which carry real nutrition. Diet soft drinks stays on the general formula as P47 left it; its foods carry no energy and so carry no grade at all now, which is what that decision wanted.",
+    "Fat quality is a component, not a category rule. It used to replace satiety for five fat categories and density for nuts, which made it a switch: a food inside a listed category was lifted to its unsaturated share and a food outside kept the general formula, so honey mustard dip read 10.5 against 42.7 for regular mayonnaise while dominating it on every nutrient the engine reads. The catalogue audit counted 725 such pairs. It now takes satiety's weight in proportion to the share of the food's energy that is fat — no fourth weight was added, because a fourth weight would be a number nobody measured.",
+    "Cutoffs refitted on 2026-08-25 for the fourth component. They are the catalogue's p20/p40/p60/p80 as they have always been; adding fat quality moved every score, so leaving them would have graded the catalogue against a distribution that no longer exists. Measured by tools/LetterThresholdQuery against the same FNDDS 2021-2023.",
+    "Weight Loss and GLP-1 moved from 50/30/20 to 50/35/15 on 2026-08-25, fitted by tools/LensWeightFitQuery. The benchmark was SPLIT: the 60 foods of the top and bottom thirty were the fitting set, the 8 traps and 7 ordering pairs were held out and never consulted while choosing. Held out, the traps improved from 6/8 to 7/8 and the pairs held at 7/7, which is what makes this a measurement rather than a fit. 21 of the 171 candidate weightings reach the same maximum, spanning satiety 40-80 and density 10-55 but protein quality only 5-15 — the protein weight is the one this evidence actually constrains, and 20 is outside it. 50/35/15 is the member of that plateau nearest the shipped weighting, chosen so no letter moves for precision the evidence does not have. Fitness is unchanged: the benchmark's required grades are Weight Loss grades, so nothing here measures it.",
+    "Cutoffs refitted again on 2026-08-25 after the weights moved. Same p20/p40/p60/p80 of the same FNDDS, measured by tools/LetterThresholdQuery."
   ],
   "referenceMealGrams": 300,
   "densityFloor": 8,
@@ -21,14 +24,14 @@
     {
       "name": "Weight Loss",
       "satiety": 50,
-      "density": 30,
-      "proteinQuality": 20,
+      "density": 35,
+      "proteinQuality": 15,
       "densityNutrients": "nrf9.2",
       "thresholds": {
-        "dStartsAt": 31.81,
-        "cStartsAt": 45.55,
-        "bStartsAt": 58.64,
-        "aStartsAt": 71.77
+        "dStartsAt": 29.68,
+        "cStartsAt": 43.63,
+        "bStartsAt": 57.44,
+        "aStartsAt": 72.01
       }
     },
     {
@@ -38,88 +41,28 @@
       "proteinQuality": 50,
       "densityNutrients": "nrf9.2",
       "thresholds": {
-        "dStartsAt": 32.8,
-        "cStartsAt": 46.89,
-        "bStartsAt": 57.18,
-        "aStartsAt": 71.5
+        "dStartsAt": 30.96,
+        "cStartsAt": 45.38,
+        "bStartsAt": 54.58,
+        "aStartsAt": 70.99
       }
     },
     {
       "name": "GLP-1",
       "satiety": 50,
-      "density": 30,
-      "proteinQuality": 20,
+      "density": 35,
+      "proteinQuality": 15,
       "densityNutrients": "nrf11.2",
       "thresholds": {
-        "dStartsAt": 31.19,
-        "cStartsAt": 45.68,
-        "bStartsAt": 57.56,
-        "aStartsAt": 70.71
+        "dStartsAt": 29.88,
+        "cStartsAt": 44.07,
+        "bStartsAt": 57.2,
+        "aStartsAt": 71.65
       }
     }
   ],
   "categoryRules": [
     {
-      "category": "Salad dressings and vegetable oils",
-      "lens": "Weight Loss",
-      "component": "Satiety",
-      "strategy": "unsaturatedShare"
-    },
-    {
-      "category": "Salad dressings and vegetable oils",
-      "lens": "Fitness",
-      "component": "Satiety",
-      "strategy": "unsaturatedShare"
-    },
-    {
-      "category": "Butter and animal fats",
-      "lens": "Weight Loss",
-      "component": "Satiety",
-      "strategy": "unsaturatedShare"
-    },
-    {
-      "category": "Butter and animal fats",
-      "lens": "Fitness",
-      "component": "Satiety",
-      "strategy": "unsaturatedShare"
-    },
-    {
-      "category": "Margarine",
-      "lens": "Weight Loss",
-      "component": "Satiety",
-      "strategy": "unsaturatedShare"
-    },
-    {
-      "category": "Margarine",
-      "lens": "Fitness",
-      "component": "Satiety",
-      "strategy": "unsaturatedShare"
-    },
-    {
-      "category": "Mayonnaise",
-      "lens": "Weight Loss",
-      "component": "Satiety",
-      "strategy": "unsaturatedShare"
-    },
-    {
-      "category": "Mayonnaise",
-      "lens": "Fitness",
-      "component": "Satiety",
-      "strategy": "unsaturatedShare"
-    },
-    {
-      "category": "Nuts and seeds",
-      "lens": "Weight Loss",
-      "component": "Density",
-      "strategy": "unsaturatedShare"
-    },
-    {
-      "category": "Nuts and seeds",
-      "lens": "Fitness",
-      "component": "Density",
-      "strategy": "unsaturatedShare"
-    },
-    {
       "category": "Soft drinks",
       "lens": "Weight Loss",
       "component": "Satiety",
@@ -156,36 +99,6 @@
       "strategy": "noSatiety"
     },
     {
-      "category": "Salad dressings and vegetable oils",
-      "lens": "GLP-1",
-      "component": "Satiety",
-      "strategy": "unsaturatedShare"
-    },
-    {
-      "category": "Butter and animal fats",
-      "lens": "GLP-1",
-      "component": "Satiety",
-      "strategy": "unsaturatedShare"
-    },
-    {
-      "category": "Margarine",
-      "lens": "GLP-1",
-      "component": "Satiety",
-      "strategy": "unsaturatedShare"
-    },
-    {
-      "category": "Mayonnaise",
-      "lens": "GLP-1",
-      "component": "Satiety",
-      "strategy": "unsaturatedShare"
-    },
-    {
-      "category": "Nuts and seeds",
-      "lens": "GLP-1",
-      "component": "Density",
-      "strategy": "unsaturatedShare"
-    },
-    {
       "category": "Soft drinks",
       "lens": "GLP-1",
       "component": "Satiety",
@@ -199,6 +112,78 @@
     },
     {
       "category": "Diet sport and energy drinks",
+      "lens": "GLP-1",
+      "component": "Satiety",
+      "strategy": "noSatiety"
+    },
+    {
+      "category": "Other diet drinks",
+      "lens": "Weight Loss",
+      "component": "Satiety",
+      "strategy": "noSatiety"
+    },
+    {
+      "category": "Other diet drinks",
+      "lens": "Fitness",
+      "component": "Satiety",
+      "strategy": "noSatiety"
+    },
+    {
+      "category": "Other diet drinks",
+      "lens": "GLP-1",
+      "component": "Satiety",
+      "strategy": "noSatiety"
+    },
+    {
+      "category": "Fruit drinks",
+      "lens": "Weight Loss",
+      "component": "Satiety",
+      "strategy": "noSatiety"
+    },
+    {
+      "category": "Fruit drinks",
+      "lens": "Fitness",
+      "component": "Satiety",
+      "strategy": "noSatiety"
+    },
+    {
+      "category": "Fruit drinks",
+      "lens": "GLP-1",
+      "component": "Satiety",
+      "strategy": "noSatiety"
+    },
+    {
+      "category": "Flavored or carbonated water",
+      "lens": "Weight Loss",
+      "component": "Satiety",
+      "strategy": "noSatiety"
+    },
+    {
+      "category": "Flavored or carbonated water",
+      "lens": "Fitness",
+      "component": "Satiety",
+      "strategy": "noSatiety"
+    },
+    {
+      "category": "Flavored or carbonated water",
+      "lens": "GLP-1",
+      "component": "Satiety",
+      "strategy": "noSatiety"
+    },
+    {
+      "category": "Enhanced water",
+      "lens": "Weight Loss",
+      "component": "Satiety",
+      "strategy": "noSatiety"
+    },
+    {
+      "category": "Enhanced water",
+      "lens": "Fitness",
+      "component": "Satiety",
+      "strategy": "noSatiety"
+    },
+    {
+      "category": "Enhanced water",
       "lens": "GLP-1",
       "component": "Satiety",
       "strategy": "noSatiety"

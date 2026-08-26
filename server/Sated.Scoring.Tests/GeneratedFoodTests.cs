@@ -41,9 +41,16 @@ public class GeneratedFoodTests
     }
 
     [Property]
-    public bool GradeFor_AnyFood_ReturnsALetterThatExists(FoodInput food) =>
+    public bool GradeFor_AnyFood_ReturnsALetterThatExistsOrNoLetterAtAll(FoodInput food) =>
         Shipped.Lenses.All(lens =>
-            Enum.IsDefined(Shipped.GradeFor(Engine.Combine(food, lens), lens)));
+            Shipped.GradeFor(Engine.Combine(food, lens), lens) is not { } grade
+            || Enum.IsDefined(grade));
+
+    [Property]
+    public bool GradeFor_AnyFoodWithNoEnergyAndNoMacros_HasNoLetter(FoodInput food) =>
+        !ProfileRules.IsNutritionallyEmpty(food)
+        || Shipped.Lenses.All(lens =>
+            Shipped.GradeFor(Engine.Combine(food, lens), lens) is null);
 
     [Property]
     public bool Calculate_AnyFoodWithMoreSodium_NeverScoresHigherOnDensity(FoodInput food)

@@ -33,11 +33,12 @@ public class ProfileRulesTests
     }
 
     [Fact]
-    public void Satiety_PureFatWithNoCategory_ScoresItsUnsaturatedShare()
+    public void Satiety_PureFatWithNoCategory_IsNoLongerTheProfilesBusiness()
     {
-        var satiety = ProfileRules.Satiety(OliveOil);
-
-        Assert.Equal(FatQuality.UnsaturatedShare(OliveOil)!.Score, satiety!.Score);
+        // Fat quality is a component now, computed for every food. The profile no longer stands in
+        // for it, so a pure fat takes the general satiety formula like anything else — and what
+        // rescues olive oil is the weight fat quality takes, not a rule that skipped the formula.
+        Assert.Null(ProfileRules.Satiety(OliveOil));
     }
 
     [Fact]
@@ -49,29 +50,38 @@ public class ProfileRulesTests
     }
 
     [Fact]
-    public void Density_NutWithNoCategory_ScoresItsUnsaturatedShare()
+    public void ShareOfSatietyWeight_Nut_HandsOverPartOfTheWeightButNotAllOfIt()
     {
-        var density = ProfileRules.Density(Pecans);
-
-        Assert.Equal(FatQuality.UnsaturatedShare(Pecans)!.Score, density!.Score);
+        // Pecans are 86% fat by calories, so they hand over roughly two thirds. Only a food that
+        // is nothing but fat hands over all of it, which is what keeps a fatty food from going
+        // blind to its own calories — satiety is the only component that reads them.
+        Assert.InRange(FatQuality.ShareOfSatietyWeight(Pecans), 0.6, 0.7);
     }
 
     [Fact]
-    public void Density_CheeseWithNoCategory_IsNotMistakenForANut()
+    public void ShareOfSatietyWeight_OliveOil_HandsOverAllOfIt()
     {
-        var density = ProfileRules.Density(Cheddar);
-
-        Assert.Null(density);
+        Assert.Equal(1, FatQuality.ShareOfSatietyWeight(OliveOil));
     }
 
     [Fact]
-    public void Combine_PureFatCarryingACategory_IsLeftToTheCategoryTable()
+    public void ShareOfSatietyWeight_Cheese_HandsOverLessThanANut()
     {
+        Assert.True(
+            FatQuality.ShareOfSatietyWeight(Cheddar)
+            < FatQuality.ShareOfSatietyWeight(Pecans));
+    }
+
+    [Fact]
+    public void Combine_PureFat_IsGradedTheSameWhateverItsCategory()
+    {
+        // The property the old switch could not give: olive oil's grade no longer depends on
+        // whether somebody wrote its category down. This is what closed 725 dominance violations.
         var named = OliveOil with { Category = "Some category nobody wrote a rule for" };
 
-        Assert.NotEqual(
-            Combiner().Combine(OliveOil, Frozen.WeightLoss).Satiety.Score,
-            Combiner().Combine(named, Frozen.WeightLoss).Satiety.Score);
+        Assert.Equal(
+            Combiner().Combine(OliveOil, Frozen.WeightLoss).Value,
+            Combiner().Combine(named, Frozen.WeightLoss).Value);
     }
 
     private static ScoreCombiner CombinerKnowing(params string[] categories) =>
@@ -80,24 +90,33 @@ public class ProfileRulesTests
             new CategoryRules([], categories.ToHashSet(StringComparer.OrdinalIgnoreCase)));
 
     [Fact]
-    public void Combine_CategoryFromAnotherCatalogue_TakesTheProfileFallback()
+    public void Combine_CategoryFromAnotherCatalogue_IsGradedLikeTheSameFoodAtHome()
     {
         var combiner = CombinerKnowing("Salad dressings and vegetable oils");
         var imported = OliveOil with { Category = "Huiles d'olive" };
 
         Assert.Equal(
-            FatQuality.UnsaturatedShare(imported)!.Score,
-            combiner.Combine(imported, Frozen.WeightLoss).Satiety.Score);
+            combiner.Combine(OliveOil, Frozen.WeightLoss).Value,
+            combiner.Combine(imported, Frozen.WeightLoss).Value);
     }
 
     [Fact]
-    public void Combine_CategoryTheCatalogueKnowsButNobodyRuled_IsLeftToTheGeneralFormula()
+    public void Combine_FatQuality_CarriesTheWholeSatietyWeightOfAPureFat()
     {
-        var combiner = CombinerKnowing("Cream cheese, sour cream, whipped cream");
-        var known = OliveOil with { Category = "Cream cheese, sour cream, whipped cream" };
+        var score = Combiner().Combine(OliveOil, Frozen.WeightLoss);
 
-        Assert.NotEqual(
-            FatQuality.UnsaturatedShare(known)!.Score,
-            combiner.Combine(known, Frozen.WeightLoss).Satiety.Score);
+        Assert.Equal(1, FatQuality.ShareOfSatietyWeight(OliveOil));
+        Assert.Equal(FatQuality.UnsaturatedShare(OliveOil)!.Score, score.FatQuality!.Score);
+    }
+
+    [Fact]
+    public void Combine_FatQuality_CarriesNoneOfItForAFriedFood()
+    {
+        // A crisp is fried in vegetable oil, so its unsaturated share is excellent and means
+        // nothing. Measured: a ramp that started at zero lifted crisps, nuggets, stuffed-crust
+        // pizza and granola out of D/E and G0's bottom thirty fell to 25 of 30.
+        var crisps = Typed(null, calories: 536, protein: 7, fat: 35, fiber: 4.4);
+
+        Assert.Equal(0, FatQuality.ShareOfSatietyWeight(crisps));
     }
 }

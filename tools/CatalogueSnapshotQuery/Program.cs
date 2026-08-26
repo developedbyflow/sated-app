@@ -105,7 +105,9 @@ foreach (var food in foods)
     {
         var score = combiner.Combine(input, lenses[index]);
 
-        grades[index] = shipped.GradeFor(score, lenses[index]).ToString();
+        // A food with no energy carries no letter. Written as a dash rather than left empty so a
+        // reader — and the sample parser — cannot mistake it for a column that failed to fill in.
+        grades[index] = shipped.GradeFor(score, lenses[index])?.ToString() ?? Grades.None;
         scores[index] = score.Value;
     }
 
@@ -438,3 +440,8 @@ public record FoodItem(
 );
 
 public record SurveyFoodsFile([property: JsonPropertyName("SurveyFoods")] List<FoodItem> Foods);
+
+public static class Grades
+{
+    public const string None = "-";
+}

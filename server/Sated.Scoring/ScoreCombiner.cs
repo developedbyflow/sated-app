@@ -38,13 +38,35 @@ public sealed class ScoreCombiner
         var proteinQuality = Component(
             ScoreComponent.ProteinQuality, _general.ProteinQuality, food, lens);
 
+        var fatQuality = Component(
+            ScoreComponent.FatQuality, _general.FatQuality, food, lens);
+
+        // Fat quality carries no weight of its own. It takes satiety's, in proportion to how much
+        // of the food's energy is fat — which is the thing the Fullness Factor cannot read. Olive
+        // oil hands over all of it and is graded on its fat; broccoli hands over almost none.
+        // Written as a share rather than as a fourth weight in calibration.json on purpose: a new
+        // weight would be a number nobody measured, and the handoff already names the lens weights
+        // as the engine's biggest unvalidated lever. This adds no fourth one.
+        // It is also why no cliff can come back. The category rule this replaces was a switch, and
+        // every switch in this engine has produced the same defect: two foods a nutrient cannot
+        // tell apart, graded far apart because one fell on the far side of a boundary.
+        var handover = FatQuality.ShareOfSatietyWeight(food);
+        var satietyWeight = lens.Satiety * (1 - handover);
+        var fatWeight = lens.Satiety * handover;
+
         // A missing component drops out of both sums. Dividing by the weight actually used,
         // instead of by 100, is the redistribution FR-7 asks for: a zero-calorie food has no
         // density, so satiety 50 and protein 20 end up counting 71.4% and 28.6%.
         // Only the general strategies can leave a component out now — a category rule that has
         // no answer hands the food back to them instead of removing the component.
-        var weighted = lens.Satiety * satiety.Score;
-        var usedWeight = lens.Satiety;
+        var weighted = satietyWeight * satiety.Score;
+        var usedWeight = satietyWeight;
+
+        if (fatQuality is not null && fatWeight > 0)
+        {
+            weighted += fatWeight * fatQuality.Score;
+            usedWeight += fatWeight;
+        }
 
         if (density is not null)
         {
@@ -58,12 +80,22 @@ public sealed class ScoreCombiner
             usedWeight += lens.ProteinQuality;
         }
 
-        return new CombinedScore(weighted / usedWeight, satiety, density, proteinQuality)
+        // Every food that carries fat enough to zero the satiety weight carries a fat quality to
+        // put in its place, so this cannot divide by zero. Stated rather than assumed: the two
+        // facts live in different files and a change to either would otherwise produce NaN.
+        if (usedWeight <= 0)
+        {
+            throw new InvalidOperationException(
+                $"No component carried any weight for a food in {food.Category}.");
+        }
+
+        return new CombinedScore(weighted / usedWeight, satiety, density, proteinQuality, fatQuality)
         {
             // A profile rule exempts a food from the density floor exactly as a category rule does.
             // Replacing a component by one route and being floored anyway by the other would grade
             // a hand-entered olive oil on a rule and then overrule it, which is the whole point of
             // the exemption at P44.
+            IsNutritionallyEmpty = ProfileRules.IsNutritionallyEmpty(food),
             CategoryIsRuled = _rules.Has(food.Category, lens)
                 || (IsUnrecognised(food) && ProfileRules.Judges(food))
         };
@@ -103,7 +135,6 @@ public sealed class ScoreCombiner
             var profile = component switch
             {
                 ScoreComponent.Satiety => ProfileRules.Satiety(food),
-                ScoreComponent.Density => ProfileRules.Density(food),
                 _ => null
             };
 

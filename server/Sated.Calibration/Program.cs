@@ -66,7 +66,11 @@ foreach (var lens in lenses)
         var score = combiner.Combine(input, lens);
         var grade = calibration.GradeFor(score, lens);
 
-        grades[(lens.Name, food.Id)] = (score.Value, grade);
+        // A food with no grade at all never reaches the benchmark: all 68 carry calories. Kept
+        // explicit so a set that one day includes water fails loudly instead of reading as E.
+        grades[(lens.Name, food.Id)] = (score.Value, grade
+            ?? throw new InvalidOperationException(
+                $"{food.Description} carries no energy, so the set cannot require a grade of it."));
 
         Console.WriteLine($"{food.Id,-4} {Truncate(food.Description, 34),-34} " +
             $"{food.RequiredGrade,6} {score.Value,6:F1} {grade,4} " +

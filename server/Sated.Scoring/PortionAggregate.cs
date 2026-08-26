@@ -50,13 +50,15 @@ public static class PortionAggregate
                 : portions.Sum(portion => nutrient(portion.Food)!.Value * portion.Grams)
                     / totalGrams;
 
-        // Leucine is still resolved per portion, though no longer for the reason it was: with one
-        // share the arithmetic would commute. What does not commute is provenance — one portion
-        // may carry a leucine the catalogue measured while the next has none, and merging first
-        // would hand the measured half of a plate to the guessed half.
+        // Leucine is resolved per portion, and now the share is read per portion too. The plate
+        // is given a category no catalogue carries, so asking for the share after merging would
+        // fall back to the median for every plate — and a plate of nothing but butter would stop
+        // grading like butter. Caught by PortionAggregateTests the moment the share stopped being
+        // one number, which is the whole reason that test asserts equality.
         var leucine = portions.Sum(portion =>
             (portion.Food.LeucinePer100g
-                ?? ProteinCompleteness.EstimateLeucinePer100g(portion.Food.Protein))
+                ?? ProteinCompleteness.EstimateLeucinePer100g(
+                    portion.Food.Protein, portion.Food.Category))
             * portion.Grams) / totalGrams;
 
         // One guessed ingredient makes the whole plate a guess. A Recipe nested in a Meal
