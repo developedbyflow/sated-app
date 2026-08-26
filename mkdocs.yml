@@ -1,0 +1,66 @@
+site_name: Sated
+site_description: A nutrition score that changes with your goal.
+site_url: https://developedbyflow.github.io/sated-app/
+repo_url: https://github.com/developedbyflow/sated-app
+repo_name: developedbyflow/sated-app
+edit_uri: ""
+
+theme:
+  name: material
+  language: en
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue grey
+      accent: amber
+      toggle:
+        icon: material/weather-night
+        name: Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue grey
+      accent: amber
+      toggle:
+        icon: material/weather-sunny
+        name: Light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+    - toc.follow
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+# Diataxis: four kinds of documentation, four folders.
+# A new epic ADDS a line here. It never restructures this file.
+nav:
+  - Home: index.md
+  - Explanation:
+      - What a food is to the engine: explanation/what-a-food-is.md
+      - Architecture: explanation/architecture.md
+      - The four gates: explanation/the-four-gates.md
+  - How-to:
+      - Change the engine safely: how-to/change-the-engine-safely.md
+  - Decisions:
+      - Overview: decisions/index.md
+      - 0001 - Fat quality is a component: decisions/0001-fat-quality-is-a-component-not-a-category-rule.md
+      - Record template: decisions/_template.md

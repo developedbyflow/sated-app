@@ -5,3 +5,5 @@ handoff.md
 tools/UsdaCoverageQuery/data/
 bin/
 obj/
+site/
+.venv-docs/
