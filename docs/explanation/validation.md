@@ -24,12 +24,35 @@ This is the honest table, and it is mostly empty.
 
 | Score | Validated against | Result |
 |---|---|---|
-| Satiety | Holt 1995 — 21 foods | Spearman **0.853** |
-| Density | *nothing yet* | — |
+| Satiety | Holt 1995 — 21 foods | Spearman **0.853** (0.903 excluding potato) |
+| Density | Nutri-Score 2023 — 4,713 foods | Spearman **0.738** |
 | Protein quality | *nothing yet* | — |
 | Fat quality | no external source exists | — |
 
-One study, 21 foods, covering one of four components. That is the current state.
+### Density against Nutri-Score
+
+Measured by `tools/NutriScoreCompareQuery`, which reimplements the published 2023 algorithm and
+compares its ranking of the catalogue to ours. Two components of four now have an external number.
+
+The comparison is restricted to Nutri-Score's **general branch**. Beverages and the
+fats/oils/nuts/seeds family are scored under different rules that the tool deliberately does not
+reproduce, because there is no worked example to check them against. 716 foods in 39 categories are
+excluded, and the tool prints the list so the exclusion can be argued with.
+
+The general branch **is** checked: the tool refuses to print anything unless it reproduces cheddar
+(FNDDS 2705709) at exactly **16, grade D** — the value verified against Santé publique France's own
+calculator. Not within a tolerance; exactly.
+
+**7.6% of foods disagree by more than 40 rank points.** Those splits are the interesting output, and
+they fall into three kinds:
+
+| Pattern | Example | Reading |
+|---|---|---|
+| We rank organ meats and roe far higher | liverwurst, caviar, chicken livers — all **E** under Nutri-Score | a known Nutri-Score weakness; genuinely nutrient-dense foods |
+| We rank fortified powders near the top | meal-replacement mixes at 90–98 / 100 | **a defect of ours** — NRF9.2 counts added micronutrients exactly like inherent ones |
+| Nutri-Score rewards the absence of bad things; we reward the presence of good ones | sugar substitutes: **A** for them, ~5 / 100 for us | a real difference in what the two scores are for, not an error in either |
+
+The middle row is the finding that matters. It is recorded as an open question, not explained away.
 
 ## Calibration
 
@@ -62,9 +85,11 @@ hides the marker fails this, regardless of what the engine did.**
 
 | Gap | Plan |
 |---|---|
-| Density has no external validation | measure convergence with **Nutri-Score** over the whole catalogue. The algorithm is public; agreement is validation, and disagreement is the differentiator |
+| ~~Density has no external validation~~ | **done** — Spearman 0.738 against Nutri-Score, above |
+| Fortified foods rank too high | decide whether NRF9.2 should count added micronutrients at the same weight as inherent ones. Nobody has measured what a discount would cost |
 | Protein quality has no external validation | **DIAAS** |
 | Fitness weights are not fitted | a separate benchmark whose required grades are Fitness grades |
+| Beverages and added fats are not compared | needs a worked example for those two branches before the implementation can be trusted |
 
 ## What may not be claimed
 
