@@ -65,4 +65,5 @@ nav:
   - Decisions:
       - Overview: decisions/index.md
       - 0001 - Fat quality is a component: decisions/0001-fat-quality-is-a-component-not-a-category-rule.md
+      - 0002 - Added micronutrients count in full: decisions/0002-count-added-micronutrients-like-inherent-ones.md
       - Record template: decisions/_template.md

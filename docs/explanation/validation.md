@@ -49,10 +49,10 @@ they fall into three kinds:
 | Pattern | Example | Reading |
 |---|---|---|
 | We rank organ meats and roe far higher | liverwurst, caviar, chicken livers — all **E** under Nutri-Score | a known Nutri-Score weakness; genuinely nutrient-dense foods |
-| We rank fortified powders near the top | meal-replacement mixes at 90–98 / 100 | **a defect of ours** — NRF9.2 counts added micronutrients exactly like inherent ones |
+| We rank fortified products above vegetables | meal-replacement shakes at **A**, Nutri-Score **E** | not a defect — NRF9.2 counts added micronutrients like inherent ones, and Nutri-Score deliberately does not. See [decision 0002](../decisions/0002-count-added-micronutrients-like-inherent-ones.md) |
 | Nutri-Score rewards the absence of bad things; we reward the presence of good ones | sugar substitutes: **A** for them, ~5 / 100 for us | a real difference in what the two scores are for, not an error in either |
 
-The middle row is the finding that matters. It is recorded as an open question, not explained away.
+The middle row was investigated as a suspected defect and turned out to be a difference between two published standards. Three candidate repairs were checked and rejected; the reasoning is in decision 0002.
 
 ## Calibration
 
@@ -86,7 +86,7 @@ hides the marker fails this, regardless of what the engine did.**
 | Gap | Plan |
 |---|---|
 | ~~Density has no external validation~~ | **done** — Spearman 0.738 against Nutri-Score, above |
-| Fortified foods rank too high | decide whether NRF9.2 should count added micronutrients at the same weight as inherent ones. Nobody has measured what a discount would cost |
+| ~~Fortified foods rank too high~~ | **decided** — [0002](../decisions/0002-count-added-micronutrients-like-inherent-ones.md). Revisiting needs a catalogue that flags fortification, which is an input to D1 |
 | Protein quality has no external validation | **DIAAS** |
 | Fitness weights are not fitted | a separate benchmark whose required grades are Fitness grades |
 | Beverages and added fats are not compared | needs a worked example for those two branches before the implementation can be trusted |
