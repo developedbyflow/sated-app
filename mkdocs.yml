@@ -56,6 +56,7 @@ nav:
   - Home: index.md
   - Explanation:
       - What a food is to the engine: explanation/what-a-food-is.md
+      - The four scores: explanation/the-four-scores.md
       - Architecture: explanation/architecture.md
       - The four gates: explanation/the-four-gates.md
   - How-to:
