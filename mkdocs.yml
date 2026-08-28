@@ -59,6 +59,7 @@ nav:
       - The four scores: explanation/the-four-scores.md
       - Architecture: explanation/architecture.md
       - The four gates: explanation/the-four-gates.md
+      - Validation and its limits: explanation/validation.md
   - How-to:
       - Change the engine safely: how-to/change-the-engine-safely.md
   - Decisions:

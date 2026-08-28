@@ -116,9 +116,12 @@ being fat. See [decision 0001](../decisions/0001-fat-quality-is-a-component-not-
 
 ## Two kinds of limit
 
-Every formula here has caps and floors, and they are not all the same thing. **A cap lies about the
-food** — `Math.Max(10, 2)` says "pretend this carries 10 kcal" when it carries 2 — so each one has to
-be justified separately.
+Every formula here has caps and floors, and they are not all the same thing.
+
+A floor changes the food the formula sees: `Math.Max(10, 2)` computes as though a 2 kcal drink
+carried 10. That is not a repair of a broken formula — it is a statement about **where the formula's
+question stops making sense.** Density divides by calories, and dividing by a number close to zero
+turns trace amounts into full scores. Each limit still has to be justified separately.
 
 **Limits that come from the source.** The formula is not allowed past a point, and the point was
 never ours to choose.
