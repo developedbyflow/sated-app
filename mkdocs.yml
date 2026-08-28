@@ -57,6 +57,7 @@ nav:
   - Explanation:
       - What a food is to the engine: explanation/what-a-food-is.md
       - The four scores: explanation/the-four-scores.md
+      - Why scores are relative: explanation/why-scores-are-relative.md
       - Architecture: explanation/architecture.md
       - The four gates: explanation/the-four-gates.md
       - Validation and its limits: explanation/validation.md
