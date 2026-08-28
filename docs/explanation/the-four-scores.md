@@ -114,18 +114,36 @@ being fat. See [decision 0001](../decisions/0001-fat-quality-is-a-component-not-
 
 ---
 
-## Every limit is a scar
+## Two kinds of limit
 
-No cap in this engine is a precaution. Each one exists because a real food broke something.
+Every formula here has caps and floors, and they are not all the same thing. **A cap lies about the
+food** — `Math.Max(10, 2)` says "pretend this carries 10 kcal" when it carries 2 — so each one has to
+be justified separately.
+
+**Limits that come from the source.** The formula is not allowed past a point, and the point was
+never ours to choose.
+
+| Limit | Where it comes from |
+|---|---|
+| calories ≥ 30 · satiety | the patent was fitted on real data, and the cubed terms diverge outside it |
+| protein ≤ 30 · fibre ≤ 12 · fat ≤ 50 | the same edge of the measured data |
+| max 100 · protein quality | biology — past roughly 3 g of leucine, synthesis does not increase |
+| calories ≤ 950 · both | physics — nothing carries more than 9 kcal per gram, so 100 g of anything tops out near 900. This one catches a unit error, not a food: European data reports kJ, and 4.184 times a real number passes every other check in this engine |
+
+**Limits added after a real food came out wrong.** There are exactly two.
 
 | Limit | The food that demanded it |
 |---|---|
-| calories ≥ 30 · satiety | the boundary of the patent's data — past it the cubed terms diverge |
-| calories ≥ 10 · density | diet cola: 2 kcal, trace sodium, graded A |
-| max 100 · protein | the literature — the muscular response saturates |
-| 0–100 · fat quality | fat-free dressing, whose sodium penalty drove it to −17.48 |
-| calories ≤ 950 · both | European data in kJ — 4.184 times a real number passes every other check in this engine and simply grades wrong |
+| calories ≥ 10 · density | diet cola — 2 kcal, trace nutrients, graded **A** |
+| 0–100 · fat quality | fat-free dressing, whose sodium penalty drove it to **−17.48** |
 
-The last one is worth reading twice. It is the only guard here that catches a **unit error** rather
-than a food, and it works because nothing carries more energy than fat's 9 kcal per gram: 100 g of
-anything tops out near 900, and lard, the densest food in FNDDS, reads 902.
+### Why the density floor is legitimate
+
+The fair objection to a floor is: *you just claimed a 2 kcal drink carries 10 — how do you know you
+did not break the vegetables?*
+
+That was measured, and the answer is in the code: **70 foods out of 5,403** sit below the floor, and
+**the 41 vegetables under 40 kcal are untouched.** The floor catches flavoured water, not cucumbers.
+
+The rule generalises to any cap anyone adds later: **a cap is acceptable only when you can show what
+it does not step on.**
