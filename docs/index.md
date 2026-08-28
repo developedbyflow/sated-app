@@ -17,6 +17,7 @@ over 5,431 foods.
 
 | If you want to | Read |
 |---|---|
+| Understand the whole engine in six plain steps | [How a food becomes a letter](explanation/how-a-food-becomes-a-letter.md) |
 | Understand what the engine actually sees | [What a food is](explanation/what-a-food-is.md) |
 | See the system's shape and why it is shaped that way | [Explanation](explanation/architecture.md) |
 | Change something without breaking the grades | [How-to](how-to/change-the-engine-safely.md) |

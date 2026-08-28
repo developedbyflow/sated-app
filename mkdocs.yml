@@ -55,6 +55,7 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Explanation:
+      - How a food becomes a letter: explanation/how-a-food-becomes-a-letter.md
       - What a food is to the engine: explanation/what-a-food-is.md
       - The four scores: explanation/the-four-scores.md
       - Why scores are relative: explanation/why-scores-are-relative.md
