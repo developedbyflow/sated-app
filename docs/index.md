@@ -21,18 +21,20 @@ over 5,431 foods.
 | Understand what the engine actually sees | [What a food is](explanation/what-a-food-is.md) |
 | See the system's shape and why it is shaped that way | [Explanation](explanation/architecture.md) |
 | Change something without breaking the grades | [How-to](how-to/change-the-engine-safely.md) |
+| Call the API | [HTTP API](reference/http-api.md) |
 | Know why a decision went the way it did | [Decisions](decisions/index.md) |
 
 ## What exists today
 
-The **scoring engine is complete and measured**. Everything else is not built yet.
+The **scoring engine is complete and measured**. The HTTP layer has just started. Everything
+else is not built yet.
 
 | Part | State |
 |---|---|
 | `Sated.Scoring` — the grading engine | 26 files, 1,726 lines, 152 tests |
 | `calibration.json` — the measured constants | 678 lines, every tunable number |
 | The four gates — tests, G0, snapshot, audit | all green |
-| `Sated.Api` — the HTTP layer | 14 lines |
+| `Sated.Api` — the HTTP layer | 1 endpoint — [`GET /api/lenses`](reference/http-api.md) |
 | `Sated.Parsing`, `client/` | empty |
 | Database, auth, catalogue storage | none |
 

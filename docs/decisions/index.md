@@ -29,6 +29,7 @@ Status is one of `proposed`, `accepted`, `superseded by 00NN`.
 |---|---|---|
 | [0001](0001-fat-quality-is-a-component-not-a-category-rule.md) | Fat quality is a component, not a category rule | accepted |
 | [0002](0002-count-added-micronutrients-like-inherent-ones.md) | Count added micronutrients like inherent ones | accepted |
+| [0003](0003-controllers-over-minimal-apis.md) | Build the HTTP layer on controllers, not minimal APIs | accepted |
 
 ## The scoring decisions are not here yet
 
