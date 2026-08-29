@@ -45,10 +45,11 @@ FoodInput FromLabel(FoodInput usda) => usda with
 
 FoodInput WithoutCategory(FoodInput usda) => usda with { Category = null };
 
-var lens = shipped.Lenses.First(candidate => candidate.Name == "Weight Loss");
+var lens = shipped.Lenses.First(candidate => candidate.Id == "weight-loss");
 
-Grade GradeOf(FoodInput food) => shipped.GradeFor(combiner.Combine(food, lens), lens);
+Grade? GradeOf(FoodInput food) => shipped.GradeFor(combiner.Combine(food, lens), lens);
 
+var withoutALetter = new List<string>();
 var movedByLabel = new List<string>();
 var movedByCategory = new List<string>();
 var movedByBoth = new List<string>();
@@ -64,13 +65,14 @@ foreach (var row in rows)
     var label = GradeOf(FromLabel(usda));
     var both = GradeOf(WithoutCategory(FromLabel(usda)));
 
+    if (truth is null) withoutALetter.Add(row[1]);
     if (noCategory != truth) movedByCategory.Add(row[1]);
     if (label != truth) movedByLabel.Add(row[1]);
     if (both != truth) movedByBoth.Add(row[1]);
 
     if (both != truth)
     {
-        Console.WriteLine($"{Truncate(names.GetValueOrDefault(row[0], row[1]), 44),-44}{truth,6}{Mark(noCategory, truth),16}" +
+        Console.WriteLine($"{Truncate(names.GetValueOrDefault(row[0], row[1]), 44),-44}{Letter(truth),6}{Mark(noCategory, truth),16}" +
             $"{Mark(label, truth),15}{Mark(both, truth),11}");
     }
 }
@@ -80,6 +82,11 @@ Console.WriteLine($"din {rows.Length} alimente, litera se schimbă la:");
 Console.WriteLine($"  fără categoria WWEIA   {movedByCategory.Count,3}  ({Percent(movedByCategory.Count)})");
 Console.WriteLine($"  doar ce e pe etichetă  {movedByLabel.Count,3}  ({Percent(movedByLabel.Count)})");
 Console.WriteLine($"  amândouă               {movedByBoth.Count,3}  ({Percent(movedByBoth.Count)})");
+Console.WriteLine();
+Console.WriteLine(withoutALetter.Count == 0
+    ? "niciun aliment din set nu e gol nutrițional: coloana \u2014 nu e exercitată de datele astea"
+    : $"fără literă (goale nutrițional): {withoutALetter.Count} \u00b7 " +
+      $"{string.Join(", ", withoutALetter)}");
 
 string Percent(int count) => $"{(double)count / rows.Length * 100:F1}%";
 
@@ -148,7 +155,7 @@ foreach (var row in rows)
     if (grade != truth)
     {
         foreign++;
-        Console.WriteLine($"{Truncate(names.GetValueOrDefault(row[0], row[1]), 42),-42}{truth,6}" +
+        Console.WriteLine($"{Truncate(names.GetValueOrDefault(row[0], row[1]), 42),-42}{Letter(truth),6}" +
             $"{Mark(GradeOf(WithoutCategory(usda)), truth),16}{Mark(grade, truth),14}");
     }
 }
@@ -213,7 +220,7 @@ foreach (var row in rows)
     if (gradeZero != truth || gradeRescale != truth || gradeMedian != truth
         || gradeCautious != truth)
     {
-        Console.WriteLine($"{Truncate(names.GetValueOrDefault(row[0], row[1]), 42),-42}{truth,6}" +
+        Console.WriteLine($"{Truncate(names.GetValueOrDefault(row[0], row[1]), 42),-42}{Letter(truth),6}" +
             $"{Mark(gradeZero, truth),8}{Mark(gradeRescale, truth),14}{Mark(gradeMedian, truth),10}{Mark(gradeCautious, truth),10}");
     }
 }
@@ -222,9 +229,18 @@ Console.WriteLine();
 Console.WriteLine($"greșite din {rows.Length}:  zero {wrongZero}  ·  renormalizat {wrongRescale}"
     + $"  ·  mediană {wrongMedian}  ·  prudent {wrongCautious}");
 
-Grade GradeFromDensity(FoodInput food, double densityScore)
+Grade? GradeFromDensity(FoodInput food, double densityScore)
 {
     var original = combiner.Combine(food, lens);
+
+    // A substituted density is still a claim made per calorie, and a food with no calories has
+    // none to make. Without this the three treatments would each be counted wrong on a food the
+    // engine deliberately refuses to letter, and the section would be measuring water rather than
+    // substitution.
+    if (original.IsNutritionallyEmpty)
+    {
+        return null;
+    }
 
     var value = (lens.Satiety * original.Satiety.Score
         + lens.Density * densityScore
@@ -244,8 +260,13 @@ void Section(string title)
     Console.WriteLine($"── {title} ".PadRight(94, '─'));
 }
 
-static string Mark(Grade actual, Grade truth) =>
-    actual == truth ? $"{actual}" : $"{actual} \u2717";
+// No letter is an outcome, not a missing measurement, so it prints as an em dash rather than
+// blank and matches truth like any other value. An empty food stays empty under every treatment
+// here: none of them touches energy or macronutrients, which is all the rule looks at.
+static string Mark(Grade? actual, Grade? truth) =>
+    actual == truth ? Letter(actual) : $"{Letter(actual)} \u2717";
+
+static string Letter(Grade? grade) => grade?.ToString() ?? "\u2014";
 
 static string Truncate(string text, int length) =>
     text.Length <= length ? text : text[..length];
