@@ -29,7 +29,7 @@ Two facts shape the choice more than any benchmark:
 ## Decision
 
 Endpoints are **controllers**: one class per resource under `Controllers/`, marked
-`[ApiController]`, routed by attribute, returning DTOs declared under `Contracts/`.
+`[ApiController]`, routed by attribute, returning DTOs declared under `Dtos/`.
 
 ## Alternatives considered
 

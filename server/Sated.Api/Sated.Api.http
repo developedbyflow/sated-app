@@ -1,6 +1,13 @@
-@Sated.Api_HostAddress = http://localhost:5227
+@host = http://localhost:5227
 
-GET {{Sated.Api_HostAddress}}/weatherforecast/
+### Lentilele pe care le oferă ecranul de onboarding (Story 2.2)
+GET {{host}}/api/lenses
 Accept: application/json
 
-###
+### Rută inexistentă — trebuie să dea 404
+GET {{host}}/api/lens
+Accept: application/json
+
+### Descrierea OpenAPI a API-ului (doar în Development)
+GET {{host}}/openapi/v1.json
+Accept: application/json
