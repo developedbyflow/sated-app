@@ -60,14 +60,14 @@ public sealed class Calibration
         DensityFloor = file.DensityFloor;
 
         Lenses = [.. file.Lenses.Select(lens => new Lens(
-            lens.Name, lens.Satiety, lens.Density, lens.ProteinQuality,
+            lens.Id, lens.Name, lens.Satiety, lens.Density, lens.ProteinQuality,
             NutrientsNamed(lens.DensityNutrients)))];
 
         foreach (var lens in file.Lenses)
         {
-            // Add, not the indexer: two lenses under the same name would leave the winner
+            // Add, not the indexer: two lenses under the same id would leave the winner
             // decided by file order, exactly as two rules over one component would.
-            _thresholds.Add(lens.Name, new GradeThresholds(
+            _thresholds.Add(lens.Id, new GradeThresholds(
                 lens.Thresholds.DStartsAt,
                 lens.Thresholds.CStartsAt,
                 lens.Thresholds.BStartsAt,
@@ -130,7 +130,7 @@ public sealed class Calibration
     /// than borrowing another lens's numbers and grading everything slightly wrong.
     /// </summary>
     public GradeThresholds ThresholdsFor(Lens lens) =>
-        _thresholds.TryGetValue(lens.Name, out var thresholds)
+        _thresholds.TryGetValue(lens.Id, out var thresholds)
             ? thresholds
             : throw new ArgumentException(
                 $"No calibrated thresholds for the {lens.Name} lens.", nameof(lens));
@@ -184,6 +184,7 @@ internal sealed record CalibrationFile
 
 internal sealed record LensFile
 {
+    public required string Id { get; init; }
     public required string Name { get; init; }
     public required double Satiety { get; init; }
     public required double Density { get; init; }

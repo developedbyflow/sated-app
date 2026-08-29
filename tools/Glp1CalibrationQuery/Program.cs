@@ -19,10 +19,11 @@ using Sated.Scoring;
 // is printed with its consequence: how many letters actually differ between them.
 
 const string DataPath = "../UsdaCoverageQuery/data/surveyDownload.json";
+const string LensId = "glp-1";
 const string LensName = "GLP-1";
 
 var shipped = Calibration.Load();
-var weightLoss = shipped.Lenses.First(lens => lens.Name == "Weight Loss");
+var weightLoss = shipped.Lenses.First(lens => lens.Id == "weight-loss");
 
 var foods = JsonSerializer.Deserialize<SurveyFoodsFile>(File.ReadAllText(DataPath))!.Foods;
 var catalogue = new List<(string Description, FoodInput Food)>();
@@ -92,7 +93,7 @@ Console.WriteLine($"media diferenței pe aliment: " +
     $"maxim {raw112.Zip(raw92, (a, b) => a - b).Max():F1}");
 
 // ── 2. Motorul cu trei lentile ──────────────────────────────────────────────────────────────────
-var glp1 = new Lens(LensName, weightLoss.Satiety, weightLoss.Density, weightLoss.ProteinQuality,
+var glp1 = new Lens(LensId, LensName, weightLoss.Satiety, weightLoss.Density, weightLoss.ProteinQuality,
     DensityScore.Nrf112);
 
 var scales = new Dictionary<string, PercentileScale>(StringComparer.OrdinalIgnoreCase)
@@ -107,8 +108,8 @@ var scales = new Dictionary<string, PercentileScale>(StringComparer.OrdinalIgnor
 var rules = new CategoryRules([
     .. shipped.Rules.All,
     .. shipped.Rules.All
-        .Where(rule => rule.LensName.Equals(weightLoss.Name, StringComparison.OrdinalIgnoreCase))
-        .Select(rule => rule with { LensName = LensName })
+        .Where(rule => rule.LensId.Equals(weightLoss.Id, StringComparison.OrdinalIgnoreCase))
+        .Select(rule => rule with { LensId = LensId })
 ]);
 
 var combiner = new ScoreCombiner(

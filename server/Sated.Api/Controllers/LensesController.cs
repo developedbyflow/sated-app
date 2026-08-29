@@ -10,5 +10,5 @@ public class LensesController(Calibration calibration) : ControllerBase
 {
     [HttpGet]
     public IReadOnlyList<LensResponseDto> Get() =>
-        calibration.Lenses.Select(lens => new LensResponseDto(lens.Name, lens.Satiety, lens.Density, lens.ProteinQuality)).ToList();
+        calibration.Lenses.Select(lens => new LensResponseDto(lens.Id, lens.Name, lens.Satiety, lens.Density, lens.ProteinQuality)).ToList();
 }

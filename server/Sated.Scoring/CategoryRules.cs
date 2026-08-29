@@ -3,7 +3,7 @@ namespace Sated.Scoring;
 /// <summary>One replacement: which component of which food, under which lens (FR-6).</summary>
 public sealed record CategoryRule(
     string Category,
-    string LensName,
+    string LensId,
     ScoreComponent Component,
     ComponentStrategy Strategy
 );
@@ -36,14 +36,14 @@ public sealed class CategoryRules
 
         foreach (var rule in _rules)
         {
-            var key = Key(rule.Category, rule.LensName, rule.Component);
+            var key = Key(rule.Category, rule.LensId, rule.Component);
 
             // Two rules over the same component would leave the winner decided by file order.
             if (!_byKey.TryAdd(key, rule.Strategy))
             {
                 throw new ArgumentException(
                     $"Two rules both claim {rule.Component} for {rule.Category} " +
-                    $"under {rule.LensName}.",
+                    $"under {rule.LensId}.",
                     nameof(rules));
             }
         }
@@ -63,7 +63,7 @@ public sealed class CategoryRules
     public bool Has(string? category, Lens lens) =>
         category is not null && _rules.Any(rule =>
             rule.Category.Equals(category, StringComparison.OrdinalIgnoreCase) &&
-            rule.LensName.Equals(lens.Name, StringComparison.OrdinalIgnoreCase));
+            rule.LensId.Equals(lens.Id, StringComparison.OrdinalIgnoreCase));
 
     /// <returns>
     /// True when this category belongs to the catalogue these rules were written against. False
@@ -79,11 +79,11 @@ public sealed class CategoryRules
     public ComponentStrategy? Find(string? category, Lens lens, ScoreComponent component) =>
         category is null
             ? null
-            : _byKey.GetValueOrDefault(Key(category, lens.Name, component));
+            : _byKey.GetValueOrDefault(Key(category, lens.Id, component));
 
     // Categories are matched the same way ProteinCompleteness matches them: a catalogue that
     // comes back with different capitalisation must not silently stop matching its own rules.
     private static (string, string, ScoreComponent) Key(
-        string category, string lensName, ScoreComponent component) =>
-        (category.ToLowerInvariant(), lensName.ToLowerInvariant(), component);
+        string category, string lensId, ScoreComponent component) =>
+        (category.ToLowerInvariant(), lensId.ToLowerInvariant(), component);
 }

@@ -81,7 +81,7 @@ public class PortionAggregateTests
                 new PercentileScale(MeasuredSatiety), new PercentileScale(MeasuredDensity),
                 Frozen.ReferenceMealGrams),
             new CategoryRules([new CategoryRule(
-                Butter.Category, Frozen.WeightLoss.Name, ScoreComponent.Satiety,
+                Butter.Category, Frozen.WeightLoss.Id, ScoreComponent.Satiety,
                 FatQuality.UnsaturatedShare)]));
         var mixture = PortionAggregate.Aggregate([new Portion(Butter, 100)]);
 

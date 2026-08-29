@@ -116,7 +116,7 @@ Console.WriteLine(best.Traps >= current.Traps && best.Pairs >= current.Pairs
 
 Result Evaluate(int satiety, int density, int protein)
 {
-    var lens = new Lens("Weight Loss", satiety, density, protein);
+    var lens = new Lens("weight-loss", "Weight Loss", satiety, density, protein);
     var engine = new ScoreCombiner(
         new GeneralStrategies(shipped.SatietyScale, shipped.DensityScales,
             shipped.ReferenceMealGrams), shipped.Rules);

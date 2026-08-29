@@ -44,8 +44,8 @@ through `WebApplicationFactory` — the same validation, the same container, the
 ## `GET /api/lenses`
 
 The goal profiles a user can choose between (FR-23, FR-25). This is what the onboarding screen of
-Story 2.2 offers, and it is the only place those three names come from — the client must not carry
-its own copy.
+Story 2.2 offers, and it is the only place those three lenses come from — the client must not
+carry its own copy.
 
 **Request** — no parameters, no body.
 
@@ -54,20 +54,34 @@ malformed file stops the server rather than failing this call.
 
 ```json
 [
-  { "name": "Weight Loss", "satiety": 50, "density": 35, "proteinQuality": 15 },
-  { "name": "Fitness",     "satiety": 25, "density": 25, "proteinQuality": 50 },
-  { "name": "GLP-1",       "satiety": 50, "density": 35, "proteinQuality": 15 }
+  { "id": "weight-loss", "name": "Weight Loss", "satiety": 50, "density": 35, "proteinQuality": 15 },
+  { "id": "fitness",     "name": "Fitness",     "satiety": 25, "density": 25, "proteinQuality": 50 },
+  { "id": "glp-1",       "name": "GLP-1",       "satiety": 50, "density": 35, "proteinQuality": 15 }
 ]
 ```
 
 | Field | Type | Meaning |
 |---|---|---|
-| `name` | string | Display name, verbatim from `calibration.json` |
+| `id` | string | Stable identifier. This is what a client sends back and what a database stores |
+| `name` | string | Display name, verbatim from `calibration.json`. Never store it |
 | `satiety` | number | Percentage weight of the satiety component |
 | `density` | number | Percentage weight of the nutrient density component |
 | `proteinQuality` | number | Percentage weight of the protein quality component |
 
 The three weights sum to 100. `Lens` refuses to construct otherwise.
+
+### Why the id and the name are two fields
+
+A display name is a product decision: it gets reworded, and the international addendum will have it
+translated. An identifier is a promise that nothing else can change.
+
+Collapsing the two means every stored preference points at a label. Rename `Weight Loss` to
+`Fat Loss` and every user who chose it now refers to a lens that does not exist — and nothing fails
+loudly, because a lens that cannot be found simply is not found.
+
+So `id` is the only thing that crosses the boundary in either direction, and it is the only thing
+the engine keys on: the letter cutoffs and the category rules are both looked up by id. `name`
+exists to be printed.
 
 ### What is deliberately absent
 
@@ -96,7 +110,7 @@ grams; vitamin A and vitamin D are micrograms; every other micronutrient is mill
 
 ```json
 {
-  "lens": "Weight Loss",
+  "lensId": "weight-loss",
   "calories": 165, "protein": 31, "fat": 3.6, "fiber": 0,
   "saturatedFat": 1.0, "sodium": 74, "carbohydrate": 0,
   "potassium": 256, "magnesium": 29, "iron": 0.7, "calcium": 15
@@ -105,7 +119,7 @@ grams; vitamin A and vitamin D are micrograms; every other micronutrient is mill
 
 | Field | Required | Notes |
 |---|---|---|
-| `lens` | yes | One of the names from `GET /api/lenses`, matched without case |
+| `lensId` | yes | One of the ids from `GET /api/lenses`, matched without case. Not the display name |
 | `calories` | yes | Kilocalories. Kilojoules are rejected — see below |
 | `protein`, `fat`, `fiber` | yes | |
 | `saturatedFat`, `sodium` | yes | The two limiters: an absent limiter would raise a score, so dropping one is never the safe direction |
@@ -158,7 +172,7 @@ format. The keys in `errors` are the request's field names.
 |---|---|---|
 | A required field is missing | 400 | each missing field, all at once |
 | A value is out of range — negative grams, more than 100 g per 100 g | 400 | the field |
-| `lens` names a lens `calibration.json` does not carry | 400 | `Lens` |
+| `lensId` names a lens `calibration.json` does not carry | 400 | `LensId` |
 | The energy does not follow from the macronutrients | 400 | `Calories` |
 
 ```json
@@ -166,7 +180,7 @@ format. The keys in `errors` are the request's field names.
   "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
   "title": "One or more validation errors occurred.",
   "status": 400,
-  "errors": { "Lens": ["No lens is named 'Keto'. GET /api/lenses lists the ones that exist."] }
+  "errors": { "LensId": ["No lens has the id 'keto'. GET /api/lenses lists the ones that exist."] }
 }
 ```
 
@@ -185,11 +199,11 @@ that rejects none of the 5,157 catalogue foods above its floor.
 milligrams, and 1.2 g of salt is 480 mg of sodium. Writing `1.2` into `sodium` is perfectly
 plausible and grades wrong. That conversion belongs to whoever imports the data.
 
-## Open: lenses have no stable identifier
+## Breaking change: `lens` became `lensId`
 
-A lens is identified by its display name. Story 2.2 will store a user's choice, and storing
-`"Weight Loss"` means a later rename in `calibration.json` orphans every stored preference.
+`POST /api/grades` used to take the display name in a field called `lens`. It now takes the slug in
+a field called `lensId`, and the old name is not accepted.
 
-The fix is a stable slug separate from the label, which touches `calibration.json`, `Lens.cs` and
-`Calibration.cs` — the engine. It is deliberately not done yet: the cost only buys something once
-a choice is actually persisted. Decide it in Story 2.2, before the first write.
+The field was renamed rather than left in place because the value changed underneath it. A client
+still sending `{"lens": "Weight Loss"}` gets `lensId is required`, which is the truth, instead of
+`no lens is named 'Weight Loss'`, which reads like a broken server.

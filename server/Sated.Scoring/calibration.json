@@ -22,6 +22,7 @@
   "densityFloor": 8,
   "lenses": [
     {
+      "id": "weight-loss",
       "name": "Weight Loss",
       "satiety": 50,
       "density": 35,
@@ -35,6 +36,7 @@
       }
     },
     {
+      "id": "fitness",
       "name": "Fitness",
       "satiety": 25,
       "density": 25,
@@ -48,6 +50,7 @@
       }
     },
     {
+      "id": "glp-1",
       "name": "GLP-1",
       "satiety": 50,
       "density": 35,
@@ -64,127 +67,127 @@
   "categoryRules": [
     {
       "category": "Soft drinks",
-      "lens": "Weight Loss",
+      "lens": "weight-loss",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Soft drinks",
-      "lens": "Fitness",
+      "lens": "fitness",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Sport and energy drinks",
-      "lens": "Weight Loss",
+      "lens": "weight-loss",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Sport and energy drinks",
-      "lens": "Fitness",
+      "lens": "fitness",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Diet sport and energy drinks",
-      "lens": "Weight Loss",
+      "lens": "weight-loss",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Diet sport and energy drinks",
-      "lens": "Fitness",
+      "lens": "fitness",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Soft drinks",
-      "lens": "GLP-1",
+      "lens": "glp-1",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Sport and energy drinks",
-      "lens": "GLP-1",
+      "lens": "glp-1",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Diet sport and energy drinks",
-      "lens": "GLP-1",
+      "lens": "glp-1",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Other diet drinks",
-      "lens": "Weight Loss",
+      "lens": "weight-loss",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Other diet drinks",
-      "lens": "Fitness",
+      "lens": "fitness",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Other diet drinks",
-      "lens": "GLP-1",
+      "lens": "glp-1",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Fruit drinks",
-      "lens": "Weight Loss",
+      "lens": "weight-loss",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Fruit drinks",
-      "lens": "Fitness",
+      "lens": "fitness",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Fruit drinks",
-      "lens": "GLP-1",
+      "lens": "glp-1",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Flavored or carbonated water",
-      "lens": "Weight Loss",
+      "lens": "weight-loss",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Flavored or carbonated water",
-      "lens": "Fitness",
+      "lens": "fitness",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Flavored or carbonated water",
-      "lens": "GLP-1",
+      "lens": "glp-1",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Enhanced water",
-      "lens": "Weight Loss",
+      "lens": "weight-loss",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Enhanced water",
-      "lens": "Fitness",
+      "lens": "fitness",
       "component": "Satiety",
       "strategy": "noSatiety"
     },
     {
       "category": "Enhanced water",
-      "lens": "GLP-1",
+      "lens": "glp-1",
       "component": "Satiety",
       "strategy": "noSatiety"
     }

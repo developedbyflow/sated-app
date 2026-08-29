@@ -32,8 +32,8 @@ Console.WriteLine($"Calibrare: {calibration.Catalogue}, măsurată {calibration.
 Console.WriteLine($"Catalog: {survey.Count} alimente · {catalogue.Count} categorii distincte");
 Console.WriteLine($"Setul etalon: {benchmark.Count} categorii distincte");
 
-var lensNames = calibration.Lenses
-    .Select(lens => lens.Name)
+var lensIds = calibration.Lenses
+    .Select(lens => lens.Id)
     .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
 var missingCategory = 0;
@@ -44,7 +44,7 @@ Console.WriteLine($"{"categorie",-42}{"lentilă",-13}{"componentă",-13}{"catalo
 
 foreach (var rule in calibration.Rules.All
     .OrderBy(rule => rule.Category)
-    .ThenBy(rule => rule.LensName)
+    .ThenBy(rule => rule.LensId)
     .ThenBy(rule => rule.Component.ToString()))
 {
     var known = catalogue.TryGetValue(rule.Category, out var foods);
@@ -60,13 +60,13 @@ foreach (var rule in calibration.Rules.All
         missingCategory++;
     }
 
-    if (!lensNames.Contains(rule.LensName))
+    if (!lensIds.Contains(rule.LensId))
     {
         missingLens++;
         state += " · LENTILĂ NECUNOSCUTĂ";
     }
 
-    Console.WriteLine($"{Truncate(rule.Category, 42),-42}{Truncate(rule.LensName, 13),-13}" +
+    Console.WriteLine($"{Truncate(rule.Category, 42),-42}{Truncate(rule.LensId, 13),-13}" +
         $"{rule.Component,-13}{(known ? foods.ToString() : "—"),9}  {state}");
 }
 
@@ -76,8 +76,8 @@ Section("Perechi incomplete");
 
 var lopsided = calibration.Rules.All
     .GroupBy(rule => (rule.Category, rule.Component))
-    .Where(group => group.Select(rule => rule.LensName.ToLowerInvariant()).Distinct().Count()
-        < lensNames.Count)
+    .Where(group => group.Select(rule => rule.LensId.ToLowerInvariant()).Distinct().Count()
+        < lensIds.Count)
     .ToArray();
 
 Console.WriteLine(lopsided.Length == 0
@@ -87,7 +87,7 @@ Console.WriteLine(lopsided.Length == 0
 foreach (var group in lopsided)
 {
     Console.WriteLine($"  {group.Key.Category} · {group.Key.Component} · " +
-        $"doar {string.Join(", ", group.Select(rule => rule.LensName))}");
+        $"doar {string.Join(", ", group.Select(rule => rule.LensId))}");
 }
 
 // The six provenance notes in calibration.json are free text: nothing has ever checked them, and

@@ -5,7 +5,7 @@ namespace Sated.Api.Dtos;
 public record GradeRequestDto
 {
     [Required]
-    public string? Lens { get; init; }
+    public string? LensId { get; init; }
 
     public string? Category { get; init; }
 

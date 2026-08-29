@@ -6,10 +6,10 @@ namespace Sated.Scoring.Tests;
 internal static class Frozen
 {
     public static readonly Lens WeightLoss =
-        new("Weight Loss", satiety: 50, density: 35, proteinQuality: 15);
+        new("weight-loss", "Weight Loss", satiety: 50, density: 35, proteinQuality: 15);
 
     public static readonly Lens Fitness =
-        new("Fitness", satiety: 25, density: 25, proteinQuality: 50);
+        new("fitness", "Fitness", satiety: 25, density: 25, proteinQuality: 50);
 
     public static readonly GradeThresholds WeightLossCutoffs =
         new(dStartsAt: 29.68, cStartsAt: 43.63, bStartsAt: 57.44, aStartsAt: 72.01);

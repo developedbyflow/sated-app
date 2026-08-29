@@ -12,13 +12,13 @@ public class GradesController(Calibration calibration, ScoreCombiner combiner) :
     public ActionResult<GradeResponseDto> Post(GradeRequestDto request)
     {
         var lens = calibration.Lenses.FirstOrDefault(lens =>
-            string.Equals(lens.Name, request.Lens, StringComparison.OrdinalIgnoreCase));
+            string.Equals(lens.Id, request.LensId, StringComparison.OrdinalIgnoreCase));
 
         if (lens is null)
         {
             ModelState.AddModelError(
-                nameof(request.Lens),
-                $"No lens is named '{request.Lens}'. GET /api/lenses lists the ones that exist.");
+                nameof(request.LensId),
+                $"No lens has the id '{request.LensId}'. GET /api/lenses lists the ones that exist.");
 
             return ValidationProblem(ModelState);
         }

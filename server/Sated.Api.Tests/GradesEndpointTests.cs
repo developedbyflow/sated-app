@@ -19,7 +19,7 @@ public class GradesEndpointTests(WebApplicationFactory<Program> factory)
 
     private static readonly GradeRequestDto ChickenBreast = new()
     {
-        Lens = "Weight Loss",
+        LensId = "weight-loss",
         Calories = 165,
         Protein = 31,
         Fat = 3.6,
@@ -45,18 +45,18 @@ public class GradesEndpointTests(WebApplicationFactory<Program> factory)
         var client = factory.CreateClient();
 
         var underWeightLoss = await Score(client, ChickenBreast);
-        var underFitness = await Score(client, ChickenBreast with { Lens = "Fitness" });
+        var underFitness = await Score(client, ChickenBreast with { LensId = "fitness" });
 
         Assert.NotEqual(underWeightLoss, underFitness);
     }
 
     [Fact]
-    public async Task Post_LensNameInAnotherCase_IsTheSameLens()
+    public async Task Post_LensIdInAnotherCase_IsTheSameLens()
     {
         var client = factory.CreateClient();
 
         var written = await Score(client, ChickenBreast);
-        var shouted = await Score(client, ChickenBreast with { Lens = "WEIGHT LOSS" });
+        var shouted = await Score(client, ChickenBreast with { LensId = "WEIGHT-LOSS" });
 
         Assert.Equal(written, shouted);
     }
@@ -65,19 +65,19 @@ public class GradesEndpointTests(WebApplicationFactory<Program> factory)
     public async Task Post_UnknownLens_RejectsTheLensField()
     {
         var response = await factory.CreateClient()
-            .PostAsJsonAsync("/api/grades", ChickenBreast with { Lens = "Keto" });
+            .PostAsJsonAsync("/api/grades", ChickenBreast with { LensId = "keto" });
 
         var problem = await Problem(response);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Contains(nameof(GradeRequestDto.Lens), problem.Errors.Keys);
+        Assert.Contains(nameof(GradeRequestDto.LensId), problem.Errors.Keys);
     }
 
     [Fact]
     public async Task Post_MissingNutrients_NamesEveryOneOfThem()
     {
         var response = await factory.CreateClient()
-            .PostAsJsonAsync("/api/grades", new GradeRequestDto { Lens = "Fitness", Calories = 165 });
+            .PostAsJsonAsync("/api/grades", new GradeRequestDto { LensId = "fitness", Calories = 165 });
 
         var problem = await Problem(response);
 
@@ -103,7 +103,7 @@ public class GradesEndpointTests(WebApplicationFactory<Program> factory)
     {
         var water = new GradeRequestDto
         {
-            Lens = "Weight Loss",
+            LensId = "weight-loss",
             Calories = 0,
             Protein = 0,
             Fat = 0,

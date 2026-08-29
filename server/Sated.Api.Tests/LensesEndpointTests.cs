@@ -12,13 +12,13 @@ public class LensesEndpointTests(WebApplicationFactory<Program> factory)
     public async Task Get_Lenses_CarryTheWeightsTheEngineWasCalibratedWith()
     {
         var calibrated = Calibration.Load().Lenses
-            .Select(lens => (lens.Name, lens.Satiety, lens.Density, lens.ProteinQuality));
+            .Select(lens => (lens.Id, lens.Name, lens.Satiety, lens.Density, lens.ProteinQuality));
 
         var served = await factory.CreateClient()
             .GetFromJsonAsync<LensResponseDto[]>("/api/lenses");
 
         Assert.Equal(
             calibrated,
-            served!.Select(lens => (lens.Name, lens.Satiety, lens.Density, lens.ProteinQuality)));
+            served!.Select(lens => (lens.Id, lens.Name, lens.Satiety, lens.Density, lens.ProteinQuality)));
     }
 }

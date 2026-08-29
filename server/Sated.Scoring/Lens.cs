@@ -15,9 +15,11 @@ public sealed record Lens
     // catalogue. That is a statement in the file, with its measurement, rather than a weighting
     // nobody agreed on presented as one somebody did.
 
-    public Lens(string name, double satiety, double density, double proteinQuality,
+    public Lens(string id, string name, double satiety, double density, double proteinQuality,
         DensityNutrients? densityNutrients = null)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+
         // Strictly positive, not merely non-negative. Satiety is the only component that can
         // never be missing, so a zero weight on it plus two unavailable components would leave
         // the combiner dividing by a total weight of zero — a silent NaN instead of a score.
@@ -37,6 +39,7 @@ public sealed record Lens
                 nameof(name));
         }
 
+        Id = id;
         Name = name;
         Satiety = satiety;
         Density = density;
@@ -48,6 +51,7 @@ public sealed record Lens
         DensityNutrients = densityNutrients ?? DensityScore.Nrf92;
     }
 
+    public string Id { get; }
     public string Name { get; }
     public double Satiety { get; }
     public double Density { get; }

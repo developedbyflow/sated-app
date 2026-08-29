@@ -1,70 +1,113 @@
 @host = http://localhost:5227
 
-### Lentilele pe care le oferă ecranul de onboarding (Story 2.2)
+# =============================================================================
+# GET /api/lenses
+#
+# No parameters, no body, always returns 200.
+# Returns the lenses from calibration.json, each with its id, name and three
+# weights. Its purpose: the client learns which lens ids are valid before it
+# POSTs. The id is what gets stored and sent; the name is only ever displayed.
+# =============================================================================
+
+### The lenses the onboarding screen offers (Story 2.2)
 GET {{host}}/api/lenses
 Accept: application/json
 
-### Rută inexistentă — trebuie să dea 404
+### A route that does not exist — must return 404
 GET {{host}}/api/lens
 Accept: application/json
 
-### Descrierea OpenAPI a API-ului (doar în Development)
+### The OpenAPI description of the API (Development only)
 GET {{host}}/openapi/v1.json
 Accept: application/json
 
-### Piept de pui sub Weight Loss — 200, litera A
+# =============================================================================
+# POST /api/grades
+#
+# Send a food's nutrients per 100 g plus a lens name, get back the letter.
+# No database, no auth: every request recomputes everything.
+#
+# The request passes four filters, in order. The first one that fails stops
+# everything and returns 400:
+#
+#   1. The annotations on GradeRequestDto, run by [ApiController] BEFORE the
+#      action. A missing required field or a negative value means the action
+#      never runs. The nutrients are double? precisely so that an absent field
+#      does not silently become 0.
+#   2. The lens id, matched case-insensitively. Not found → 400 through
+#      ValidationProblem, so it has exactly the same shape as the automatic
+#      errors. lensId is the stable slug ("weight-loss"), never the display
+#      name: renaming or translating a lens must not break saved references.
+#   3. NutrientPlausibility.Check — energy against the macronutrients. Two ways
+#      to fail: energy too high for any food (kilojoules sent as kilocalories),
+#      or energy that does not follow from the protein, fat and carbohydrate.
+#      This is why carbohydrate is required even though the engine never
+#      scores it.
+#   4. The engine: ScoreCombiner.Combine produces the score,
+#      Calibration.GradeFor turns it into the letter.
+#
+# In the response:
+#   grade: null       — a nutritionally empty food (water). NOT a bad grade;
+#                       the product shows no letter at all.
+#   isPartial /       — the engine worked with incomplete data: the component
+#   isEstimated         was estimated, not measured.
+#   the hidden rule   — a MEASURED density below the floor, on a food whose
+#                       category has no rule → E, whatever the score is.
+# =============================================================================
+
+### Chicken breast under Weight Loss — 200, grade A
 POST {{host}}/api/grades
 Content-Type: application/json
 
 {
-  "lens": "Weight Loss",
+  "lensId": "weight-loss",
   "calories": 165, "protein": 31, "fat": 3.6, "fiber": 0,
   "saturatedFat": 1.0, "sodium": 74, "carbohydrate": 0,
   "potassium": 256, "magnesium": 29, "iron": 0.7, "calcium": 15, "vitaminC": 0
 }
 
-### Același aliment, altă lentilă — altă literă
+### The same food, a different lens — a different letter
 POST {{host}}/api/grades
 Content-Type: application/json
 
 {
-  "lens": "Fitness",
+  "lensId": "fitness",
   "calories": 165, "protein": 31, "fat": 3.6, "fiber": 0,
   "saturatedFat": 1.0, "sodium": 74, "carbohydrate": 0
 }
 
-### Lentilă inexistentă — 400
+### Filter 2 — a lens id that does not exist — 400, pointing at GET /api/lenses
 POST {{host}}/api/grades
 Content-Type: application/json
 
 {
-  "lens": "Keto",
+  "lensId": "keto",
   "calories": 165, "protein": 31, "fat": 3.6, "fiber": 0,
   "saturatedFat": 1, "sodium": 74, "carbohydrate": 0
 }
 
-### Câmpuri lipsă și o valoare negativă — 400 cu toate erorile deodată
+### Filter 1 — missing fields and a negative value — 400 with every error at once
 POST {{host}}/api/grades
 Content-Type: application/json
 
-{ "lens": "Fitness", "calories": 165, "protein": -5 }
+{ "lensId": "fitness", "calories": 165, "protein": -5 }
 
-### Kilojouli trimiși ca și cum ar fi kilocalorii — 400
+### Filter 3 — kilojoules sent as if they were kilocalories — 400
 POST {{host}}/api/grades
 Content-Type: application/json
 
 {
-  "lens": "Fitness",
+  "lensId": "fitness",
   "calories": 690, "protein": 31, "fat": 3.6, "fiber": 0,
   "saturatedFat": 1, "sodium": 74, "carbohydrate": 0
 }
 
-### Apă — 200, dar fără literă
+### Water — 200, but grade: null. No letter, not a bad letter.
 POST {{host}}/api/grades
 Content-Type: application/json
 
 {
-  "lens": "Weight Loss",
+  "lensId": "weight-loss",
   "calories": 0, "protein": 0, "fat": 0, "fiber": 0,
   "saturatedFat": 0, "sodium": 4, "carbohydrate": 0
 }

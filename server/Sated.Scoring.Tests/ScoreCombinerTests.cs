@@ -35,7 +35,7 @@ public class ScoreCombinerTests
     public void Combine_RuleThatHasNoAnswer_FallsBackToTheGeneralFormula()
     {
         var combiner = CombinerWith(new CategoryRule(
-            ChickenBreast.Category, Frozen.WeightLoss.Name, ScoreComponent.Satiety,
+            ChickenBreast.Category, Frozen.WeightLoss.Id, ScoreComponent.Satiety,
             food => null));
 
         Assert.Equal(
@@ -47,7 +47,7 @@ public class ScoreCombinerTests
     public void Combine_RuleThatHasNoAnswerOnDensity_KeepsTheComponentInsteadOfDroppingIt()
     {
         var combiner = CombinerWith(new CategoryRule(
-            ChickenBreast.Category, Frozen.WeightLoss.Name, ScoreComponent.Density,
+            ChickenBreast.Category, Frozen.WeightLoss.Id, ScoreComponent.Density,
             food => null));
 
         Assert.Equal(
@@ -59,7 +59,7 @@ public class ScoreCombinerTests
     public void Combine_RuleOnProtein_FillsAComponentTheGeneralFormulaLeavesEmpty()
     {
         var combiner = CombinerWith(new CategoryRule(
-            ChickenBreast.Category, Frozen.WeightLoss.Name, ScoreComponent.ProteinQuality,
+            ChickenBreast.Category, Frozen.WeightLoss.Id, ScoreComponent.ProteinQuality,
             food => ComponentValue.Measured(80)));
 
         var score = combiner.Combine(ChickenBreast, Frozen.WeightLoss);
@@ -72,7 +72,7 @@ public class ScoreCombinerTests
     public void Combine_RuleOnDensity_OutweighsTheGeneralFormula()
     {
         var combiner = CombinerWith(new CategoryRule(
-            ChickenBreast.Category, Frozen.WeightLoss.Name, ScoreComponent.Density,
+            ChickenBreast.Category, Frozen.WeightLoss.Id, ScoreComponent.Density,
             food => ComponentValue.Measured(0)));
 
         Assert.True(
@@ -84,7 +84,7 @@ public class ScoreCombinerTests
     public void Combine_RuleForAnotherLens_DoesNotApply()
     {
         var combiner = CombinerWith(new CategoryRule(
-            ChickenBreast.Category, Frozen.Fitness.Name, ScoreComponent.ProteinQuality,
+            ChickenBreast.Category, Frozen.Fitness.Id, ScoreComponent.ProteinQuality,
             food => ComponentValue.Measured(80)));
 
         Assert.True(
@@ -123,7 +123,7 @@ public class ScoreCombinerTests
     public void Combine_RuleForAnotherCategory_DoesNotApply()
     {
         var combiner = CombinerWith(new CategoryRule(
-            "Butter and animal fats", Frozen.WeightLoss.Name, ScoreComponent.ProteinQuality,
+            "Butter and animal fats", Frozen.WeightLoss.Id, ScoreComponent.ProteinQuality,
             food => ComponentValue.Measured(80)));
 
         Assert.True(
@@ -134,7 +134,7 @@ public class ScoreCombinerTests
     public void Combine_RuleWrittenInAnotherCasing_StillApplies()
     {
         var combiner = CombinerWith(new CategoryRule(
-            ChickenBreast.Category.ToUpperInvariant(), Frozen.WeightLoss.Name,
+            ChickenBreast.Category.ToUpperInvariant(), Frozen.WeightLoss.Id,
             ScoreComponent.ProteinQuality, food => ComponentValue.Measured(80)));
 
         Assert.Equal(80, combiner.Combine(ChickenBreast, Frozen.WeightLoss).ProteinQuality?.Score);
@@ -153,7 +153,7 @@ public class ScoreCombinerTests
     public void Combine_RuleThatEstimates_MarksTheScoreAsCarryingAnEstimate()
     {
         var combiner = CombinerWith(new CategoryRule(
-            ChickenBreast.Category, Frozen.WeightLoss.Name, ScoreComponent.ProteinQuality,
+            ChickenBreast.Category, Frozen.WeightLoss.Id, ScoreComponent.ProteinQuality,
             food => ComponentValue.Estimated(80)));
 
         var score = combiner.Combine(ChickenBreast, Frozen.WeightLoss);

@@ -12,7 +12,7 @@ public class CalibrationTests
     [Fact]
     public void Lenses_FromShippedFile_MatchTheFrozenWeights()
     {
-        var lens = Shipped.Lenses.Single(candidate => candidate.Name == "Weight Loss");
+        var lens = Shipped.Lenses.Single(candidate => candidate.Id == "weight-loss");
 
         Assert.Equal(Frozen.WeightLoss.Satiety, lens.Satiety);
         Assert.Equal(Frozen.WeightLoss.Density, lens.Density);
@@ -262,9 +262,25 @@ public class CalibrationTests
     }
 
     [Fact]
-    public void Load_TwoLensesUnderTheSameName_Throws()
+    public void Load_TwoLensesUnderTheSameId_Throws()
     {
-        var path = CopyWith("\"name\": \"Fitness\"", "\"name\": \"Weight Loss\"");
+        var path = CopyWith("\"id\": \"fitness\"", "\"id\": \"weight-loss\"");
+
+        Assert.Throws<ArgumentException>(() => Calibration.Load(path));
+    }
+
+    [Fact]
+    public void Load_LensWithoutAnId_Throws()
+    {
+        var path = CopyWith("\"id\": \"fitness\"", "\"slug\": \"fitness\"");
+
+        Assert.Throws<JsonException>(() => Calibration.Load(path));
+    }
+
+    [Fact]
+    public void Load_LensWithABlankId_Throws()
+    {
+        var path = CopyWith("\"id\": \"fitness\"", "\"id\": \"   \"");
 
         Assert.Throws<ArgumentException>(() => Calibration.Load(path));
     }
@@ -272,7 +288,7 @@ public class CalibrationTests
     [Fact]
     public void ThresholdsFor_LensTheFileDoesNotCalibrate_Throws()
     {
-        var uncalibrated = new Lens("Maintenance", satiety: 40, density: 30, proteinQuality: 30);
+        var uncalibrated = new Lens("maintenance", "Maintenance", satiety: 40, density: 30, proteinQuality: 30);
 
         Assert.Throws<ArgumentException>(() => Shipped.ThresholdsFor(uncalibrated));
     }
