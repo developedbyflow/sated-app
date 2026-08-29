@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddOpenApi();
 
 var calibration = Calibration.Load();
@@ -26,5 +27,4 @@ app.MapControllers();
 
 app.Run();
 
-// Exposed so WebApplicationFactory<Program> can start this application in a test.
 public partial class Program;
