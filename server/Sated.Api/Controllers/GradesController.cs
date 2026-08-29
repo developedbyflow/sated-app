@@ -14,8 +14,6 @@ public class GradesController(Calibration calibration, ScoreCombiner combiner) :
         var lens = calibration.Lenses.FirstOrDefault(lens =>
             string.Equals(lens.Name, request.Lens, StringComparison.OrdinalIgnoreCase));
 
-        // Not an annotation: which lenses exist is a calibration.json question, and an attribute
-        // would have to repeat the answer here.
         if (lens is null)
         {
             ModelState.AddModelError(

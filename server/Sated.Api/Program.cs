@@ -25,3 +25,6 @@ app.UseHttpsRedirection();
 app.MapControllers();
 
 app.Run();
+
+// Exposed so WebApplicationFactory<Program> can start this application in a test.
+public partial class Program;
