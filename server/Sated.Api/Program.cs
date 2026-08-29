@@ -1,10 +1,17 @@
+using System.Text.Json.Serialization;
 using Sated.Scoring;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
 builder.Services.AddOpenApi();
-builder.Services.AddSingleton(Calibration.Load());
+
+var calibration = Calibration.Load();
+
+builder.Services.AddSingleton(calibration);
+builder.Services.AddSingleton(calibration.Engine());
 
 var app = builder.Build();
 

@@ -119,6 +119,13 @@ public sealed class Calibration
     public IReadOnlySet<string> CatalogueCategories { get; }
 
     /// <summary>
+    /// The engine these tables describe. One place per process builds it, so the gate and the API
+    /// cannot end up grading with different scales or a different rules table.
+    /// </summary>
+    public ScoreCombiner Engine() => new(
+        new GeneralStrategies(SatietyScale, DensityScales, ReferenceMealGrams), Rules);
+
+    /// <summary>
     /// The cutoffs calibrated for a lens. Throws for a lens the file does not calibrate, rather
     /// than borrowing another lens's numbers and grading everything slightly wrong.
     /// </summary>

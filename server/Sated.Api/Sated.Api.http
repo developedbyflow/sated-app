@@ -11,3 +11,60 @@ Accept: application/json
 ### Descrierea OpenAPI a API-ului (doar în Development)
 GET {{host}}/openapi/v1.json
 Accept: application/json
+
+### Piept de pui sub Weight Loss — 200, litera A
+POST {{host}}/api/grades
+Content-Type: application/json
+
+{
+  "lens": "Weight Loss",
+  "calories": 165, "protein": 31, "fat": 3.6, "fiber": 0,
+  "saturatedFat": 1.0, "sodium": 74, "carbohydrate": 0,
+  "potassium": 256, "magnesium": 29, "iron": 0.7, "calcium": 15, "vitaminC": 0
+}
+
+### Același aliment, altă lentilă — altă literă
+POST {{host}}/api/grades
+Content-Type: application/json
+
+{
+  "lens": "Fitness",
+  "calories": 165, "protein": 31, "fat": 3.6, "fiber": 0,
+  "saturatedFat": 1.0, "sodium": 74, "carbohydrate": 0
+}
+
+### Lentilă inexistentă — 400
+POST {{host}}/api/grades
+Content-Type: application/json
+
+{
+  "lens": "Keto",
+  "calories": 165, "protein": 31, "fat": 3.6, "fiber": 0,
+  "saturatedFat": 1, "sodium": 74, "carbohydrate": 0
+}
+
+### Câmpuri lipsă și o valoare negativă — 400 cu toate erorile deodată
+POST {{host}}/api/grades
+Content-Type: application/json
+
+{ "lens": "Fitness", "calories": 165, "protein": -5 }
+
+### Kilojouli trimiși ca și cum ar fi kilocalorii — 400
+POST {{host}}/api/grades
+Content-Type: application/json
+
+{
+  "lens": "Fitness",
+  "calories": 690, "protein": 31, "fat": 3.6, "fiber": 0,
+  "saturatedFat": 1, "sodium": 74, "carbohydrate": 0
+}
+
+### Apă — 200, dar fără literă
+POST {{host}}/api/grades
+Content-Type: application/json
+
+{
+  "lens": "Weight Loss",
+  "calories": 0, "protein": 0, "fat": 0, "fiber": 0,
+  "saturatedFat": 0, "sodium": 4, "carbohydrate": 0
+}

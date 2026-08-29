@@ -8,10 +8,7 @@ using Sated.Scoring;
 
 var calibration = Calibration.Load();
 
-var combiner = new ScoreCombiner(
-    new GeneralStrategies(
-        calibration.SatietyScale, calibration.DensityScales, calibration.ReferenceMealGrams),
-    calibration.Rules);
+var combiner = calibration.Engine();
 
 // Measured leucine, joined from SR Legacy through each food's own recipe (tools/LeucineJoinQuery).
 // Source separates a food whose recipe resolved from one standing on its category's median: the
