@@ -66,9 +66,11 @@ nav:
       - Change the engine safely: how-to/change-the-engine-safely.md
   - Reference:
       - HTTP API: reference/http-api.md
+      - Database: reference/database.md
   - Decisions:
       - Overview: decisions/index.md
       - 0001 - Fat quality is a component: decisions/0001-fat-quality-is-a-component-not-a-category-rule.md
       - 0002 - Added micronutrients count in full: decisions/0002-count-added-micronutrients-like-inherent-ones.md
       - 0003 - The HTTP layer is controllers: decisions/0003-controllers-over-minimal-apis.md
+      - 0004 - Nutrients are an owned type: decisions/0004-nutrients-are-an-owned-type-on-food.md
       - Record template: decisions/_template.md
