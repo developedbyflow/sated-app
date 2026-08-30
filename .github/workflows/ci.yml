@@ -9,6 +9,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      db:
+        image: postgres:18
+        env:
+          POSTGRES_DB: sated
+          POSTGRES_USER: sated
+          POSTGRES_PASSWORD: sated
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sated -d sated"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
     steps:
       - uses: actions/checkout@v4
 

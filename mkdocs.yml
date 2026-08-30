@@ -75,4 +75,5 @@ nav:
       - 0004 - Nutrients are an owned type: decisions/0004-nutrients-are-an-owned-type-on-food.md
       - 0005 - FNDDS is the catalogue: decisions/0005-fndds-is-the-catalogue.md
       - 0006 - Load the catalogue once, then own it: decisions/0006-load-the-catalogue-once-then-own-it.md
+      - 0007 - Test the foods query against a real database: decisions/0007-test-the-foods-query-against-a-real-database.md
       - Record template: decisions/_template.md
