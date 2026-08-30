@@ -1,0 +1,9 @@
+namespace Sated.Data.Entities;
+
+public class Food
+{
+    public int Id { get; set; }
+    public int? FdcId { get; set; }
+    public required string Description { get; set; }
+    public required string Category { get; set; }
+}

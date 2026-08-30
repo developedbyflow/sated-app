@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
 using Sated.Scoring;
+using Microsoft.EntityFrameworkCore;
+using Sated.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +10,8 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddOpenApi();
+builder.Services.AddDbContext<SatedDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Sated")));
 
 var calibration = Calibration.Load();
 
