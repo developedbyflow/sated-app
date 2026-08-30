@@ -6,5 +6,3 @@ public record FoodListResponseDto(
     int PageSize,
     int Total
 );
-
-public record FoodListItemDto(int Id, string Description, string Category);

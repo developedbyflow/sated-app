@@ -7,10 +7,9 @@ title: HTTP API
 The complete surface of `Sated.Api`. Everything not listed here does not exist yet.
 
 !!! note "State"
-    Two endpoints. There is **no authentication, no database and no catalogue** behind this API —
-    it serves what the scoring engine can answer from `calibration.json` alone. Nothing is stored:
-    the same request always produces the same answer (NFR2). Epic 2 adds accounts; Epic 3 adds the
-    catalogue.
+    Four endpoints. Two of them read the catalogue from PostgreSQL; the other two answer from
+    `calibration.json` alone. There is still **no authentication and nothing is written** — every
+    request is a read, and the same request produces the same answer (NFR2). Epic 2 adds accounts.
 
 ## Running it
 
@@ -38,8 +37,10 @@ Route paths derive from controller class names via `[Route("api/[controller]")]`
 `LowercaseUrls`. Matching ignores case either way; the setting fixes the form the OpenAPI document
 declares, which is what a generated client copies.
 
-Both endpoints are covered by `server/Sated.Api.Tests`, which runs the real application in memory
-through `WebApplicationFactory` — the same validation, the same container, the same engine.
+All four endpoints are covered by `server/Sated.Api.Tests`, which runs the real application in
+memory through `WebApplicationFactory` — the same validation, the same container, the same engine.
+The two catalogue endpoints run against a real PostgreSQL in a second database, `sated_test`, for
+the reasons in [0007](../decisions/0007-test-the-foods-query-against-a-real-database.md).
 
 ## `GET /api/lenses`
 
@@ -198,6 +199,120 @@ that rejects none of the 5,157 catalogue foods above its floor.
 **What it cannot catch:** European labels print salt in grams where this engine wants sodium in
 milligrams, and 1.2 g of salt is 480 mg of sodium. Writing `1.2` into `sodium` is perfectly
 plausible and grades wrong. That conversion belongs to whoever imports the data.
+
+## `GET /api/foods`
+
+The catalogue, paged. 1 933 foods loaded once from FNDDS 2021-2023
+([0005](../decisions/0005-fndds-is-the-catalogue.md)) and owned by Sated since
+([0006](../decisions/0006-load-the-catalogue-once-then-own-it.md)).
+
+**Request** — four optional query parameters, all combinable.
+
+| Parameter | Type | Default | Meaning |
+|---|---|---|---|
+| `search` | string | none | Case-insensitive "contains" on the description. PostgreSQL runs it as `ILIKE` |
+| `category` | string | none | Exact match on the FNDDS category, letter case included |
+| `page` | int | `1` | 1-based. Below 1 is a `400` |
+| `pageSize` | int | `25` | At most `100`. Above that is a `400` |
+
+A raw space ends the URL in an HTTP request line. Categories that contain one must be written
+`Chicken,%20whole%20pieces`.
+
+**Response** — `200 OK`, an envelope rather than a bare array.
+
+```json
+{
+  "items": [
+    { "id": 6626, "description": "Broccoli, raw", "category": "Broccoli" }
+  ],
+  "page": 1,
+  "pageSize": 25,
+  "total": 1
+}
+```
+
+| Field | Type | Meaning |
+|---|---|---|
+| `items` | array | The rows on this page, ordered by description |
+| `page` | number | Echo of the page asked for |
+| `pageSize` | number | Echo of the size asked for |
+| `total` | number | How many rows match the filters, **before** paging cuts them |
+
+A page past the last one is `200` with an empty `items` and the real `total`, not a `404`. Asking
+for a page that does not exist is not an error; asking for one that cannot exist is.
+
+### Why a list row carries no nutrients
+
+A row is `id`, `description`, `category` and nothing else. The query projects three columns, so the
+sixteen nutrient columns never leave the database for a list. The nutrients are what
+`GET /api/foods/{id}` is for.
+
+### Why the order is fixed
+
+Without an `ORDER BY`, PostgreSQL owes no promise that two requests return rows in the same order —
+so page 2 could repeat or skip what page 1 showed. The order is by description, and the database
+resolves it with its own collation (`en_US.utf8`), not with .NET's string comparison.
+
+## `GET /api/foods/{id}`
+
+One food, with the nutrients the list leaves out.
+
+**Request** — `id` is the database key. It is stable for the life of the row
+([0006](../decisions/0006-load-the-catalogue-once-then-own-it.md)), which is what makes it safe to
+store in a URL, a log entry or a foreign key.
+
+Ids in the loaded catalogue run from 5347 to 7279. They do not start at 1: the identity sequence
+kept counting through the reloads that happened before 0006 stopped them.
+
+**Response** — `200 OK`.
+
+```json
+{
+  "id": 5348,
+  "fdcId": 2705385,
+  "description": "Milk, whole",
+  "category": "Milk, whole",
+  "nutrients": {
+    "calories": 61, "protein": 3.27, "fat": 3.2, "fiber": 0,
+    "saturatedFat": 1.86, "sodium": 38,
+    "vitaminA": 32, "vitaminC": 0, "vitaminD": 1.1, "vitaminE": 0.05,
+    "thiamine": 0.056, "calcium": 123, "iron": 0, "magnesium": 12,
+    "potassium": 150, "leucine": null
+  }
+}
+```
+
+| Field | Type | Meaning |
+|---|---|---|
+| `id` | number | The stable key |
+| `fdcId` | number \| null | The USDA row these numbers came from. `null` for a food typed in by hand |
+| `description` | string | The name, as the catalogue carries it. This is the field a translation replaces |
+| `category` | string | One of the 71 FNDDS categories. Read by the scoring rules, never translated |
+| `nutrients` | object | Per 100 g. Six always present, ten nullable |
+
+**`404 Not Found`** covers both an id with no row and anything that is not a number. The route is
+declared `{id:int}`, so `/api/foods/milk` matches no route at all — it never reaches the action and
+never becomes a `400`.
+
+### null is not zero
+
+A nullable nutrient comes back as `null` when the catalogue has no value for it. That is a
+different statement from `0`, and the scoring engine treats it differently: a missing value is
+estimated and the result is marked `isEstimated`, while a zero is a measurement.
+
+`leucine` is `null` on all 1 933 rows. The engine does not read it from here — `ProteinCompleteness`
+derives it from the food's protein and category, and marks the result estimated. The column is
+carried for the day a food arrives with a measured value.
+
+### Why the nutrients are nested
+
+The response has two kinds of field: what identifies the food, and what was measured about it.
+Sixteen numbers flattened into the root would bury `id` and `description` among them. The nesting
+also matches the database, where the nutrients are an owned type on `Food`
+([0004](../decisions/0004-nutrients-are-an-owned-type-on-food.md)).
+
+Note that `POST /api/grades` takes its nutrients **flat**, in the request root. The two shapes are
+not inconsistent: one is a food we hold, the other is a measurement someone hands us.
 
 ## Breaking change: `lens` became `lensId`
 

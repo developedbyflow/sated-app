@@ -15,14 +15,14 @@ public class FoodsEndpointTests(FoodsDatabase database) : IClassFixture<FoodsDat
         Assert.Equal(
             [
                 "Almond milk, unsweetened",
-                "Butter, salted",
+                "Blue cheese",
                 "Cheddar cheese",
-                "Chicken breast, roasted",
-                "Milk chocolate",
-                "Olive oil",
-                "Skim milk",
-                "Whole milk",
-                "Yogurt, plain"
+                "Cottage cheese, lowfat",
+                "Milk, nonfat",
+                "Milk, whole",
+                "Mozzarella cheese",
+                "Parmesan cheese",
+                "Soy beverage, plain"
             ],
             page.Items.Select(food => food.Description));
     }
@@ -33,7 +33,7 @@ public class FoodsEndpointTests(FoodsDatabase database) : IClassFixture<FoodsDat
         var page = await List("/api/foods?search=milk");
 
         Assert.Equal(
-            ["Almond milk, unsweetened", "Milk chocolate", "Skim milk", "Whole milk"],
+            ["Almond milk, unsweetened", "Milk, nonfat", "Milk, whole"],
             page.Items.Select(food => food.Description));
     }
 
@@ -43,15 +43,15 @@ public class FoodsEndpointTests(FoodsDatabase database) : IClassFixture<FoodsDat
         var written = await List("/api/foods?search=milk");
         var shouted = await List("/api/foods?search=MILK");
 
-        Assert.Equal(4, shouted.Total);
+        Assert.Equal(3, shouted.Total);
         Assert.Equal(written.Items, shouted.Items);
     }
 
     [Fact]
     public async Task Get_Category_MatchesExactlyIncludingLetterCase()
     {
-        var written = await List("/api/foods?category=Milk%20and%20dairy");
-        var lowercase = await List("/api/foods?category=milk%20and%20dairy");
+        var written = await List("/api/foods?category=Cheese");
+        var lowercase = await List("/api/foods?category=cheese");
 
         Assert.Equal(5, written.Total);
         Assert.Equal(0, lowercase.Total);
@@ -60,10 +60,10 @@ public class FoodsEndpointTests(FoodsDatabase database) : IClassFixture<FoodsDat
     [Fact]
     public async Task Get_SearchAndCategory_NarrowTogether()
     {
-        var page = await List("/api/foods?search=milk&category=Milk%20and%20dairy");
+        var page = await List("/api/foods?search=milk&category=Plant-based%20milk");
 
         Assert.Equal(
-            ["Almond milk, unsweetened", "Skim milk", "Whole milk"],
+            ["Almond milk, unsweetened"],
             page.Items.Select(food => food.Description));
     }
 
@@ -73,14 +73,14 @@ public class FoodsEndpointTests(FoodsDatabase database) : IClassFixture<FoodsDat
         var page = await List("/api/foods?page=2&pageSize=3");
 
         Assert.Equal(
-            ["Chicken breast, roasted", "Milk chocolate", "Olive oil"],
+            ["Cottage cheese, lowfat", "Milk, nonfat", "Milk, whole"],
             page.Items.Select(food => food.Description));
     }
 
     [Fact]
     public async Task Get_Total_CountsEveryMatchNotJustThePage()
     {
-        var page = await List("/api/foods?category=Milk%20and%20dairy&pageSize=2");
+        var page = await List("/api/foods?category=Cheese&pageSize=2");
 
         Assert.Equal(2, page.Items.Count);
         Assert.Equal(5, page.Total);
@@ -126,6 +126,69 @@ public class FoodsEndpointTests(FoodsDatabase database) : IClassFixture<FoodsDat
             first.EnumerateObject().Select(field => field.Name).Order());
     }
 
+    [Fact]
+    public async Task GetById_CarriesTheNutrientsTheListLeftOut()
+    {
+        var milk = await Detail(await IdOf("Milk, whole"));
+
+        Assert.Equal(61, milk.Nutrients.Calories);
+        Assert.Equal(3.27, milk.Nutrients.Protein);
+        Assert.Equal(123, milk.Nutrients.Calcium);
+        Assert.Null(milk.Nutrients.Leucine);
+    }
+
+    [Fact]
+    public async Task GetById_AMissingNutrient_IsNullNotZero()
+    {
+        var cheese = await Detail(await IdOf("Blue cheese"));
+
+        Assert.Equal(0, cheese.Nutrients.Calories);
+        Assert.Null(cheese.Nutrients.Calcium);
+    }
+
+    [Fact]
+    public async Task GetById_CarriesFdcIdOnlyForFoodsThatCameFromUsda()
+    {
+        var milk = await Detail(await IdOf("Milk, whole"));
+        var cheese = await Detail(await IdOf("Blue cheese"));
+
+        Assert.Equal(2705385, milk.FdcId);
+        Assert.Null(cheese.FdcId);
+    }
+
+    [Fact]
+    public async Task GetById_AgreesWithTheRowTheListShowed()
+    {
+        var listed = (await List("/api/foods?search=Mozzarella")).Items.Single();
+
+        var detail = await Detail(listed.Id);
+
+        Assert.Equal((listed.Id, listed.Description, listed.Category),
+            (detail.Id, detail.Description, detail.Category));
+    }
+
+    [Fact]
+    public async Task GetById_AnIdThatIsNotThere_Returns404()
+    {
+        var response = await database.Client.GetAsync("/api/foods/999999");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetById_AnIdThatIsNotANumber_Returns404()
+    {
+        var response = await database.Client.GetAsync("/api/foods/milk");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     private async Task<FoodListResponseDto> List(string url) =>
         (await database.Client.GetFromJsonAsync<FoodListResponseDto>(url))!;
+
+    private async Task<FoodDetailDto> Detail(int id) =>
+        (await database.Client.GetFromJsonAsync<FoodDetailDto>($"/api/foods/{id}"))!;
+
+    private async Task<int> IdOf(string description) =>
+        (await List($"/api/foods?search={Uri.EscapeDataString(description)}")).Items.Single().Id;
 }

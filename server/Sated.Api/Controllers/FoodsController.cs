@@ -38,4 +38,41 @@ public class FoodsController(SatedDbContext database) : ControllerBase
 
         return new FoodListResponseDto(items, query.Page, query.PageSize, total);
     }
+
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<FoodDetailDto>> Get(int id)
+    {
+        var food = await database.Foods
+            .Where(food => food.Id == id)
+            .Select(food => new FoodDetailDto(
+                food.Id,
+                food.FdcId,
+                food.Description,
+                food.Category,
+                new NutrientAmountsDto(
+                    food.Nutrients.Calories,
+                    food.Nutrients.Protein,
+                    food.Nutrients.Fat,
+                    food.Nutrients.Fiber,
+                    food.Nutrients.SaturatedFat,
+                    food.Nutrients.Sodium,
+                    food.Nutrients.VitaminA,
+                    food.Nutrients.VitaminC,
+                    food.Nutrients.VitaminD,
+                    food.Nutrients.VitaminE,
+                    food.Nutrients.Thiamine,
+                    food.Nutrients.Calcium,
+                    food.Nutrients.Iron,
+                    food.Nutrients.Magnesium,
+                    food.Nutrients.Potassium,
+                    food.Nutrients.Leucine)))
+            .FirstOrDefaultAsync();
+
+        if (food is null)
+        {
+            return NotFound();
+        }
+
+        return food;
+    }
 }

@@ -45,16 +45,41 @@ public class FoodsDatabase : IAsyncLifetime
 
     private static Food[] Catalogue =>
     [
-        Listed("Yogurt, plain", "Milk and dairy"),
-        Listed("Milk chocolate", "Sweets"),
-        Listed("Butter, salted", "Fats and oils"),
-        Listed("Whole milk", "Milk and dairy"),
-        Listed("Chicken breast, roasted", "Poultry"),
-        Listed("Almond milk, unsweetened", "Milk and dairy"),
-        Listed("Olive oil", "Fats and oils"),
-        Listed("Cheddar cheese", "Milk and dairy"),
-        Listed("Skim milk", "Milk and dairy")
+        Listed("Soy beverage, plain", "Plant-based milk"),
+        Listed("Cheddar cheese", "Cheese"),
+        WholeMilk(),
+        Listed("Parmesan cheese", "Cheese"),
+        Listed("Almond milk, unsweetened", "Plant-based milk"),
+        Listed("Blue cheese", "Cheese"),
+        Listed("Milk, nonfat", "Milk, nonfat"),
+        Listed("Mozzarella cheese", "Cheese"),
+        Listed("Cottage cheese, lowfat", "Cheese")
     ];
+
+    private static Food WholeMilk() => new()
+    {
+        FdcId = 2705385,
+        Description = "Milk, whole",
+        Category = "Milk, whole",
+        Nutrients = new NutrientAmounts
+        {
+            Calories = 61,
+            Protein = 3.27,
+            Fat = 3.2,
+            Fiber = 0,
+            SaturatedFat = 1.86,
+            Sodium = 38,
+            VitaminA = 32,
+            VitaminC = 0,
+            VitaminD = 1.1,
+            VitaminE = 0.05,
+            Thiamine = 0.056,
+            Calcium = 123,
+            Iron = 0,
+            Magnesium = 12,
+            Potassium = 150
+        }
+    };
 
     private static Food Listed(string description, string category) => new()
     {

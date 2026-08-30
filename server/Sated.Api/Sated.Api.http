@@ -172,3 +172,58 @@ Accept: application/json
 ### Page zero — 400, pages are 1-based
 GET {{host}}/api/foods?page=0
 Accept: application/json
+# =============================================================================
+# GET /api/foods/{id}
+#
+# One food, with the sixteen nutrients the list leaves out. The id is the
+# database key, stable for the life of the row (ADR 0006) — safe to store in a
+# URL, a log entry or a foreign key.
+#
+# Ids in the loaded catalogue run from 5347 to 7279. They do not start at 1:
+# the identity sequence kept counting through the reloads that happened before
+# 0006 stopped them.
+#
+#   200  the food, as an object
+#   404  no row with that id, AND anything that is not a number — the {id:int}
+#        route constraint means /api/foods/milk matches no route at all, so it
+#        never reaches the action and never becomes a 400
+#
+# fdcId is provenance: the USDA row these numbers came from. It is null for a
+# food typed in by hand, which is not the same as "no source".
+#
+# A nutrient is null when the catalogue has no value for it, which is not zero.
+# leucine is null on all 1 933 rows — the engine derives it from the category
+# instead of reading it here.
+# =============================================================================
+
+### Whole milk by id — 200, sixteen nutrients, fdcId 2705385, leucine null
+GET {{host}}/api/foods/5348
+Accept: application/json
+
+### The first row of the catalogue — id 5347, not 1
+GET {{host}}/api/foods/5347
+Accept: application/json
+
+### The last row — id 7279
+GET {{host}}/api/foods/7279
+Accept: application/json
+
+### One past the last id — 404, not an empty object
+GET {{host}}/api/foods/7280
+Accept: application/json
+
+### An id below the range the sequence ever reached — 404
+GET {{host}}/api/foods/1
+Accept: application/json
+
+### Not a number — 404 from the route constraint, before any action runs
+GET {{host}}/api/foods/milk
+Accept: application/json
+
+### Find it in the list first, then open it — the id in items is this id
+GET {{host}}/api/foods?search=broccoli,%20raw
+Accept: application/json
+
+### The row the search above returns — 200
+GET {{host}}/api/foods/6626
+Accept: application/json
