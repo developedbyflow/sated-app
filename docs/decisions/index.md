@@ -32,6 +32,7 @@ Status is one of `proposed`, `accepted`, `superseded by 00NN`.
 | [0003](0003-controllers-over-minimal-apis.md) | Build the HTTP layer on controllers, not minimal APIs | accepted |
 | [0004](0004-nutrients-are-an-owned-type-on-food.md) | Store nutrients as an owned type on `Food` | accepted |
 | [0005](0005-fndds-is-the-catalogue.md) | Ship FNDDS 2021-2023 as the catalogue | accepted |
+| [0006](0006-load-the-catalogue-once-then-own-it.md) | Load the catalogue once, then own it | accepted |
 
 ## The scoring decisions are not here yet
 

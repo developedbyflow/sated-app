@@ -7,6 +7,11 @@ title: 0005 — FNDDS is the catalogue
 **Status:** accepted
 **Date:** 2026-08-30
 
+> **Amended by [0006](0006-load-the-catalogue-once-then-own-it.md), 2026-08-30.** The catalogue
+> is loaded once and owned from then on. There is no re-import, so the corrections layer below no
+> longer exists to survive one — it keeps only its other job, the record of what was changed and
+> why. Everything else in this record stands.
+
 This is the public, technical half of the decision the private planning repository tracks as **D1,
 the catalogue source**. The commercial reasoning stays there; what a food row is made of belongs
 here, because it is visible in the API.
