@@ -7,3 +7,9 @@ bin/
 obj/
 site/
 .venv-docs/
+
+appsettings.Production.json
+appsettings.*.local.json
+*.env
+.env
+secrets.json
