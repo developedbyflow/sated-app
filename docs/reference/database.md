@@ -34,7 +34,7 @@ so they are columns in this same table rather than a related row.
 | `Id` | integer identity | no | primary key, ours |
 | `FdcId` | integer | yes | the USDA FoodData Central id, when the food came from there |
 | `Description` | text | no | the catalogue's own name for the food |
-| `Category` | text | no | the catalogue's category, verbatim — it selects the category rule (FR-6) |
+| `Category` | text | no | the catalogue's category, stored exactly as it arrives — it selects the category rule (FR-6) |
 | `Nutrients_Calories` | double precision | no | |
 | `Nutrients_Protein` | double precision | no | |
 | `Nutrients_Fat` | double precision | no | |

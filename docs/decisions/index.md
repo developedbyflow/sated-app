@@ -31,12 +31,17 @@ Status is one of `proposed`, `accepted`, `superseded by 00NN`.
 | [0002](0002-count-added-micronutrients-like-inherent-ones.md) | Count added micronutrients like inherent ones | accepted |
 | [0003](0003-controllers-over-minimal-apis.md) | Build the HTTP layer on controllers, not minimal APIs | accepted |
 | [0004](0004-nutrients-are-an-owned-type-on-food.md) | Store nutrients as an owned type on `Food` | accepted |
+| [0005](0005-fndds-is-the-catalogue.md) | Ship FNDDS 2021-2023 as the catalogue | **proposed** |
 
 ## The scoring decisions are not here yet
 
 Ten decisions (D1–D10) were taken while building the engine and are recorded in the **private**
 `sated-docs` repository. Seven are closed; **D1** (catalogue source) and **D2** (whether a letter is
 frozen for life or versioned) are still open, and D1 blocks Epic 3.
+
+**D1 has been split.** Its technical half — which catalogue fills the `Foods` table, and what that
+costs — is [0005](0005-fndds-is-the-catalogue.md), proposed here and awaiting sign-off. What stays
+private is the commercial reasoning around it.
 
 Porting them here is a deliberate choice, not an oversight: some carry commercial reasoning that
 belongs in a private repo, and `sated-app` is public. Each one needs to be read and split before it

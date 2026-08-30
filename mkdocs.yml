@@ -73,4 +73,5 @@ nav:
       - 0002 - Added micronutrients count in full: decisions/0002-count-added-micronutrients-like-inherent-ones.md
       - 0003 - The HTTP layer is controllers: decisions/0003-controllers-over-minimal-apis.md
       - 0004 - Nutrients are an owned type: decisions/0004-nutrients-are-an-owned-type-on-food.md
+      - 0005 - FNDDS is the catalogue: decisions/0005-fndds-is-the-catalogue.md
       - Record template: decisions/_template.md

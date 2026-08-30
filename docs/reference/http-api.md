@@ -63,7 +63,7 @@ malformed file stops the server rather than failing this call.
 | Field | Type | Meaning |
 |---|---|---|
 | `id` | string | Stable identifier. This is what a client sends back and what a database stores |
-| `name` | string | Display name, verbatim from `calibration.json`. Never store it |
+| `name` | string | Display name, exactly as `calibration.json` writes it. Never store it |
 | `satiety` | number | Percentage weight of the satiety component |
 | `density` | number | Percentage weight of the nutrient density component |
 | `proteinQuality` | number | Percentage weight of the protein quality component |
