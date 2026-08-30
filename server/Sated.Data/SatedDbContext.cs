@@ -10,5 +10,6 @@ public class SatedDbContext(DbContextOptions<SatedDbContext> options) : DbContex
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Food>().OwnsOne(food => food.Nutrients);
+        modelBuilder.Entity<Food>().HasIndex(food => food.FdcId).IsUnique();
     }
 }
