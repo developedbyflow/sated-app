@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Sated.Scoring\Sated.Scoring.csproj" />
     <ProjectReference Include="..\Sated.Data\Sated.Data.csproj" />
+    <ProjectReference Include="..\Sated.Services\Sated.Services.csproj" />
   </ItemGroup>
 
 </Project>

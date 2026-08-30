@@ -7,4 +7,6 @@
   <Project Path="Sated.Parsing/Sated.Parsing.csproj" />
   <Project Path="Sated.Scoring.Tests/Sated.Scoring.Tests.csproj" />
   <Project Path="Sated.Scoring/Sated.Scoring.csproj" />
+  <Project Path="Sated.Services.Tests/Sated.Services.Tests.csproj" />
+  <Project Path="Sated.Services/Sated.Services.csproj" />
 </Solution>
