@@ -59,6 +59,46 @@ FR-7 says zero never means absent.
 **Nullable means absent, and the engine knows the difference.** A null micronutrient is dropped
 from the density score's denominator; a zero counts against the food.
 
+## Loading the catalogue
+
+`tools/CatalogueLoad` reads the FNDDS survey file, drops every row of `Foods` and inserts what
+passes. The file is not in the repository — it is 63 MB — and lives at
+`tools/UsdaCoverageQuery/data/surveyDownload.json`.
+
+```bash
+dotnet run --project tools/CatalogueLoad
+```
+
+### What the catalogue is for
+
+**Sated supplies the building blocks; people assemble their own meals from them.** So the table
+holds single foods and drinks — chicken, rice, broccoli, cheese, coffee — and not the survey's
+cooked dishes, sandwiches, pizzas and desserts. A stew is something a person composes, not
+something the catalogue ships.
+
+That makes the filter a **list of categories to include**, held in
+`Sated.Parsing/CatalogueCategories.cs`. Growing the catalogue is adding a category name to that
+list and running the load again. A list of things to exclude would have to anticipate every kind of
+row the survey contains, and would silently admit anything nobody thought of.
+
+| Rule | Kept | Removed |
+| --- | ---: | ---: |
+| the category is one of the 71 selected | 1 935 | 3 497 |
+| the description does not say `not reconstituted` | 1 933 | 2 |
+
+**5 432 read · 1 933 stored** — 1 583 foods and 350 drinks.
+
+The second rule stays even though the first removes most powders on its own: frozen orange juice
+concentrate and frozen lemonade concentrate sit inside `Citrus juice` and `Fruit drinks`, which are
+selected. A grade per 100 g of concentrate describes nothing anybody drinks.
+
+A third check requires the six non-null nutrients before mapping. No food inside the selected
+categories fails it, so it removes nothing today — it is there because the six columns are `NOT
+NULL` and the mapping would otherwise throw rather than report.
+
+Reading, filtering and mapping live in `Sated.Parsing`, with tests, because a nutrient mapped to
+the wrong column fails silently: it produces a different grade, not an error.
+
 ## Migrations
 
 | Migration | What it did |

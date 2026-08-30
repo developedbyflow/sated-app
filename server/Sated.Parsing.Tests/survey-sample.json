@@ -1,0 +1,592 @@
+{
+  "SurveyFoods": [
+    {
+      "fdcId": 2705967,
+      "description": "Chicken breast, grilled without sauce, skin eaten",
+      "wweiaFoodCategory": {
+        "wweiaFoodCategoryDescription": "Chicken, whole pieces"
+      },
+      "foodNutrients": [
+        {
+          "nutrient": {
+            "number": "203",
+            "name": "Protein",
+            "unitName": "g"
+          },
+          "amount": 25.7
+        },
+        {
+          "nutrient": {
+            "number": "204",
+            "name": "Total lipid (fat)",
+            "unitName": "g"
+          },
+          "amount": 10.6
+        },
+        {
+          "nutrient": {
+            "number": "208",
+            "name": "Energy",
+            "unitName": "kcal"
+          },
+          "amount": 206
+        },
+        {
+          "nutrient": {
+            "number": "255",
+            "name": "Water",
+            "unitName": "g"
+          },
+          "amount": 61.9
+        },
+        {
+          "nutrient": {
+            "number": "269",
+            "name": "Total Sugars",
+            "unitName": "g"
+          },
+          "amount": 0.0
+        },
+        {
+          "nutrient": {
+            "number": "291",
+            "name": "Fiber, total dietary",
+            "unitName": "g"
+          },
+          "amount": 0.0
+        },
+        {
+          "nutrient": {
+            "number": "301",
+            "name": "Calcium, Ca",
+            "unitName": "mg"
+          },
+          "amount": 7.0
+        },
+        {
+          "nutrient": {
+            "number": "303",
+            "name": "Iron, Fe",
+            "unitName": "mg"
+          },
+          "amount": 0.53
+        },
+        {
+          "nutrient": {
+            "number": "304",
+            "name": "Magnesium, Mg",
+            "unitName": "mg"
+          },
+          "amount": 24.0
+        },
+        {
+          "nutrient": {
+            "number": "306",
+            "name": "Potassium, K",
+            "unitName": "mg"
+          },
+          "amount": 292
+        },
+        {
+          "nutrient": {
+            "number": "307",
+            "name": "Sodium, Na",
+            "unitName": "mg"
+          },
+          "amount": 329
+        },
+        {
+          "nutrient": {
+            "number": "320",
+            "name": "Vitamin A, RAE",
+            "unitName": "\u00b5g"
+          },
+          "amount": 17.0
+        },
+        {
+          "nutrient": {
+            "number": "323",
+            "name": "Vitamin E (alpha-tocopherol)",
+            "unitName": "mg"
+          },
+          "amount": 0.96
+        },
+        {
+          "nutrient": {
+            "number": "328",
+            "name": "Vitamin D (D2 + D3)",
+            "unitName": "\u00b5g"
+          },
+          "amount": 0.1
+        },
+        {
+          "nutrient": {
+            "number": "401",
+            "name": "Vitamin C, total ascorbic acid",
+            "unitName": "mg"
+          },
+          "amount": 0.0
+        },
+        {
+          "nutrient": {
+            "number": "404",
+            "name": "Thiamin",
+            "unitName": "mg"
+          },
+          "amount": 0.073
+        },
+        {
+          "nutrient": {
+            "number": "606",
+            "name": "Fatty acids, total saturated",
+            "unitName": "g"
+          },
+          "amount": 2.51
+        }
+      ]
+    },
+    {
+      "fdcId": 2709643,
+      "description": "Broccoli, raw",
+      "wweiaFoodCategory": {
+        "wweiaFoodCategoryDescription": "Broccoli"
+      },
+      "foodNutrients": [
+        {
+          "nutrient": {
+            "number": "203",
+            "name": "Protein",
+            "unitName": "g"
+          },
+          "amount": 2.57
+        },
+        {
+          "nutrient": {
+            "number": "204",
+            "name": "Total lipid (fat)",
+            "unitName": "g"
+          },
+          "amount": 0.34
+        },
+        {
+          "nutrient": {
+            "number": "208",
+            "name": "Energy",
+            "unitName": "kcal"
+          },
+          "amount": 39.0
+        },
+        {
+          "nutrient": {
+            "number": "255",
+            "name": "Water",
+            "unitName": "g"
+          },
+          "amount": 90.0
+        },
+        {
+          "nutrient": {
+            "number": "269",
+            "name": "Total Sugars",
+            "unitName": "g"
+          },
+          "amount": 1.4
+        },
+        {
+          "nutrient": {
+            "number": "291",
+            "name": "Fiber, total dietary",
+            "unitName": "g"
+          },
+          "amount": 2.4
+        },
+        {
+          "nutrient": {
+            "number": "301",
+            "name": "Calcium, Ca",
+            "unitName": "mg"
+          },
+          "amount": 46.0
+        },
+        {
+          "nutrient": {
+            "number": "303",
+            "name": "Iron, Fe",
+            "unitName": "mg"
+          },
+          "amount": 0.69
+        },
+        {
+          "nutrient": {
+            "number": "304",
+            "name": "Magnesium, Mg",
+            "unitName": "mg"
+          },
+          "amount": 21.0
+        },
+        {
+          "nutrient": {
+            "number": "306",
+            "name": "Potassium, K",
+            "unitName": "mg"
+          },
+          "amount": 303
+        },
+        {
+          "nutrient": {
+            "number": "307",
+            "name": "Sodium, Na",
+            "unitName": "mg"
+          },
+          "amount": 36.0
+        },
+        {
+          "nutrient": {
+            "number": "320",
+            "name": "Vitamin A, RAE",
+            "unitName": "\u00b5g"
+          },
+          "amount": 8.0
+        },
+        {
+          "nutrient": {
+            "number": "323",
+            "name": "Vitamin E (alpha-tocopherol)",
+            "unitName": "mg"
+          },
+          "amount": 0.15
+        },
+        {
+          "nutrient": {
+            "number": "328",
+            "name": "Vitamin D (D2 + D3)",
+            "unitName": "\u00b5g"
+          },
+          "amount": 0.0
+        },
+        {
+          "nutrient": {
+            "number": "401",
+            "name": "Vitamin C, total ascorbic acid",
+            "unitName": "mg"
+          },
+          "amount": 91.3
+        },
+        {
+          "nutrient": {
+            "number": "404",
+            "name": "Thiamin",
+            "unitName": "mg"
+          },
+          "amount": 0.077
+        },
+        {
+          "nutrient": {
+            "number": "606",
+            "name": "Fatty acids, total saturated",
+            "unitName": "g"
+          },
+          "amount": 0.039
+        }
+      ]
+    },
+    {
+      "fdcId": 2705383,
+      "description": "Milk, human",
+      "wweiaFoodCategory": {
+        "wweiaFoodCategoryDescription": "Human milk"
+      },
+      "foodNutrients": []
+    },
+    {
+      "fdcId": 2705587,
+      "description": "Cocoa powder, not reconstituted",
+      "wweiaFoodCategory": {
+        "wweiaFoodCategoryDescription": "Not included in a food category"
+      },
+      "foodNutrients": [
+        {
+          "nutrient": {
+            "number": "203",
+            "name": "Protein",
+            "unitName": "g"
+          },
+          "amount": 19.6
+        },
+        {
+          "nutrient": {
+            "number": "204",
+            "name": "Total lipid (fat)",
+            "unitName": "g"
+          },
+          "amount": 13.7
+        },
+        {
+          "nutrient": {
+            "number": "208",
+            "name": "Energy",
+            "unitName": "kcal"
+          },
+          "amount": 228
+        },
+        {
+          "nutrient": {
+            "number": "255",
+            "name": "Water",
+            "unitName": "g"
+          },
+          "amount": 3.0
+        },
+        {
+          "nutrient": {
+            "number": "269",
+            "name": "Total Sugars",
+            "unitName": "g"
+          },
+          "amount": 1.75
+        },
+        {
+          "nutrient": {
+            "number": "291",
+            "name": "Fiber, total dietary",
+            "unitName": "g"
+          },
+          "amount": 37.0
+        },
+        {
+          "nutrient": {
+            "number": "301",
+            "name": "Calcium, Ca",
+            "unitName": "mg"
+          },
+          "amount": 128
+        },
+        {
+          "nutrient": {
+            "number": "303",
+            "name": "Iron, Fe",
+            "unitName": "mg"
+          },
+          "amount": 13.9
+        },
+        {
+          "nutrient": {
+            "number": "304",
+            "name": "Magnesium, Mg",
+            "unitName": "mg"
+          },
+          "amount": 499
+        },
+        {
+          "nutrient": {
+            "number": "306",
+            "name": "Potassium, K",
+            "unitName": "mg"
+          },
+          "amount": 1520.0
+        },
+        {
+          "nutrient": {
+            "number": "307",
+            "name": "Sodium, Na",
+            "unitName": "mg"
+          },
+          "amount": 21.0
+        },
+        {
+          "nutrient": {
+            "number": "320",
+            "name": "Vitamin A, RAE",
+            "unitName": "\u00b5g"
+          },
+          "amount": 0.0
+        },
+        {
+          "nutrient": {
+            "number": "323",
+            "name": "Vitamin E (alpha-tocopherol)",
+            "unitName": "mg"
+          },
+          "amount": 0.1
+        },
+        {
+          "nutrient": {
+            "number": "328",
+            "name": "Vitamin D (D2 + D3)",
+            "unitName": "\u00b5g"
+          },
+          "amount": 0.0
+        },
+        {
+          "nutrient": {
+            "number": "401",
+            "name": "Vitamin C, total ascorbic acid",
+            "unitName": "mg"
+          },
+          "amount": 0.0
+        },
+        {
+          "nutrient": {
+            "number": "404",
+            "name": "Thiamin",
+            "unitName": "mg"
+          },
+          "amount": 0.078
+        },
+        {
+          "nutrient": {
+            "number": "606",
+            "name": "Fatty acids, total saturated",
+            "unitName": "g"
+          },
+          "amount": 8.07
+        }
+      ]
+    },
+    {
+      "fdcId": 2709191,
+      "description": "Orange juice, 100%, frozen, not reconstituted",
+      "wweiaFoodCategory": {
+        "wweiaFoodCategoryDescription": "Citrus juice"
+      },
+      "foodNutrients": [
+        {
+          "nutrient": {
+            "number": "203",
+            "name": "Protein",
+            "unitName": "g"
+          },
+          "amount": 2.4
+        },
+        {
+          "nutrient": {
+            "number": "204",
+            "name": "Total lipid (fat)",
+            "unitName": "g"
+          },
+          "amount": 0.25
+        },
+        {
+          "nutrient": {
+            "number": "208",
+            "name": "Energy",
+            "unitName": "kcal"
+          },
+          "amount": 148
+        },
+        {
+          "nutrient": {
+            "number": "255",
+            "name": "Water",
+            "unitName": "g"
+          },
+          "amount": 60.6
+        },
+        {
+          "nutrient": {
+            "number": "269",
+            "name": "Total Sugars",
+            "unitName": "g"
+          },
+          "amount": 29.7
+        },
+        {
+          "nutrient": {
+            "number": "291",
+            "name": "Fiber, total dietary",
+            "unitName": "g"
+          },
+          "amount": 1.0
+        },
+        {
+          "nutrient": {
+            "number": "301",
+            "name": "Calcium, Ca",
+            "unitName": "mg"
+          },
+          "amount": 38.0
+        },
+        {
+          "nutrient": {
+            "number": "303",
+            "name": "Iron, Fe",
+            "unitName": "mg"
+          },
+          "amount": 0.33
+        },
+        {
+          "nutrient": {
+            "number": "304",
+            "name": "Magnesium, Mg",
+            "unitName": "mg"
+          },
+          "amount": 35.0
+        },
+        {
+          "nutrient": {
+            "number": "306",
+            "name": "Potassium, K",
+            "unitName": "mg"
+          },
+          "amount": 629
+        },
+        {
+          "nutrient": {
+            "number": "307",
+            "name": "Sodium, Na",
+            "unitName": "mg"
+          },
+          "amount": 7.0
+        },
+        {
+          "nutrient": {
+            "number": "320",
+            "name": "Vitamin A, RAE",
+            "unitName": "\u00b5g"
+          },
+          "amount": 13.0
+        },
+        {
+          "nutrient": {
+            "number": "323",
+            "name": "Vitamin E (alpha-tocopherol)",
+            "unitName": "mg"
+          },
+          "amount": 0.6
+        },
+        {
+          "nutrient": {
+            "number": "328",
+            "name": "Vitamin D (D2 + D3)",
+            "unitName": "\u00b5g"
+          },
+          "amount": 0.0
+        },
+        {
+          "nutrient": {
+            "number": "401",
+            "name": "Vitamin C, total ascorbic acid",
+            "unitName": "mg"
+          },
+          "amount": 145
+        },
+        {
+          "nutrient": {
+            "number": "404",
+            "name": "Thiamin",
+            "unitName": "mg"
+          },
+          "amount": 0.275
+        },
+        {
+          "nutrient": {
+            "number": "606",
+            "name": "Fatty acids, total saturated",
+            "unitName": "g"
+          },
+          "amount": 0.059
+        }
+      ]
+    }
+  ]
+}

@@ -50,7 +50,7 @@ threshold and rewriting every rule key.
 
 ## Decision
 
-**The catalogue is FNDDS 2021-2023.** The roughly 500 shipped foods are curated from its 5 431
+**The catalogue is FNDDS 2021-2023.** The roughly 500 foods the product shows are chosen from its 5 431
 scoreable rows, and `Foods.Category` stores the FNDDS category string unchanged, because the
 category rules read it.
 
@@ -137,11 +137,11 @@ packaged-products layer where Partial Grade is the rule, not to the MVP catalogu
 - **The next FNDDS release re-measures every percentile.** This decision therefore feeds directly
   into D2 — whether a letter is frozen for the life of a food or versioned with the catalogue —
   and D2 should be taken before the first release lands.
-- **Curation is now the open work, not coverage.** Choosing 500 rows out of 5 431 needs a written
+- **Choosing which foods ship is now the open work, not coverage.** Picking 500 rows out of 5 431 needs a written
   rule, and one problem is already known and unsolved: 30 powders grade A because the grade is per
   100 g of the catalogued form rather than the eaten form — `Cocoa powder, not reconstituted`
-  scores A 94,1. That cannot be detected from nutrients. It is the first thing the curation rule
-  has to answer.
+  scores A 94,1. That cannot be detected from nutrients. It is the first thing that rule has to
+  answer.
 - **Corrections can drift, and the drift is silent.** The letter cutoffs are percentiles of the
   FNDDS population; a shipped catalogue that has been corrected far enough is no longer that
   population, and nothing fails when it stops being. Discipline alone does not hold at three
