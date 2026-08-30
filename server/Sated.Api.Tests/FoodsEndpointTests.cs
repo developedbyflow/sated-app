@@ -1,12 +1,18 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Sated.Api.Dtos;
+using Sated.Scoring;
 
 namespace Sated.Api.Tests;
 
 public class FoodsEndpointTests(FoodsDatabase database) : IClassFixture<FoodsDatabase>
 {
+    private static readonly JsonSerializerOptions Json =
+        new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
+
     [Fact]
     public async Task Get_NoFilters_OrdersEveryFoodByDescription()
     {
@@ -181,6 +187,105 @@ public class FoodsEndpointTests(FoodsDatabase database) : IClassFixture<FoodsDat
         var response = await database.Client.GetAsync("/api/foods/milk");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetGrade_WholeMilkUnderWeightLoss_IsB()
+    {
+        var graded = await Graded(await IdOf("Milk, whole"), "weight-loss");
+
+        Assert.Equal(Grade.B, graded.Grade);
+    }
+
+    [Fact]
+    public async Task GetGrade_TheSameFoodUnderTwoLenses_ScoresDifferently()
+    {
+        var id = await IdOf("Milk, whole");
+
+        var underWeightLoss = await Graded(id, "weight-loss");
+        var underFitness = await Graded(id, "fitness");
+
+        Assert.NotEqual(underWeightLoss.Score, underFitness.Score);
+    }
+
+    [Fact]
+    public async Task GetGrade_ProteinQuality_IsEstimatedBecauseTheCatalogueCarriesNoLeucine()
+    {
+        var graded = await Graded(await IdOf("Milk, whole"), "weight-loss");
+
+        Assert.True(graded.ProteinQuality!.IsEstimated);
+        Assert.False(graded.Satiety.IsEstimated);
+    }
+
+    [Fact]
+    public async Task GetGrade_UnknownLens_RejectsTheLensIdField()
+    {
+        var response = await database.Client
+            .GetAsync($"/api/foods/{await IdOf("Milk, whole")}/grade?lensId=keto");
+
+        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("lensId", problem!.Errors.Keys);
+    }
+
+    [Fact]
+    public async Task GetGrade_NoLensAtAll_IsRejectedTheSameWay()
+    {
+        var response = await database.Client
+            .GetAsync($"/api/foods/{await IdOf("Milk, whole")}/grade");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetGrade_AFoodThatIsNotThere_Returns404()
+    {
+        var response = await database.Client.GetAsync("/api/foods/999999/grade?lensId=fitness");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetGrade_MatchesPostGradesForTheSameNutrients()
+    {
+        var milk = await Detail(await IdOf("Milk, whole"));
+
+        var fromTheCatalogue = await Graded(milk.Id, "weight-loss");
+        var fromTheClient = await Posted(new GradeRequestDto
+        {
+            LensId = "weight-loss",
+            Category = milk.Category,
+            Calories = milk.Nutrients.Calories,
+            Protein = milk.Nutrients.Protein,
+            Fat = milk.Nutrients.Fat,
+            Fiber = milk.Nutrients.Fiber,
+            SaturatedFat = milk.Nutrients.SaturatedFat,
+            Sodium = milk.Nutrients.Sodium,
+            Carbohydrate = 4.8,
+            VitaminA = milk.Nutrients.VitaminA,
+            VitaminC = milk.Nutrients.VitaminC,
+            VitaminD = milk.Nutrients.VitaminD,
+            VitaminE = milk.Nutrients.VitaminE,
+            Thiamine = milk.Nutrients.Thiamine,
+            Calcium = milk.Nutrients.Calcium,
+            Iron = milk.Nutrients.Iron,
+            Magnesium = milk.Nutrients.Magnesium,
+            Potassium = milk.Nutrients.Potassium
+        });
+
+        Assert.Equal(fromTheClient, fromTheCatalogue);
+    }
+
+    private async Task<GradeResponseDto> Graded(int id, string lensId) =>
+        (await database.Client
+            .GetFromJsonAsync<GradeResponseDto>($"/api/foods/{id}/grade?lensId={lensId}", Json))!;
+
+    private async Task<GradeResponseDto> Posted(GradeRequestDto request)
+    {
+        var response = await database.Client.PostAsJsonAsync("/api/grades", request);
+
+        return (await response.Content.ReadFromJsonAsync<GradeResponseDto>(Json))!;
     }
 
     private async Task<FoodListResponseDto> List(string url) =>

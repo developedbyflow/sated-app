@@ -39,14 +39,7 @@ public class GradesController(Calibration calibration, ScoreCombiner combiner) :
 
         var score = combiner.Combine(ToFoodInput(request), lens);
 
-        return new GradeResponseDto(
-            calibration.GradeFor(score, lens),
-            score.Value,
-            score.IsPartial,
-            Component(score.Satiety),
-            ComponentOrNull(score.Density),
-            ComponentOrNull(score.ProteinQuality),
-            ComponentOrNull(score.FatQuality));
+        return GradeResponseDto.From(calibration.GradeFor(score, lens), score);
     }
 
     private static string Explain(NutrientCheck check) => check switch
@@ -75,10 +68,4 @@ public class GradesController(Calibration calibration, ScoreCombiner combiner) :
         Sodium: request.Sodium!.Value,
         VitaminD: request.VitaminD,
         Thiamine: request.Thiamine);
-
-    private static ComponentResponseDto Component(ComponentValue value) =>
-        new(value.Score, value.IsEstimated);
-
-    private static ComponentResponseDto? ComponentOrNull(ComponentValue? value) =>
-        value is null ? null : Component(value);
 }

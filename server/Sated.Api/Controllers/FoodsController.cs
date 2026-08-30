@@ -3,12 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using Sated.Api.Dtos;
 using Sated.Data;
 using Sated.Data.Entities;
+using Sated.Services;
 
 namespace Sated.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class FoodsController(SatedDbContext database) : ControllerBase
+public class FoodsController(SatedDbContext database, FoodGrading grading) : ControllerBase
 {
     [HttpGet]
     public async Task<FoodListResponseDto> Get([FromQuery] FoodQueryDto query)
@@ -74,5 +75,29 @@ public class FoodsController(SatedDbContext database) : ControllerBase
         }
 
         return food;
+    }
+
+    [HttpGet("{id:int}/grade")]
+    public async Task<ActionResult<GradeResponseDto>> Grade(int id, [FromQuery] string? lensId)
+    {
+        var lens = grading.LensFor(lensId);
+
+        if (lens is null)
+        {
+            ModelState.AddModelError(
+                nameof(lensId),
+                $"No lens has the id '{lensId}'. GET /api/lenses lists the ones that exist.");
+
+            return ValidationProblem(ModelState);
+        }
+
+        var graded = await grading.Grade(id, lens);
+
+        if (graded is null)
+        {
+            return NotFound();
+        }
+
+        return GradeResponseDto.From(graded.Grade, graded.Score);
     }
 }

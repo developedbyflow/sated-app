@@ -7,7 +7,7 @@ title: HTTP API
 The complete surface of `Sated.Api`. Everything not listed here does not exist yet.
 
 !!! note "State"
-    Four endpoints. Two of them read the catalogue from PostgreSQL; the other two answer from
+    Five endpoints. Three of them read the catalogue from PostgreSQL; the other two answer from
     `calibration.json` alone. There is still **no authentication and nothing is written** — every
     request is a read, and the same request produces the same answer (NFR2). Epic 2 adds accounts.
 
@@ -37,7 +37,7 @@ Route paths derive from controller class names via `[Route("api/[controller]")]`
 `LowercaseUrls`. Matching ignores case either way; the setting fixes the form the OpenAPI document
 declares, which is what a generated client copies.
 
-All four endpoints are covered by `server/Sated.Api.Tests`, which runs the real application in
+All five endpoints are covered by `server/Sated.Api.Tests`, which runs the real application in
 memory through `WebApplicationFactory` — the same validation, the same container, the same engine.
 The two catalogue endpoints run against a real PostgreSQL in a second database, `sated_test`, for
 the reasons in [0007](../decisions/0007-test-the-foods-query-against-a-real-database.md).
@@ -313,6 +313,69 @@ also matches the database, where the nutrients are an owned type on `Food`
 
 Note that `POST /api/grades` takes its nutrients **flat**, in the request root. The two shapes are
 not inconsistent: one is a food we hold, the other is a measurement someone hands us.
+
+## `GET /api/foods/{id}/grade`
+
+The letter of a catalogue food. The database supplies the food, the engine supplies the letter, and
+nobody has to send nutrients.
+
+**Request** — `id` in the path, `lensId` in the query. Both are required.
+
+| Parameter | Where | Meaning |
+|---|---|---|
+| `id` | path | The food's stable key, as `GET /api/foods` returns it |
+| `lensId` | query | The slug of a lens: `weight-loss`, `fitness`, `glp-1`. Matched ignoring case |
+
+**Response** — `200 OK`, in **exactly** the shape of `POST /api/grades`, so a client can handle
+both the same way.
+
+```json
+{
+  "grade": "B",
+  "score": 67.77,
+  "isPartial": false,
+  "satiety":        { "score": 83.14, "isEstimated": false },
+  "density":        { "score": 61.55, "isEstimated": false },
+  "proteinQuality": { "score": 31.04, "isEstimated": true  },
+  "fatQuality":     { "score": 40.22, "isEstimated": false }
+}
+```
+
+**`400 Bad Request`** when `lensId` is missing or names no lens — the same `ProblemDetails` body
+that `POST /api/grades` returns, with the error on the `lensId` field. A missing lens and an
+unknown one are the same failure, so they read the same.
+
+**`404 Not Found`** when no food carries that id, and when the id is not a number.
+
+### Protein quality is always estimated here
+
+`proteinQuality.isEstimated` is `true` for **every** catalogue food. FNDDS carries no amino acid
+data, so `leucine` is null on all 1 933 rows and the engine derives it from the food's protein and
+category. The flag is not a defect — it is the engine refusing to let a guess read as a measurement.
+
+Compare with `POST /api/grades`, where a client that sends a measured leucine gets
+`isEstimated: false`.
+
+### What connects the two halves
+
+The database holds a `Food`; the engine reads a `FoodInput`. `ScoringInput.From` in
+`Sated.Services` translates one into the other, and it is the only place that does. Three things it
+decides:
+
+- **The category passes through unchanged.** A category no rule knows is not turned into `null` —
+  in the engine, `null` means "this food has no category at all", which is what a hand-typed food
+  is. Those are different states.
+- **Leucine passes through as it is**, marked *not* estimated. A value the catalogue carries is a
+  measurement; a missing one leaves the engine to estimate and to mark its own result.
+- **Carbohydrate does not appear**, because the engine never scores it. It is required by
+  `POST /api/grades` only so `NutrientPlausibility` can check the energy — a check that exists for
+  numbers a client typed, not for numbers loaded from USDA.
+
+### grade: null is not a bad grade
+
+Tap water (`id` 7242) answers `200` with `"grade": null`, `"density": null` and
+`"isPartial": true`. There is nothing to grade: no energy means the density score has nothing to
+divide by. The product shows no letter at all — never an E.
 
 ## Breaking change: `lens` became `lensId`
 

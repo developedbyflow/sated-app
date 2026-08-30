@@ -227,3 +227,56 @@ Accept: application/json
 ### The row the search above returns — 200
 GET {{host}}/api/foods/6626
 Accept: application/json
+
+# =============================================================================
+# GET /api/foods/{id}/grade?lensId=…
+#
+# The letter of a catalogue food. The database supplies the food, the engine
+# supplies the letter, and nobody sends nutrients. The bridge between them is
+# ScoringInput.From, in Sated.Services.
+#
+# The response has EXACTLY the shape of POST /api/grades, so a client can
+# handle both the same way.
+#
+#   200  the letter plus the four components
+#   400  lensId missing or unknown — the same ProblemDetails shape as
+#        POST /api/grades, with the error on the lensId field
+#   404  no food with that id, and any id that is not a number
+#
+# What shows up here and nowhere else:
+#   proteinQuality.isEstimated is ALWAYS true for a catalogue food. FNDDS
+#   carries no leucine, so the engine estimates it from protein and category.
+#   grade: null means "nothing to grade", never "a bad grade".
+# =============================================================================
+
+### Whole milk under Weight Loss — 200, grade B
+GET {{host}}/api/foods/5348/grade?lensId=weight-loss
+Accept: application/json
+
+### The same milk under Fitness — 200, grade C. Another goal, another letter.
+GET {{host}}/api/foods/5348/grade?lensId=fitness
+Accept: application/json
+
+### And under GLP-1 — 200, B again, but a different score
+GET {{host}}/api/foods/5348/grade?lensId=glp-1
+Accept: application/json
+
+### Tap water — 200, but grade: null and density: null
+GET {{host}}/api/foods/7242/grade?lensId=weight-loss
+Accept: application/json
+
+### A lens that does not exist — 400, the error sits on lensId
+GET {{host}}/api/foods/5348/grade?lensId=keto
+Accept: application/json
+
+### No lensId at all — 400, treated exactly like an unknown lens
+GET {{host}}/api/foods/5348/grade
+Accept: application/json
+
+### A food that is not there — 404
+GET {{host}}/api/foods/999999/grade?lensId=fitness
+Accept: application/json
+
+### An id that is not a number — 404 from the route constraint
+GET {{host}}/api/foods/milk/grade?lensId=fitness
+Accept: application/json

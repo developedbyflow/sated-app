@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Sated.Scoring;
 using Microsoft.EntityFrameworkCore;
 using Sated.Data;
+using Sated.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,7 @@ var calibration = Calibration.Load();
 
 builder.Services.AddSingleton(calibration);
 builder.Services.AddSingleton(calibration.Engine());
+builder.Services.AddScoped<FoodGrading>();
 
 var app = builder.Build();
 
