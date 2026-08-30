@@ -16,6 +16,20 @@ if (!File.Exists(survey))
     return 1;
 }
 
+var options = new DbContextOptionsBuilder<SatedDbContext>().UseNpgsql(connection).Options;
+await using var context = new SatedDbContext(options);
+
+var existing = await context.Foods.CountAsync();
+
+if (existing > 0)
+{
+    Console.Error.WriteLine($"Foods already holds {existing} rows, and this tool only fills an empty table.");
+    Console.Error.WriteLine("The catalogue is owned from the first load on: corrections and added foods live in it.");
+    Console.Error.WriteLine("To rebuild it from nothing, empty the table by hand first:");
+    Console.Error.WriteLine("  docker exec sated-db psql -U sated -d sated -c 'DELETE FROM \"Foods\";'");
+    return 1;
+}
+
 Console.WriteLine($"Reading {Path.GetFullPath(survey)}");
 
 using var json = File.OpenRead(survey);
@@ -37,13 +51,6 @@ foreach (var group in result.Rejected.GroupBy(rejection => rejection.Reason).Ord
     }
 }
 
-var options = new DbContextOptionsBuilder<SatedDbContext>().UseNpgsql(connection).Options;
-await using var context = new SatedDbContext(options);
-
-var existing = await context.Foods.CountAsync();
-Console.WriteLine($"Replacing {existing} rows in Foods.");
-
-await context.Foods.ExecuteDeleteAsync();
 context.Foods.AddRange(result.Accepted);
 await context.SaveChangesAsync();
 
