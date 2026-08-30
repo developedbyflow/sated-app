@@ -4,7 +4,7 @@ title: 0005 — FNDDS is the catalogue
 
 # 0005 — Ship FNDDS 2021-2023 as the catalogue, and keep leucine estimated
 
-**Status:** proposed
+**Status:** accepted
 **Date:** 2026-08-30
 
 This is the public, technical half of the decision the private planning repository tracks as **D1,
@@ -60,6 +60,27 @@ foods into SR Legacy amino acid data through the ingredient codes each survey fo
 per-category leucine shares that came out of it live in `ProteinCompleteness`. `Nutrients_Leucine`
 therefore stays null for FNDDS-sourced foods, and the engine's `IsEstimated` flag stays true.
 
+**Control over the catalogue is exercised through a separate corrections layer, not by authoring
+nutrient values.** A sourced value is a laboratory measurement and cannot be replaced by judgement;
+what belongs to Sated is which foods ship, which category a food is filed under, and any value we
+can show a better source for. Those live as rows recording the food, the field, the value before,
+the value after, the reason, and the date — held apart from `Foods` so that re-importing a later
+FNDDS release does not erase them. `Foods` keeps the value that is served, so grading never joins.
+
+Three kinds of correction, with different weight:
+
+| Correction | Risk | When |
+| --- | --- | --- |
+| **Exclude a food** | none — no number is touched | the catalogued form is not the eaten form, as with the 30 powders |
+| **Change `Category`** | moves the food onto a different measured distribution | the category rule that fires is the wrong one for the food |
+| **Change a nutrient** | the only one that can invent data | **only** with a citable source: another USDA set, the food's own ingredients, a manufacturer's label |
+
+`Reason` is not decorative. A correction whose reason cannot name a source is not made.
+
+**None of this is built yet, and it should not be built before the catalogue is loaded.** The shape
+of the corrections that are actually needed is not known until real rows are in the table, and
+guessing it produces an abstraction fitted to imagined problems.
+
 ## Alternatives considered
 
 **SR Legacy as the catalogue.** The strongest contender on raw completeness: 3 423 foods with
@@ -81,6 +102,19 @@ plausible-but-wrong values that a per-food score built on it was judged unusable
 aggregate — a median share over many foods — survived that finding. Storing a measured leucine for
 some foods and an estimate for others would also make two foods' protein scores incomparable while
 both display as grades.
+
+**A catalogue written by hand, so that every value is ours.** Raised as the way to gain full
+control, and it does answer that — but only by moving the numbers out of reach of checking. A
+nutrient amount per 100 g is a laboratory measurement: nobody at Sated can produce the fibre in
+100 g of cooked lentils, so an authored figure is either copied from a public database with its
+provenance dropped, or invented. Five hundred foods is eight thousand such figures.
+
+It also aims at the wrong layer. The formulas, weights, cutoffs, category rules and lenses are
+already entirely Sated's and were measured here; the catalogue supplies raw material that Yuka and
+Nutri-Score draw from too. The control that was wanted is real, and it is delivered by the
+corrections layer above — plus foods **derived** from ingredients that do exist, which is how FNDDS
+builds its own cooked dishes and how `tools/LeucineJoinQuery` already works. Deriving is not
+authoring: the inputs remain checkable.
 
 **Open Food Facts for European packaged products.** Not a competitor for this decision; it answers
 a different question. Measured on 50 Romanian products, satiety is calculable for 58% and density
@@ -108,3 +142,9 @@ packaged-products layer where Partial Grade is the rule, not to the MVP catalogu
   100 g of the catalogued form rather than the eaten form — `Cocoa powder, not reconstituted`
   scores A 94,1. That cannot be detected from nutrients. It is the first thing the curation rule
   has to answer.
+- **Corrections can drift, and the drift is silent.** The letter cutoffs are percentiles of the
+  FNDDS population; a shipped catalogue that has been corrected far enough is no longer that
+  population, and nothing fails when it stops being. Discipline alone does not hold at three
+  hundred corrections. **The corrections layer therefore ships with a tool that reports how many
+  letters the corrections move**, in the manner of the twenty-four query tools already in
+  `tools/` — the number is the guard, not the intention.
