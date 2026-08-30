@@ -111,3 +111,64 @@ Content-Type: application/json
   "calories": 0, "protein": 0, "fat": 0, "fiber": 0,
   "saturatedFat": 0, "sodium": 4, "carbohydrate": 0
 }
+
+# =============================================================================
+# GET /api/foods
+#
+# The catalogue: 1 933 foods loaded from FNDDS. Four optional parameters,
+# all of them combinable:
+#
+#   search    — case-insensitive "contains" on the description, run by
+#               PostgreSQL as ILIKE
+#   category  — exact match on the FNDDS category, as stored. Spaces must be
+#               written %20: a raw space ends the URL in the request line
+#   page      — 1-based. Out of range is not an error: items comes back empty
+#   pageSize  — 25 by default, 100 at most. Above that: 400
+#
+# The response is an envelope, not a bare array: items carries the page,
+# total carries how many rows match the filters before paging cuts them.
+#
+# A list row carries id, description and category only. The sixteen nutrients
+# never leave the database for a list — the projection asks PostgreSQL for
+# three columns.
+#
+# Ordering is by description, always. Without it PostgreSQL owes no promise
+# that two requests return rows in the same order, and page 2 could repeat or
+# skip what page 1 showed.
+# =============================================================================
+
+### The first page, no filters — 25 of 1 933
+GET {{host}}/api/foods
+Accept: application/json
+
+### Everything with milk in the name — total must be 93
+GET {{host}}/api/foods?search=milk
+Accept: application/json
+
+### The same search shouted — ILIKE ignores case, total stays 93
+GET {{host}}/api/foods?search=MILK
+Accept: application/json
+
+### One category, exactly as stored — total must be 160
+GET {{host}}/api/foods?category=Chicken,%20whole%20pieces
+Accept: application/json
+
+### Search and category together — both filters apply
+GET {{host}}/api/foods?search=roasted&category=Chicken,%20whole%20pieces
+Accept: application/json
+
+### Page 2 of the milks, five at a time
+GET {{host}}/api/foods?search=milk&page=2&pageSize=5
+Accept: application/json
+
+### Past the last page — 200 with an empty items, not 404
+GET {{host}}/api/foods?page=500
+Accept: application/json
+
+### Over the ceiling — 400, the [Range] attribute stops it before the action
+GET {{host}}/api/foods?pageSize=500
+Accept: application/json
+
+### Page zero — 400, pages are 1-based
+GET {{host}}/api/foods?page=0
+Accept: application/json
