@@ -1109,3 +1109,89 @@ DELETE {{secureHost}}/api/recipes/1
 ### The meal still stands — 200, fromRecipeName is still there
 GET {{secureHost}}/api/meals/1
 Accept: application/json
+
+# =============================================================================
+# Editing and deleting — FR-15, Story 4.3
+#
+# PUT    /api/meals/{id}                     rename it
+# DELETE /api/meals/{id}                     remove the whole meal
+# PUT    /api/meals/{id}/entries/{entryId}   change one quantity
+# DELETE /api/meals/{id}/entries/{entryId}   remove one entry
+# DELETE /api/meals/{id}/recipes/{recipeId}  remove a logged recipe, all of it
+#
+# Everything that changes a meal returns the meal, regraded. Nothing is stored,
+# so "the grade recalculates immediately" is not a feature — it is what happens
+# when nothing was cached.
+#
+# ONE THING WORTH KNOWING: changing how much you ate of a SINGLE food does not
+# move the meal's grade. The grade is the quality of the mixture per 100 g, and
+# 400 g of cheese is the same mixture as 100 g of cheese. Change one food in a
+# meal of two and it moves, because the mixture moved. Quantity enters at the
+# day level (FR-21), where meals are weighted by how much was eaten.
+#
+# A logged recipe is several entries, so removing it takes a route of its own.
+# Deleting a meal never touches the recipes it was logged from — it could not,
+# there is no link to follow.
+# =============================================================================
+
+### Sign in — 200
+POST {{secureHost}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Change one entry to 400 g — 200 with the meal regraded. Replace the ids.
+PUT {{secureHost}}/api/meals/1/entries/1
+Content-Type: application/json
+
+{
+  "grams": 400
+}
+
+### Or into servings — 200. displayAmount and displayUnit change with it
+PUT {{secureHost}}/api/meals/1/entries/1
+Content-Type: application/json
+
+{
+  "servingCount": 3,
+  "servingDescription": "1 egg"
+}
+
+### Neither grams nor a serving — 400, same rule as when adding
+PUT {{secureHost}}/api/meals/1/entries/1
+Content-Type: application/json
+
+{
+}
+
+### An entry that is not in this meal — 404
+PUT {{secureHost}}/api/meals/1/entries/999999
+Content-Type: application/json
+
+{
+  "grams": 50
+}
+
+### Rename the meal — 200, the entries stay put
+PUT {{secureHost}}/api/meals/1
+Content-Type: application/json
+
+{
+  "name": "Second breakfast"
+}
+
+### Remove one entry — 200 with what is left, regraded
+DELETE {{secureHost}}/api/meals/1/entries/1
+
+### Remove a logged recipe — 200. Every entry it unpacked goes, nothing else
+DELETE {{secureHost}}/api/meals/1/recipes/1
+
+### Remove the whole meal — 204
+DELETE {{secureHost}}/api/meals/1
+
+### The recipe it was logged from is untouched — 200
+GET {{secureHost}}/api/recipes/1
+Accept: application/json

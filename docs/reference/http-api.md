@@ -925,3 +925,53 @@ into one row:
 recipe rewritten to a different name and a single different ingredient, then deleted — the meal
 still reads 300 g across the same two entries, still labelled `Ciorba mamei`. That is FR-12's last
 criterion, and it holds because the meal never referenced the recipe in the first place.
+
+## Editing and deleting what was logged
+
+| | |
+|---|---|
+| `PUT /api/meals/{id}` | rename it |
+| `DELETE /api/meals/{id}` | `204` |
+| `PUT /api/meals/{id}/entries/{entryId}` | a new quantity — grams or a serving |
+| `DELETE /api/meals/{id}/entries/{entryId}` | remove one entry |
+| `DELETE /api/meals/{id}/recipes/{recipeId}` | remove a logged recipe, every entry of it |
+
+Everything that changes a meal returns the meal, regraded. "The grade recalculates immediately" is
+not a feature here — it is what happens when nothing was cached in the first place.
+
+A new quantity follows the same rule as adding one: grams **or** a serving, never both and never
+neither. An entry that is not in this meal is a `404`, not a `400` — the id names nothing you can
+reach.
+
+### Changing how much you ate may not move the meal's grade
+
+It moved nothing in this exchange, and that is correct:
+
+```
+100 g cheese                → B 71.29
+same meal, cheese at 400 g  → B 71.29
+```
+
+A meal's grade is the quality of the mixture **per 100 g**, and 400 g of one food is the same
+mixture as 100 g of it. Change one food in a meal of two and the grade does move, because the
+mixture moved:
+
+```
+100 g egg + 100 g milk   → B 71.29
+100 g egg + 900 g milk   → A 75.03
+```
+
+Quantity is not being ignored. It enters at the **day** level (FR-21), where the day's meals are
+weighted by how much of each was eaten.
+
+### A logged recipe is removed by its own route
+
+Logging a recipe writes one entry per ingredient
+([0016](../decisions/0016-unpack-a-recipe-when-it-is-logged.md)), so "undo that recipe" is not one
+entry. `DELETE /api/meals/{id}/recipes/{recipeId}` removes exactly the entries that recipe unpacked
+and leaves everything else in the meal alone.
+
+Logging the same recipe twice into one meal makes both loggings share the id, so this removes both.
+
+**Deleting a meal never touches the recipes it was logged from.** It could not — there is no link to
+follow.

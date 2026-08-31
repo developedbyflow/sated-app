@@ -63,6 +63,94 @@ public class MealsController(Meals meals) : ControllerBase
         return await Detail(id);
     }
 
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult<MealDetailDto>> Rename(int id, MealRenameRequestDto request)
+    {
+        var meal = await meals.Find(id);
+
+        if (meal is null)
+        {
+            return NotFound();
+        }
+
+        await meals.Rename(meal, request.Name!);
+
+        return await Detail(id);
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var meal = await meals.Find(id);
+
+        if (meal is null)
+        {
+            return NotFound();
+        }
+
+        await meals.Remove(meal);
+
+        return NoContent();
+    }
+
+    [HttpPut("{id:int}/entries/{entryId:int}")]
+    public async Task<ActionResult<MealDetailDto>> Rewrite(
+        int id, int entryId, MealQuantityRequestDto request)
+    {
+        var meal = await meals.Find(id);
+
+        if (meal is null)
+        {
+            return NotFound();
+        }
+
+        var rejection = await meals.Rewrite(
+            meal, entryId, request.Grams, request.ServingCount, request.ServingDescription);
+
+        if (rejection is MealRejection.UnknownEntry)
+        {
+            return NotFound();
+        }
+
+        if (rejection is not MealRejection.None)
+        {
+            return Rejected(rejection, new MealEntryRequestDto
+            {
+                Grams = request.Grams,
+                ServingCount = request.ServingCount,
+                ServingDescription = request.ServingDescription
+            });
+        }
+
+        return await Detail(id);
+    }
+
+    [HttpDelete("{id:int}/entries/{entryId:int}")]
+    public async Task<ActionResult<MealDetailDto>> RemoveEntry(int id, int entryId)
+    {
+        var meal = await meals.Find(id);
+
+        if (meal is null || !await meals.RemoveEntry(meal, entryId))
+        {
+            return NotFound();
+        }
+
+        return await Detail(id);
+    }
+
+    [HttpDelete("{id:int}/recipes/{fromRecipeId:int}")]
+    public async Task<ActionResult<MealDetailDto>> RemoveLoggedRecipe(int id, int fromRecipeId)
+    {
+        var meal = await meals.Find(id);
+
+        if (meal is null || await meals.RemoveLoggedRecipe(meal, fromRecipeId) == 0)
+        {
+            return NotFound();
+        }
+
+        return await Detail(id);
+    }
+
     private async Task<MealDetailDto> Detail(int id)
     {
         var meal = (await meals.Find(id))!;

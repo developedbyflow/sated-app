@@ -12,6 +12,7 @@ public enum MealRejection
     UnknownServing,
     UnknownRecipe,
     RecipeNeedsGrams,
+    UnknownEntry,
     QuantityNotClear
 }
 
@@ -61,42 +62,101 @@ public class Meals(
     public async Task<MealRejection> AddEntry(
         Meal meal, int foodId, double? grams, double? servingCount, string? servingDescription)
     {
-        var food = await database.Foods
-            .Include(stored => stored.Servings)
-            .FirstOrDefaultAsync(stored => stored.Id == foodId);
+        var food = await WithServings(foodId);
 
         if (food is null)
         {
             return MealRejection.UnknownFood;
         }
 
-        var byGrams = grams is not null;
-        var byServing = servingCount is not null && servingDescription is not null;
+        var quantity = Resolve(food, grams, servingCount, servingDescription);
 
-        if (byGrams == byServing)
+        if (quantity.Rejection is not MealRejection.None)
         {
-            return MealRejection.QuantityNotClear;
+            return quantity.Rejection;
         }
 
-        var entry = byGrams
-            ? new MealEntry
-            {
-                FoodId = foodId,
-                QuantityGrams = grams!.Value,
-                DisplayAmount = grams.Value,
-                DisplayUnit = "g"
-            }
-            : Portioned(food, servingCount!.Value, servingDescription!);
-
-        if (entry is null)
+        meal.Entries.Add(new MealEntry
         {
-            return MealRejection.UnknownServing;
-        }
+            FoodId = foodId,
+            QuantityGrams = quantity.Grams,
+            DisplayAmount = quantity.Amount,
+            DisplayUnit = quantity.Unit
+        });
 
-        meal.Entries.Add(entry);
         await database.SaveChangesAsync();
 
         return MealRejection.None;
+    }
+
+    public async Task<MealRejection> Rewrite(
+        Meal meal, int entryId, double? grams, double? servingCount, string? servingDescription)
+    {
+        var entry = meal.Entries.FirstOrDefault(logged => logged.Id == entryId);
+
+        if (entry is null)
+        {
+            return MealRejection.UnknownEntry;
+        }
+
+        var quantity = Resolve(
+            (await WithServings(entry.FoodId))!, grams, servingCount, servingDescription);
+
+        if (quantity.Rejection is not MealRejection.None)
+        {
+            return quantity.Rejection;
+        }
+
+        entry.QuantityGrams = quantity.Grams;
+        entry.DisplayAmount = quantity.Amount;
+        entry.DisplayUnit = quantity.Unit;
+
+        await database.SaveChangesAsync();
+
+        return MealRejection.None;
+    }
+
+    public async Task<bool> RemoveEntry(Meal meal, int entryId)
+    {
+        var entry = meal.Entries.FirstOrDefault(logged => logged.Id == entryId);
+
+        if (entry is null)
+        {
+            return false;
+        }
+
+        meal.Entries.Remove(entry);
+        await database.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<int> RemoveLoggedRecipe(Meal meal, int fromRecipeId)
+    {
+        var logged = meal.Entries.Where(entry => entry.FromRecipeId == fromRecipeId).ToArray();
+
+        foreach (var entry in logged)
+        {
+            meal.Entries.Remove(entry);
+        }
+
+        await database.SaveChangesAsync();
+
+        return logged.Length;
+    }
+
+    public async Task Remove(Meal meal)
+    {
+        database.Set<Meal>().Remove(meal);
+
+        await database.SaveChangesAsync();
+    }
+
+    public async Task Rename(Meal meal, string name)
+    {
+        meal.Name = name;
+
+        await database.SaveChangesAsync();
     }
 
     public async Task<GradedFood?> GradeOf(Meal meal)
@@ -153,21 +213,40 @@ public class Meals(
             [.. meal.Entries.Select(entry =>
                 new Portion(ScoringInput.From(entry.Food), entry.QuantityGrams))]);
 
-    private static MealEntry? Portioned(Food food, double count, string description)
+    private Task<Food?> WithServings(int foodId) =>
+        database.Foods
+            .Include(stored => stored.Servings)
+            .FirstOrDefaultAsync(stored => stored.Id == foodId);
+
+    private static Quantity Resolve(
+        Food food, double? grams, double? servingCount, string? servingDescription)
     {
-        var serving = food.Servings.FirstOrDefault(offered =>
-            string.Equals(offered.Description, description, StringComparison.OrdinalIgnoreCase));
+        var byGrams = grams is not null;
+        var byServing = servingCount is not null && servingDescription is not null;
+
+        if (byGrams == byServing)
+        {
+            return new Quantity(MealRejection.QuantityNotClear, 0, 0, "");
+        }
+
+        if (byGrams)
+        {
+            return new Quantity(MealRejection.None, grams!.Value, grams.Value, "g");
+        }
+
+        var serving = food.Servings.FirstOrDefault(offered => string.Equals(
+            offered.Description, servingDescription, StringComparison.OrdinalIgnoreCase));
 
         return serving is null
-            ? null
-            : new MealEntry
-            {
-                FoodId = food.Id,
-                QuantityGrams = count * serving.Grams,
-                DisplayAmount = count,
-                DisplayUnit = serving.Description
-            };
+            ? new Quantity(MealRejection.UnknownServing, 0, 0, "")
+            : new Quantity(
+                MealRejection.None,
+                servingCount!.Value * serving.Grams,
+                servingCount.Value,
+                serving.Description);
     }
+
+    private record Quantity(MealRejection Rejection, double Grams, double Amount, string Unit);
 
     private IQueryable<Meal> Full() =>
         database.Set<Meal>()

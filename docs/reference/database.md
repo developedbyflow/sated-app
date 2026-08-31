@@ -245,6 +245,10 @@ not.**
 
 `(OwnerId, Date)` is unique — one row per person per day.
 
+**A `Day` outlives its meals.** Deleting the last meal on a date leaves the empty day row behind.
+Nothing reads it — `GET /api/days/{date}` answers the same for an empty day and a missing one — and
+the row is reused when something is logged on that date again.
+
 ### The three quantity fields
 
 All three come from the architecture, and the middle two exist for one reason: **you cannot recover
