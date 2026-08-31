@@ -9,5 +9,9 @@ public record ProfileRequestDto
     public double? WeightKg { get; init; }
 
     [Required]
+    [Range(100, 250)]
+    public double? HeightCm { get; init; }
+
+    [Required]
     public string? ActiveLensId { get; init; }
 }

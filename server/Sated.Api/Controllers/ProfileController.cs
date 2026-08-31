@@ -21,6 +21,7 @@ public class ProfileController(
 
         return new ProfileResponseDto(
             user.WeightKg,
+            user.HeightCm,
             user.ActiveLensId,
             await consents.IsGiven(userId, ConsentPurpose.HealthData));
     }
@@ -30,7 +31,8 @@ public class ProfileController(
     {
         var userId = users.GetUserId(User)!;
 
-        var update = await profiles.Update(userId, request.WeightKg!.Value, request.ActiveLensId);
+        var update = await profiles.Update(
+            userId, request.WeightKg!.Value, request.HeightCm!.Value, request.ActiveLensId);
 
         if (update is ProfileUpdate.ConsentMissing)
         {

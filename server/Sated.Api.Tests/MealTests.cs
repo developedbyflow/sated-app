@@ -240,7 +240,8 @@ public class MealTests(AccountsDatabase database) : IClassFixture<AccountsDataba
             "/api/consents/HealthData", ApiJson.Options);
 
         await browser.PostAsJsonAsync("/api/consents/HealthData", new { version = offered!.Version });
-        await browser.PutAsJsonAsync("/api/profile", new { weightKg = 82, activeLensId = "weight-loss" });
+        await browser.PutAsJsonAsync(
+            "/api/profile", new { weightKg = 82, heightCm = 180, activeLensId = "weight-loss" });
     }
 
     private static async Task<string> IdOf(HttpClient browser) =>

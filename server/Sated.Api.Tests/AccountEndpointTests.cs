@@ -38,6 +38,7 @@ public class AccountEndpointTests(AccountsDatabase database) : IClassFixture<Acc
 
         Assert.Equal(email, export.Email);
         Assert.Equal(82, export.WeightKg);
+        Assert.Equal(180, export.HeightCm);
         Assert.Equal("weight-loss", export.ActiveLensId);
     }
 
@@ -233,5 +234,6 @@ public class AccountEndpointTests(AccountsDatabase database) : IClassFixture<Acc
 
     private static Task<HttpResponseMessage> Save(
         HttpClient browser, double weightKg, string lensId) =>
-        browser.PutAsJsonAsync("/api/profile", new { weightKg, activeLensId = lensId });
+        browser.PutAsJsonAsync(
+            "/api/profile", new { weightKg, heightCm = 180, activeLensId = lensId });
 }

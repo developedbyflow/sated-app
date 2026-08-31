@@ -16,7 +16,7 @@ public sealed record Lens
     // nobody agreed on presented as one somebody did.
 
     public Lens(string id, string name, double satiety, double density, double proteinQuality,
-        DensityNutrients? densityNutrients = null)
+        DensityNutrients? densityNutrients = null, ProteinPerKg? proteinPerKg = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
 
@@ -39,6 +39,12 @@ public sealed record Lens
                 nameof(name));
         }
 
+        if (proteinPerKg is not null)
+        {
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(proteinPerKg.Min);
+            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(proteinPerKg.Max, proteinPerKg.Min);
+        }
+
         Id = id;
         Name = name;
         Satiety = satiety;
@@ -49,6 +55,8 @@ public sealed record Lens
         // same silence: LensFile makes the name required, and Calibration refuses one it cannot
         // compute — a lens that quietly took the default is how GLP-1 would ship graded wrong.
         DensityNutrients = densityNutrients ?? DensityScore.Nrf92;
+
+        ProteinPerKg = proteinPerKg;
     }
 
     public string Id { get; }
@@ -59,4 +67,6 @@ public sealed record Lens
 
     /// <summary>Which nutrients this lens counts in density (FR-26).</summary>
     public DensityNutrients DensityNutrients { get; }
+
+    public ProteinPerKg? ProteinPerKg { get; }
 }

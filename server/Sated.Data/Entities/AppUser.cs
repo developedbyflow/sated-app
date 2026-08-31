@@ -6,5 +6,7 @@ public class AppUser : IdentityUser
 {
     public double? WeightKg { get; set; }
 
+    public double? HeightCm { get; set; }
+
     public string? ActiveLensId { get; set; }
 }

@@ -444,6 +444,7 @@ Content-Type: application/json
 
 {
   "weightKg": 82,
+  "heightCm": 180,
   "activeLensId": "weight-loss"
 }
 
@@ -477,6 +478,7 @@ Content-Type: application/json
 
 {
   "weightKg": 82,
+  "heightCm": 180,
   "activeLensId": "weight-loss"
 }
 
@@ -486,6 +488,7 @@ Content-Type: application/json
 
 {
   "weightKg": 82,
+  "heightCm": 180,
   "activeLensId": "keto"
 }
 
@@ -495,6 +498,26 @@ Content-Type: application/json
 
 {
   "weightKg": 10,
+  "heightCm": 180,
+  "activeLensId": "weight-loss"
+}
+
+### No height at all — 400. Both measurements or no target (Story 7.1)
+PUT {{secureHost}}/api/profile
+Content-Type: application/json
+
+{
+  "weightKg": 82,
+  "activeLensId": "weight-loss"
+}
+
+### Forty centimetres — 400 from the range, before the action runs
+PUT {{secureHost}}/api/profile
+Content-Type: application/json
+
+{
+  "weightKg": 82,
+  "heightCm": 40,
   "activeLensId": "weight-loss"
 }
 
@@ -556,6 +579,7 @@ Content-Type: application/json
 
 {
   "weightKg": 82,
+  "heightCm": 180,
   "activeLensId": "weight-loss"
 }
 
@@ -1010,11 +1034,26 @@ Content-Type: application/json
 GET {{secureHost}}/api/meals/1
 Accept: application/json
 
-### The day — 200 with every meal on it
+### The day — 200 with every meal, and the protein block (Story 7.1)
+# protein.grams counts every entry of every meal, at the food's protein per
+# 100 g times the grams logged. targetMinGrams/targetMaxGrams come from the
+# ADJUSTED weight — ideal weight at BMI 22 plus a quarter of the excess over
+# it — times the g/kg range the active lens carries in calibration.json.
+# At 82 kg and 180 cm under Weight Loss that is 118.3 to 162.7 g.
 GET {{secureHost}}/api/days/2026-08-31
 Accept: application/json
 
-### A day with nothing on it — 200 and an empty list, not a 404
+### The same day under Fitness — the protein does not move, the target does
+# Run the PUT /api/profile above with "fitness" first. Fitness asks 1.4-2.0
+# against Weight Loss's 1.6-2.2, so both ends of the target drop and
+# protein.grams is byte for byte what it was.
+GET {{secureHost}}/api/days/2026-08-31
+Accept: application/json
+
+### A day with nothing on it — 200, empty meals, protein.grams 0, target still there
+# An empty day is zero against a real target, not a day without one. FR-21 says
+# the opposite about the Day Grade — that one is absent for an empty day — but
+# that is Story 7.2, and this is not it.
 GET {{secureHost}}/api/days/2020-01-01
 Accept: application/json
 

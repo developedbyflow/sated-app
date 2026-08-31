@@ -16,7 +16,8 @@ public class Profiles(SatedDbContext database, Consents consents, FoodGrading gr
     public Task<AppUser> Of(string userId) =>
         database.Users.FirstAsync(account => account.Id == userId);
 
-    public async Task<ProfileUpdate> Update(string userId, double weightKg, string? lensId)
+    public async Task<ProfileUpdate> Update(
+        string userId, double weightKg, double heightCm, string? lensId)
     {
         if (!await consents.IsGiven(userId, ConsentPurpose.HealthData))
         {
@@ -33,6 +34,7 @@ public class Profiles(SatedDbContext database, Consents consents, FoodGrading gr
         var user = await Of(userId);
 
         user.WeightKg = weightKg;
+        user.HeightCm = heightCm;
         user.ActiveLensId = lens.Id;
 
         await database.SaveChangesAsync();

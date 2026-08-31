@@ -336,6 +336,7 @@ the wrong column fails silently: it produces a different grade, not an error.
 | `20260831162706_PluraliseTheChildTables` | renamed `RecipeIngredient` and `FoodServing` to their plural forms, matching every other table |
 | `20260831164107_AddDaysAndMeals` | added `Days`, `Meals` and `MealEntries` |
 | `20260831165330_MealEntryRemembersItsRecipe` | added `MealEntries.FromRecipeId` and `FromRecipeName` |
+| `20260831173224_ProfileRemembersHeight` | added `AspNetUsers.HeightCm`, which the protein target needs alongside the weight |
 
 ```bash
 dotnet ef migrations add <Name> -p Sated.Data -s Sated.Api

@@ -4,6 +4,7 @@ public record AccountExportDto(
     DateTimeOffset ExportedAt,
     string Email,
     double? WeightKg,
+    double? HeightCm,
     string? ActiveLensId,
     ConsentExportDto[] Consents,
     FoodDetailDto[] Foods,

@@ -17,7 +17,8 @@
     "Fat quality is a component, not a category rule. It used to replace satiety for five fat categories and density for nuts, which made it a switch: a food inside a listed category was lifted to its unsaturated share and a food outside kept the general formula, so honey mustard dip read 10.5 against 42.7 for regular mayonnaise while dominating it on every nutrient the engine reads. The catalogue audit counted 725 such pairs. It now takes satiety's weight in proportion to the share of the food's energy that is fat — no fourth weight was added, because a fourth weight would be a number nobody measured.",
     "Cutoffs refitted on 2026-08-25 for the fourth component. They are the catalogue's p20/p40/p60/p80 as they have always been; adding fat quality moved every score, so leaving them would have graded the catalogue against a distribution that no longer exists. Measured by tools/LetterThresholdQuery against the same FNDDS 2021-2023.",
     "Weight Loss and GLP-1 moved from 50/30/20 to 50/35/15 on 2026-08-25, fitted by tools/LensWeightFitQuery. The benchmark was SPLIT: the 60 foods of the top and bottom thirty were the fitting set, the 8 traps and 7 ordering pairs were held out and never consulted while choosing. Held out, the traps improved from 6/8 to 7/8 and the pairs held at 7/7, which is what makes this a measurement rather than a fit. 21 of the 171 candidate weightings reach the same maximum, spanning satiety 40-80 and density 10-55 but protein quality only 5-15 — the protein weight is the one this evidence actually constrains, and 20 is outside it. 50/35/15 is the member of that plateau nearest the shipped weighting, chosen so no letter moves for precision the evidence does not have. Fitness is unchanged: the benchmark's required grades are Weight Loss grades, so nothing here measures it.",
-    "Cutoffs refitted again on 2026-08-25 after the weights moved. Same p20/p40/p60/p80 of the same FNDDS, measured by tools/LetterThresholdQuery."
+    "Cutoffs refitted again on 2026-08-25 after the weights moved. Same p20/p40/p60/p80 of the same FNDDS, measured by tools/LetterThresholdQuery.",
+    "The protein ranges are grams per kg of ADJUSTED body weight, not actual: ideal weight at BMI 22 plus a quarter of the excess over it. Read per kg of actual bodyweight the same numbers overestimate in 78-100% of people with obesity, which is why the clinical branch of the literature reads 1.2-1.6 and the sports branch 1.8-2.2 - one denominator apart, not one disagreement. Weight Loss sits above Fitness because a deficit raises the per-kg requirement, not because losing weight needs more protein than training does. GLP-1 carries 1.2-2.0 verbatim from the 2025 ACLM/ASN/OMA/TOS advisory, which already states it on adjusted weight."
   ],
   "referenceMealGrams": 300,
   "densityFloor": 8,
@@ -29,6 +30,7 @@
       "density": 35,
       "proteinQuality": 15,
       "densityNutrients": "nrf9.2",
+      "proteinPerKg": { "min": 1.6, "max": 2.2 },
       "thresholds": {
         "dStartsAt": 29.68,
         "cStartsAt": 43.63,
@@ -43,6 +45,7 @@
       "density": 25,
       "proteinQuality": 50,
       "densityNutrients": "nrf9.2",
+      "proteinPerKg": { "min": 1.4, "max": 2.0 },
       "thresholds": {
         "dStartsAt": 30.96,
         "cStartsAt": 45.38,
@@ -57,6 +60,7 @@
       "density": 35,
       "proteinQuality": 15,
       "densityNutrients": "nrf11.2",
+      "proteinPerKg": { "min": 1.2, "max": 2.0 },
       "thresholds": {
         "dStartsAt": 29.88,
         "cStartsAt": 44.07,

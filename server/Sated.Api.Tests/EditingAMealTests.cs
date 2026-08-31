@@ -208,7 +208,7 @@ public class EditingAMealTests(AccountsDatabase database) : IClassFixture<Accoun
             await browser.PostAsJsonAsync(
                 "/api/consents/HealthData", new { version = offered!.Version });
             await browser.PutAsJsonAsync(
-                "/api/profile", new { weightKg = 82, activeLensId = "weight-loss" });
+                "/api/profile", new { weightKg = 82, heightCm = 180, activeLensId = "weight-loss" });
         }
 
         return browser;

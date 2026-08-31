@@ -20,6 +20,28 @@ public class CalibrationTests
     }
 
     [Fact]
+    public void ProteinPerKg_FromShippedFile_MatchesTheFrozenRanges()
+    {
+        foreach (var frozen in new[] { Frozen.WeightLoss, Frozen.Fitness })
+        {
+            var shipped = Shipped.Lenses.Single(candidate => candidate.Id == frozen.Id);
+
+            Assert.Equal(frozen.ProteinPerKg!.Min, shipped.ProteinPerKg!.Min);
+            Assert.Equal(frozen.ProteinPerKg.Max, shipped.ProteinPerKg.Max);
+        }
+    }
+
+    [Fact]
+    public void ProteinPerKg_FromShippedFile_AsksMoreUnderWeightLossThanUnderFitness()
+    {
+        var weightLoss = Shipped.Lenses.Single(lens => lens.Id == "weight-loss");
+        var fitness = Shipped.Lenses.Single(lens => lens.Id == "fitness");
+
+        Assert.True(weightLoss.ProteinPerKg!.Min > fitness.ProteinPerKg!.Min);
+        Assert.True(weightLoss.ProteinPerKg.Max > fitness.ProteinPerKg.Max);
+    }
+
+    [Fact]
     public void ThresholdsFor_EachLens_GradeEveryScoreLikeTheFrozenCutoffs()
     {
         var frozen = new[]
@@ -259,6 +281,24 @@ public class CalibrationTests
         var path = CopyWith("\"thresholds\"", "\"cutoffs\"");
 
         Assert.Throws<JsonException>(() => Calibration.Load(path));
+    }
+
+    [Fact]
+    public void Load_LensWithoutAProteinRange_Throws()
+    {
+        var path = CopyWith("\"proteinPerKg\"", "\"proteinGrams\"");
+
+        Assert.Throws<JsonException>(() => Calibration.Load(path));
+    }
+
+    [Fact]
+    public void Load_LensWhoseProteinRangeIsASingleNumber_Throws()
+    {
+        var path = CopyWith(
+            "\"proteinPerKg\": { \"min\": 1.6, \"max\": 2.2 }",
+            "\"proteinPerKg\": { \"min\": 1.6, \"max\": 1.6 }");
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => Calibration.Load(path));
     }
 
     [Fact]

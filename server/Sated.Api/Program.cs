@@ -90,6 +90,7 @@ builder.Services.AddScoped<Accounts>();
 builder.Services.AddScoped<FoodCatalogue>();
 builder.Services.AddScoped<Recipes>();
 builder.Services.AddScoped<Meals>();
+builder.Services.AddScoped<Days>();
 builder.Services.AddSingleton(TimeProvider.System);
 
 var app = builder.Build();

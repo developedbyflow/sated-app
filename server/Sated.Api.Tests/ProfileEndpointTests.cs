@@ -53,7 +53,32 @@ public class ProfileEndpointTests(AccountsDatabase database) : IClassFixture<Acc
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var profile = await response.Content.ReadFromJsonAsync<ProfileResponseDto>();
         Assert.Equal(82, profile!.WeightKg);
+        Assert.Equal(180, profile.HeightCm);
         Assert.Equal("weight-loss", profile.ActiveLensId);
+    }
+
+    [Fact]
+    public async Task Put_WithoutAHeight_IsRejected()
+    {
+        using var browser = await SignedIn();
+        await Consent(browser);
+
+        var response = await browser.PutAsJsonAsync(
+            "/api/profile", new { weightKg = 82, activeLensId = "weight-loss" });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Put_HeightBelowTheRange_IsRejected()
+    {
+        using var browser = await SignedIn();
+        await Consent(browser);
+
+        var response = await browser.PutAsJsonAsync(
+            "/api/profile", new { weightKg = 82, heightCm = 40, activeLensId = "weight-loss" });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -190,5 +215,6 @@ public class ProfileEndpointTests(AccountsDatabase database) : IClassFixture<Acc
 
     private static Task<HttpResponseMessage> Save(
         HttpClient browser, double weightKg, string lensId) =>
-        browser.PutAsJsonAsync("/api/profile", new { weightKg, activeLensId = lensId });
+        browser.PutAsJsonAsync(
+            "/api/profile", new { weightKg, heightCm = 180, activeLensId = lensId });
 }

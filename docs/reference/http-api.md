@@ -552,21 +552,24 @@ One `POST` and one `DELETE`, deliberately symmetric. Withdrawal has to be as eas
 ## `GET /api/profile`
 
 ```json
-{ "weightKg": 82, "activeLensId": "weight-loss", "healthDataConsentGiven": true }
+{ "weightKg": 82, "heightCm": 180, "activeLensId": "weight-loss", "healthDataConsentGiven": true }
 ```
 
-Both values are `null` for an account that has not finished onboarding. That is not an error state
+All three values are `null` for an account that has not finished onboarding. That is not an error state
 and does not need one: registering and onboarding are two moments, and the gap between them is
 ordinary.
 
 ## `PUT /api/profile`
 
 ```json
-{ "weightKg": 82, "activeLensId": "weight-loss" }
+{ "weightKg": 82, "heightCm": 180, "activeLensId": "weight-loss" }
 ```
 
 Returns the stored profile. Weight is in kilograms and must be between 20 and 500 — a sanity check
-on typing, not a statement about who may use the product.
+on typing, not a statement about who may use the product. Height is in centimetres, between 100 and
+250, and is required for the same reason weight is: the protein target of
+[0017](../decisions/0017-derive-the-protein-target-from-adjusted-body-weight.md) is computed from
+both, and weight alone gives a target that is wrong for exactly the people this product is for.
 
 `activeLensId` is the slug from `GET /api/lenses`, matched case-insensitively; an unknown one is a
 `400` naming the field, the same shape `GET /api/foods/{id}/grade` uses.
@@ -855,7 +858,7 @@ hand-entered food is logged in grams. That is a known gap, not a decision.
 | `POST /api/meals` | `{ "date": "2026-08-31", "name": "Breakfast" }` → `201` + `Location` |
 | `POST /api/meals/{id}/entries` | adds a food; returns the whole meal, grade included |
 | `GET /api/meals/{id}` | the meal with its entries and aggregate grade |
-| `GET /api/days/{date}` | every meal on that date |
+| `GET /api/days/{date}` | every meal on that date, plus the day's protein against its target |
 
 **The date comes from the client.** The server does not know your time zone, and "which day was it"
 has to be settled when you log rather than worked out later — otherwise changing time zone
@@ -894,6 +897,38 @@ to ask a second time.
 Day Ring takes on a missing weight.
 
 A meal with no entries has no grade either. There is nothing to aggregate.
+
+### The day carries its protein against a target
+
+```json
+{
+  "date": "2026-08-31",
+  "protein": { "grams": 91.7, "targetMinGrams": 118.33, "targetMaxGrams": 162.71 },
+  "meals": []
+}
+```
+
+`grams` adds up every entry of every meal on the day, at the food's protein per 100 g times the
+grams logged. It is always present, including on a day with nothing on it, where it is `0`.
+
+The two ends of the target come from the **adjusted** weight — ideal weight at BMI 22, plus a
+quarter of the excess over it — times the g/kg range the active lens carries in `calibration.json`.
+Why adjusted rather than actual is
+[0017](../decisions/0017-derive-the-protein-target-from-adjusted-body-weight.md), and it is the
+whole decision: on actual weight the same ranges would tell a 130 kg user to eat 286 g a day.
+
+| Lens | g/kg of adjusted weight | at 82 kg and 180 cm |
+|---|---|---|
+| Weight Loss | 1.6 – 2.2 | 118.3 – 162.7 g |
+| Fitness | 1.4 – 2.0 | 103.5 – 147.9 g |
+| GLP-1 | 1.2 – 2.0 | 88.8 – 147.9 g |
+
+**Both ends are `null` when weight or height is missing**, and `grams` still comes back. The client
+shows absolute grams and asks for the measurements; the API states the absence rather than guessing
+past it.
+
+**Nothing here says whether you are over or under.** Exceeding the top of the range is not an error
+and gets no field — the API returns the three numbers and forms no opinion about them.
 
 ### `engineVersion`
 

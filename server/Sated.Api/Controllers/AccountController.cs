@@ -41,6 +41,7 @@ public class AccountController(
             exportedAt,
             user.Email!,
             user.WeightKg,
+            user.HeightCm,
             user.ActiveLensId,
             signed.Select(consent => new ConsentExportDto(
                 consent.Document.Purpose,

@@ -8,16 +8,17 @@ namespace Sated.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class DaysController(Meals meals) : ControllerBase
+public class DaysController(Meals meals, Days days) : ControllerBase
 {
     [HttpGet("{date}")]
     public async Task<ActionResult<DayDto>> Get(DateOnly date)
     {
         var day = await meals.On(date);
+        var protein = DayProteinDto.From(await days.ProteinOf(day));
 
         if (day is null)
         {
-            return new DayDto(date, []);
+            return new DayDto(date, protein, []);
         }
 
         var listed = new List<MealDetailDto>();
@@ -30,6 +31,6 @@ public class DaysController(Meals meals) : ControllerBase
                 meal, graded is null ? null : GradeResponseDto.From(graded.Grade, graded.Score)));
         }
 
-        return new DayDto(date, [.. listed]);
+        return new DayDto(date, protein, [.. listed]);
     }
 }

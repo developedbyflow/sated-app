@@ -45,7 +45,13 @@ public record MealDetailDto(
         grade);
 }
 
-public record DayDto(DateOnly Date, MealDetailDto[] Meals);
+public record DayProteinDto(double Grams, double? TargetMinGrams, double? TargetMaxGrams)
+{
+    public static DayProteinDto From(DayProtein protein) => new(
+        protein.Grams, protein.Target?.MinGrams, protein.Target?.MaxGrams);
+}
+
+public record DayDto(DateOnly Date, DayProteinDto Protein, MealDetailDto[] Meals);
 
 public record MealExportDto(
     DateOnly Date,

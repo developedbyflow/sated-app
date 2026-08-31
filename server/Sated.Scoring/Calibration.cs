@@ -61,7 +61,8 @@ public sealed class Calibration
 
         Lenses = [.. file.Lenses.Select(lens => new Lens(
             lens.Id, lens.Name, lens.Satiety, lens.Density, lens.ProteinQuality,
-            NutrientsNamed(lens.DensityNutrients)))];
+            NutrientsNamed(lens.DensityNutrients),
+            new ProteinPerKg(lens.ProteinPerKg.Min, lens.ProteinPerKg.Max)))];
 
         foreach (var lens in file.Lenses)
         {
@@ -193,7 +194,14 @@ internal sealed record LensFile
     public required double Density { get; init; }
     public required double ProteinQuality { get; init; }
     public required string DensityNutrients { get; init; }
+    public required ProteinPerKgFile ProteinPerKg { get; init; }
     public required ThresholdFile Thresholds { get; init; }
+}
+
+internal sealed record ProteinPerKgFile
+{
+    public required double Min { get; init; }
+    public required double Max { get; init; }
 }
 
 internal sealed record ThresholdFile
