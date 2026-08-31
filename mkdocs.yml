@@ -76,4 +76,7 @@ nav:
       - 0005 - FNDDS is the catalogue: decisions/0005-fndds-is-the-catalogue.md
       - 0006 - Load the catalogue once, then own it: decisions/0006-load-the-catalogue-once-then-own-it.md
       - 0007 - Test the foods query against a real database: decisions/0007-test-the-foods-query-against-a-real-database.md
+      - 0008 - The session lives in an HttpOnly cookie: decisions/0008-keep-the-session-in-an-httponly-cookie.md
+      - 0009 - Consent is a document and a signature: decisions/0009-consent-is-a-document-and-a-signature.md
+      - 0010 - Ask for the password before export and deletion: decisions/0010-ask-for-the-password-before-export-and-deletion.md
       - Record template: decisions/_template.md
