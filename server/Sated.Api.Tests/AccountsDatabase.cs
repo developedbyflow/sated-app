@@ -39,12 +39,17 @@ public class AccountsDatabase : IAsyncLifetime
 
     private static WebApplicationFactory<Program> Api(string loginAttemptsPerMinute) =>
         new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        {
             builder.ConfigureAppConfiguration(configuration =>
                 configuration.AddInMemoryCollection(new Dictionary<string, string?>
                 {
                     ["ConnectionStrings:Sated"] = ConnectionString,
                     ["RateLimits:LoginPerMinute"] = loginAttemptsPerMinute
-                })));
+                }));
+
+            builder.ConfigureServices(services =>
+                services.AddSingleton<TimeProvider>(new ClockFinerThanPostgres()));
+        });
 
     private static HttpClient OverHttps(WebApplicationFactory<Program> api) =>
         api.CreateClient(new WebApplicationFactoryClientOptions

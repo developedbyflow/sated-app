@@ -117,6 +117,16 @@ public class ProfileEndpointTests(AccountsDatabase database) : IClassFixture<Acc
     }
 
     [Fact]
+    public async Task Give_Always_RecordsATimeThatSurvivesTheRoundTrip()
+    {
+        using var browser = await SignedIn();
+
+        var givenAt = await Consent(browser);
+
+        Assert.Equal(0, givenAt!.Value.Ticks % TimeSpan.TicksPerMicrosecond);
+    }
+
+    [Fact]
     public async Task Withdraw_AfterConsenting_ErasesTheWeightItCovered()
     {
         using var browser = await SignedIn();

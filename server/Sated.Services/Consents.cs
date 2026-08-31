@@ -39,7 +39,7 @@ public class Consents(SatedDbContext database, TimeProvider clock)
         {
             UserId = userId,
             DocumentId = document.Id,
-            GivenAt = clock.GetUtcNow()
+            GivenAt = Now()
         };
 
         database.Consents.Add(consent);
@@ -59,7 +59,7 @@ public class Consents(SatedDbContext database, TimeProvider clock)
 
         foreach (var consent in standing)
         {
-            consent.WithdrawnAt = clock.GetUtcNow();
+            consent.WithdrawnAt = Now();
         }
 
         await Erase(userId, purpose);
@@ -78,6 +78,13 @@ public class Consents(SatedDbContext database, TimeProvider clock)
         var user = await database.Users.FirstAsync(account => account.Id == userId);
 
         user.WeightKg = null;
+    }
+
+    private DateTimeOffset Now()
+    {
+        var now = clock.GetUtcNow();
+
+        return now.AddTicks(-(now.Ticks % TimeSpan.TicksPerMicrosecond));
     }
 
     private IQueryable<Consent> Signatures(string userId, ConsentPurpose purpose) =>

@@ -73,5 +73,11 @@ the same rule stated as behaviour rather than as a comment.
   the behaviour matches what was agreed. Whether a stated goal of "Weight Loss" is itself health
   data is open — `C4` in the addendum. Changing it later means a new document version, not a
   silent change.
+- **The recorded time is cut to microseconds before it is stored.** PostgreSQL keeps six decimal
+  places; .NET keeps seven. Without the cut, the response to `POST` carried a digit the database
+  then dropped, so asking for the same consent again returned a different timestamp for the same
+  act. On macOS the clock only produces microseconds, so this was invisible locally and failed on
+  the Linux runner — the account tests now inject a clock that always carries the extra digit, or
+  the rule could not fail here at all.
 - `403` rather than `400` for missing consent: the request is well formed and the caller is known.
   What is missing is permission, not a field.
