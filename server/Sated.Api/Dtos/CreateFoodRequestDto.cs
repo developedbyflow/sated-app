@@ -56,6 +56,7 @@ public record CreateFoodRequestDto
     {
         Description = Description!,
         Category = Category!,
+        Source = FoodSource.UserEntered,
         OwnerId = ownerId,
         Nutrients = new NutrientAmounts
         {

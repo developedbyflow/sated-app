@@ -47,6 +47,7 @@ public class AccountsDatabase : IAsyncLifetime
         {
             Description = description,
             Category = "Cheese",
+            Source = ownerId is null ? FoodSource.UsdaFndds : FoodSource.UserEntered,
             OwnerId = ownerId,
             Nutrients = new NutrientAmounts
             {

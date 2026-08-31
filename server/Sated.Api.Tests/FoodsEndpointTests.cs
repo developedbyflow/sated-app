@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using Sated.Api.Dtos;
+using Sated.Data.Entities;
 using Sated.Scoring;
 
 namespace Sated.Api.Tests;
@@ -11,9 +11,6 @@ namespace Sated.Api.Tests;
 [Collection("Database")]
 public class FoodsEndpointTests(FoodsDatabase database) : IClassFixture<FoodsDatabase>
 {
-    private static readonly JsonSerializerOptions Json =
-        new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
-
     [Fact]
     public async Task Get_NoFilters_OrdersEveryFoodByDescription()
     {
@@ -121,7 +118,7 @@ public class FoodsEndpointTests(FoodsDatabase database) : IClassFixture<FoodsDat
     }
 
     [Fact]
-    public async Task Get_ListRow_CarriesNothingButIdDescriptionAndCategory()
+    public async Task Get_ListRow_CarriesNoNutrientsAndSaysWhereTheFoodCameFrom()
     {
         var body = await database.Client.GetStringAsync("/api/foods?pageSize=1");
 
@@ -129,7 +126,7 @@ public class FoodsEndpointTests(FoodsDatabase database) : IClassFixture<FoodsDat
         var first = page.RootElement.GetProperty("items")[0];
 
         Assert.Equal(
-            ["category", "description", "id"],
+            ["category", "description", "id", "source"],
             first.EnumerateObject().Select(field => field.Name).Order());
     }
 
@@ -280,20 +277,46 @@ public class FoodsEndpointTests(FoodsDatabase database) : IClassFixture<FoodsDat
 
     private async Task<GradeResponseDto> Graded(int id, string lensId) =>
         (await database.Client
-            .GetFromJsonAsync<GradeResponseDto>($"/api/foods/{id}/grade?lensId={lensId}", Json))!;
+            .GetFromJsonAsync<GradeResponseDto>($"/api/foods/{id}/grade?lensId={lensId}", ApiJson.Options))!;
 
     private async Task<GradeResponseDto> Posted(GradeRequestDto request)
     {
         var response = await database.Client.PostAsJsonAsync("/api/grades", request);
 
-        return (await response.Content.ReadFromJsonAsync<GradeResponseDto>(Json))!;
+        return (await response.Content.ReadFromJsonAsync<GradeResponseDto>(ApiJson.Options))!;
     }
 
     private async Task<FoodListResponseDto> List(string url) =>
-        (await database.Client.GetFromJsonAsync<FoodListResponseDto>(url))!;
+        (await database.Client.GetFromJsonAsync<FoodListResponseDto>(url, ApiJson.Options))!;
+
+    [Fact]
+    public async Task Detail_ACatalogueFood_SaysItCameFromUsda()
+    {
+        var milk = await Detail(await IdOf("Milk, whole"));
+
+        Assert.Equal(FoodSource.UsdaFndds, milk.Provenance.Source);
+    }
+
+    [Fact]
+    public async Task Detail_ACatalogueFood_NamesLeucineAsEstimatedAndNothingAsAbsent()
+    {
+        var milk = await Detail(await IdOf("Milk, whole"));
+
+        Assert.Equal(["leucine"], milk.Provenance.Estimated);
+        Assert.Empty(milk.Provenance.Absent);
+    }
+
+    [Fact]
+    public async Task Detail_ACatalogueFoodTheImportLeftThin_NamesEveryNutrientItDoesNotHave()
+    {
+        var thin = await Detail(await IdOf("Blue cheese"));
+
+        Assert.Contains("magnesium", thin.Provenance.Absent);
+        Assert.DoesNotContain("leucine", thin.Provenance.Absent);
+    }
 
     private async Task<FoodDetailDto> Detail(int id) =>
-        (await database.Client.GetFromJsonAsync<FoodDetailDto>($"/api/foods/{id}"))!;
+        (await database.Client.GetFromJsonAsync<FoodDetailDto>($"/api/foods/{id}", ApiJson.Options))!;
 
     private async Task<int> IdOf(string description) =>
         (await List($"/api/foods?search={Uri.EscapeDataString(description)}")).Items.Single().Id;

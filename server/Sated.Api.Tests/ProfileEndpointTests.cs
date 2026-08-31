@@ -1,7 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Sated.Api.Dtos;
 
 namespace Sated.Api.Tests;
@@ -10,9 +8,6 @@ namespace Sated.Api.Tests;
 public class ProfileEndpointTests(AccountsDatabase database) : IClassFixture<AccountsDatabase>
 {
     private const string HealthData = "/api/consents/HealthData";
-
-    private static readonly JsonSerializerOptions Json =
-        new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
 
     [Fact]
     public async Task Get_BeforeOnboarding_IsEmptyAndWithoutConsent()
@@ -88,7 +83,7 @@ public class ProfileEndpointTests(AccountsDatabase database) : IClassFixture<Acc
     {
         using var browser = await SignedIn();
 
-        var consent = await browser.GetFromJsonAsync<ConsentResponseDto>(HealthData, Json);
+        var consent = await browser.GetFromJsonAsync<ConsentResponseDto>(HealthData, ApiJson.Options);
 
         Assert.False(string.IsNullOrWhiteSpace(consent!.Version));
         Assert.Contains("withdraw", consent.Text, StringComparison.OrdinalIgnoreCase);
@@ -185,10 +180,10 @@ public class ProfileEndpointTests(AccountsDatabase database) : IClassFixture<Acc
 
     private static async Task<DateTimeOffset?> Consent(HttpClient browser)
     {
-        var offered = await browser.GetFromJsonAsync<ConsentResponseDto>(HealthData, Json);
+        var offered = await browser.GetFromJsonAsync<ConsentResponseDto>(HealthData, ApiJson.Options);
 
         var response = await browser.PostAsJsonAsync(HealthData, new { version = offered!.Version });
-        var given = await response.Content.ReadFromJsonAsync<ConsentResponseDto>(Json);
+        var given = await response.Content.ReadFromJsonAsync<ConsentResponseDto>(ApiJson.Options);
 
         return given!.GivenAt;
     }

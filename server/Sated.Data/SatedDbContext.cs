@@ -23,6 +23,7 @@ public class SatedDbContext(
         modelBuilder.Entity<Food>(food =>
         {
             food.OwnsOne(entry => entry.Nutrients);
+            food.Property(entry => entry.Source).HasConversion<string>();
             food.HasIndex(entry => entry.FdcId).IsUnique();
             food.HasIndex(entry => entry.OwnerId);
 

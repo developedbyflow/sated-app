@@ -741,3 +741,33 @@ Content-Type: application/json
 {
   "password": "{{password}}"
 }
+
+# =============================================================================
+# Provenance — GET /api/foods and GET /api/foods/{id}
+#
+# Story 3.2, FR-10. Every food says where its numbers came from. Two places:
+#   the list  `source` per row, so your own food is distinguishable from the
+#             catalogue's without being marked as worse
+#   the detail `provenance` — the row's source, plus the fields that did not
+#             come from it
+#
+# Per-field provenance is DERIVED, not stored. Measured on the real catalogue:
+# all 1,933 rows carry all fifteen nutrients and none carries leucine, so there
+# is no variation inside a row to store. Sixteen source columns would hold the
+# same constant 29,000 times. What is stored is the row's source, because that
+# is the part that will vary — see decision 0011 and 0012.
+#
+#   estimated  the value is absent and the engine fills it in (leucine, from
+#              the category)
+#   absent     the value is absent and nothing fills it in — the density score
+#              renormalises over what is left and reports isEstimated
+# =============================================================================
+
+### A catalogue food — 200. source is UsdaFndds, absent empty, leucine estimated.
+### 5347 is Milk, NFS; any id from the list above works.
+GET {{secureHost}}/api/foods/5347
+Accept: application/json
+
+### The list — 200. Every row carries source; nothing else about it changed
+GET {{secureHost}}/api/foods?pageSize=3
+Accept: application/json

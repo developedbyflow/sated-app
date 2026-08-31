@@ -61,6 +61,7 @@ public class FoodsDatabase : IAsyncLifetime
         FdcId = 2705385,
         Description = "Milk, whole",
         Category = "Milk, whole",
+        Source = FoodSource.UsdaFndds,
         Nutrients = new NutrientAmounts
         {
             Calories = 61,
@@ -85,6 +86,7 @@ public class FoodsDatabase : IAsyncLifetime
     {
         Description = description,
         Category = category,
+        Source = FoodSource.UsdaFndds,
         Nutrients = new NutrientAmounts
         {
             Calories = 0,

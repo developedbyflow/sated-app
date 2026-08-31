@@ -722,3 +722,39 @@ went into the score. The flag that carries the missing micronutrients is `isEsti
 component, and for a label-only food `density` and `proteinQuality` both report `true`: density
 renormalised over the four nutrients it had, and leucine was estimated from the category rather
 than measured.
+
+## Provenance — on the list and on the detail
+
+Every food says where its numbers came from. `GET /api/foods` carries `source` on each row:
+
+```json
+{ "id": 5347, "description": "Milk, NFS", "category": "Milk, whole", "source": "UsdaFndds" }
+```
+
+That is what tells your own foods apart from the catalogue's. FR-10 asks for the distinction to be
+**in the data and not a mark of inferiority** — the field says where a food came from, and nothing
+in the API ranks one source above another.
+
+`GET /api/foods/{id}` adds `provenance`. A catalogue food:
+
+```json
+{ "source": "UsdaFndds", "estimated": ["leucine"], "absent": [] }
+```
+
+The same food typed in from a label:
+
+```json
+{
+  "source": "UserEntered",
+  "estimated": ["leucine"],
+  "absent": ["vitaminA", "vitaminC", "vitaminD", "vitaminE", "thiamine", "iron", "magnesium", "potassium"]
+}
+```
+
+**Every nutrient not named came from `source`.** `estimated` means the value is absent and the
+engine fills it in — leucine, from the category. `absent` means the value is missing and nothing
+fills it in; the density score renormalises over what is left and reports `isEstimated` on that
+component.
+
+`leucine` is never in both lists. It is absent on every row in the catalogue, and it is the one
+nutrient the engine has a replacement for.

@@ -39,7 +39,7 @@ public class FoodsController(
             .OrderBy(food => food.Description)
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
-            .Select(food => new FoodListItemDto(food.Id, food.Description, food.Category))
+            .Select(food => new FoodListItemDto(food.Id, food.Description, food.Category, food.Source))
             .ToListAsync();
 
         return new FoodListResponseDto(items, query.Page, query.PageSize, total);

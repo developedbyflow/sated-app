@@ -1,8 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Sated.Api.Dtos;
+using Sated.Data.Entities;
 
 namespace Sated.Api.Tests;
 
@@ -10,9 +9,6 @@ namespace Sated.Api.Tests;
 public class OwnFoodTests(AccountsDatabase database) : IClassFixture<AccountsDatabase>
 {
     private const string Password = "abcdefghijkl";
-
-    private static readonly JsonSerializerOptions Json =
-        new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
 
     [Fact]
     public async Task Post_WithoutASession_Answers401()
@@ -34,7 +30,7 @@ public class OwnFoodTests(AccountsDatabase database) : IClassFixture<AccountsDat
         var response = await Post(browser, Telemea());
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var food = await response.Content.ReadFromJsonAsync<FoodDetailDto>();
+        var food = await response.Content.ReadFromJsonAsync<FoodDetailDto>(ApiJson.Options);
         Assert.Equal("Telemea de oaie", food!.Description);
         Assert.Equal(250, food.Nutrients.Calories);
         Assert.Equal(450, food.Nutrients.Calcium);
@@ -84,7 +80,7 @@ public class OwnFoodTests(AccountsDatabase database) : IClassFixture<AccountsDat
         var id = await Created(browser);
 
         var graded = await browser.GetFromJsonAsync<GradeResponseDto>(
-            $"/api/foods/{id}/grade?lensId=weight-loss", Json);
+            $"/api/foods/{id}/grade?lensId=weight-loss", ApiJson.Options);
 
         Assert.NotNull(graded!.Grade);
         Assert.True(graded.Density!.IsEstimated);
@@ -99,7 +95,7 @@ public class OwnFoodTests(AccountsDatabase database) : IClassFixture<AccountsDat
         await Created(mine);
 
         using var stranger = await SignedIn();
-        var found = await stranger.GetFromJsonAsync<FoodListResponseDto>("/api/foods?search=telemea");
+        var found = await stranger.GetFromJsonAsync<FoodListResponseDto>("/api/foods?search=telemea", ApiJson.Options);
 
         Assert.Equal(0, found!.Total);
     }
@@ -125,7 +121,7 @@ public class OwnFoodTests(AccountsDatabase database) : IClassFixture<AccountsDat
         var response = await browser.PostAsJsonAsync(
             "/api/account/export", new { password = Password });
 
-        var export = await response.Content.ReadFromJsonAsync<AccountExportDto>();
+        var export = await response.Content.ReadFromJsonAsync<AccountExportDto>(ApiJson.Options);
         Assert.Equal("Telemea de oaie", Assert.Single(export!.Foods).Description);
     }
 
@@ -142,6 +138,46 @@ public class OwnFoodTests(AccountsDatabase database) : IClassFixture<AccountsDat
         });
 
         Assert.Equal(0, await database.FoodsWithId(id));
+    }
+
+    [Fact]
+    public async Task Post_Always_MarksTheFoodAsTypedInByAPerson()
+    {
+        using var browser = await SignedIn();
+        await Catalogued();
+
+        var response = await Post(browser, Telemea());
+
+        var food = await response.Content.ReadFromJsonAsync<FoodDetailDto>(ApiJson.Options);
+        Assert.Equal(FoodSource.UserEntered, food!.Provenance.Source);
+    }
+
+    [Fact]
+    public async Task Post_ALabel_NamesTheNutrientsNoLabelCarries()
+    {
+        using var browser = await SignedIn();
+        await Catalogued();
+
+        var response = await Post(browser, Telemea());
+
+        var food = await response.Content.ReadFromJsonAsync<FoodDetailDto>(ApiJson.Options);
+        Assert.Contains("magnesium", food!.Provenance.Absent);
+        Assert.Contains("thiamine", food.Provenance.Absent);
+        Assert.DoesNotContain("calcium", food.Provenance.Absent);
+    }
+
+    [Fact]
+    public async Task Search_Always_SaysWhichRowsAreMineAndWhichAreTheCatalogue()
+    {
+        using var browser = await SignedIn();
+        await Catalogued();
+        await Created(browser);
+
+        var found = await browser.GetFromJsonAsync<FoodListResponseDto>(
+            "/api/foods?search=e", ApiJson.Options);
+
+        Assert.Contains(found!.Items, row => row.Source is FoodSource.UserEntered);
+        Assert.Contains(found.Items, row => row.Source is FoodSource.UsdaFndds);
     }
 
     private async Task<HttpClient> SignedIn()
@@ -162,7 +198,7 @@ public class OwnFoodTests(AccountsDatabase database) : IClassFixture<AccountsDat
     private static async Task<int> Created(HttpClient browser)
     {
         var response = await Post(browser, Telemea());
-        var food = await response.Content.ReadFromJsonAsync<FoodDetailDto>();
+        var food = await response.Content.ReadFromJsonAsync<FoodDetailDto>(ApiJson.Options);
 
         return food!.Id;
     }

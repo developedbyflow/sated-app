@@ -36,6 +36,7 @@ so they are columns in this same table rather than a related row.
 | `FdcId` | integer | yes | the USDA FoodData Central id, when the food came from there |
 | `Description` | text | no | the catalogue's own name for the food |
 | `Category` | text | no | the catalogue's category, stored exactly as it arrives — it selects the category rule (FR-6) |
+| `Source` | text | no | where the row's numbers came from: `UsdaFndds` or `UserEntered`. No database default — an INSERT that forgets it fails |
 | `OwnerId` | text | yes | **null means the shared catalogue.** Set means the row belongs to that one account and nobody else can see it |
 | `Nutrients_Calories` | double precision | no | |
 | `Nutrients_Protein` | double precision | no | |
@@ -88,6 +89,26 @@ the table is empty before it fills it, and must count rows belonging to everybod
 **Deleting an account deletes its foods.** The foreign key from `Foods.OwnerId` to `AspNetUsers.Id`
 cascades, so the row goes when the owner does — the other half of FR-29.
 
+### Provenance is one column, and the rest is derived
+
+`Source` says where a **row** came from. Nothing says where a **field** came from, and that is a
+measurement, not an omission: all 1,933 catalogue rows carry all fifteen nutrients, and none of
+them carries leucine. There is no variation inside a row to record, so sixteen source columns
+would store the same constant 29,000 times.
+
+What `GET /api/foods/{id}` reports as `provenance` is computed from the row it already has:
+
+| | |
+|---|---|
+| the value is there | it came from `Source` |
+| the value is null and the engine fills it in | `estimated` — leucine only, from the category |
+| the value is null and nothing fills it in | `absent` — the density score renormalises over the rest |
+
+**The backfill was verified on the real catalogue, not in a test.** Migrations run against an empty
+database in the test suite, so the `UsdaFndds` fill has no test behind it; it was checked by
+counting rows in the development database after `database update`: 1,933 `UsdaFndds`, 0 anything
+else.
+
 ## Loading the catalogue
 
 `tools/CatalogueLoad` reads the FNDDS survey file, drops every row of `Foods` and inserts what
@@ -138,6 +159,7 @@ the wrong column fails silently: it produces a different grade, not an error.
 | `20260831070929_AddIdentityTables` | added the ASP.NET Identity tables, `AspNetUsers` among them |
 | `20260831075022_AddProfileAndConsent` | added `WeightKg` and `ActiveLensId`, plus `ConsentDocuments` and `Consents` |
 | `20260831125607_FoodBelongsToItsOwner` | added `Foods.OwnerId`, its index, and the cascade from `AspNetUsers` |
+| `20260831131409_FoodCarriesItsSource` | added `Foods.Source`, filled the 1,933 existing rows with `UsdaFndds`, then dropped the default |
 
 ```bash
 dotnet ef migrations add <Name> -p Sated.Data -s Sated.Api

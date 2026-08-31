@@ -90,6 +90,7 @@ public class ScoringInputTests
         FdcId = 2705385,
         Description = "Milk, whole",
         Category = category,
+        Source = FoodSource.UsdaFndds,
         Nutrients = nutrients
     };
 

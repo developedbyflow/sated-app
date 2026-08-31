@@ -91,5 +91,5 @@ public class FoodOwnershipTests(AccountsDatabase database) : IClassFixture<Accou
         (await browser.GetFromJsonAsync<CurrentUserDto>("/api/auth/me"))!.Id;
 
     private static async Task<int> Search(HttpClient browser, string term) =>
-        (await browser.GetFromJsonAsync<FoodListResponseDto>($"/api/foods?search={term}"))!.Total;
+        (await browser.GetFromJsonAsync<FoodListResponseDto>($"/api/foods?search={term}", ApiJson.Options))!.Total;
 }

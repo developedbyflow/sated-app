@@ -7,7 +7,8 @@ public record FoodDetailDto(
     int? FdcId,
     string Description,
     string Category,
-    NutrientAmountsDto Nutrients
+    NutrientAmountsDto Nutrients,
+    FoodProvenanceDto Provenance
 )
 {
     public static FoodDetailDto From(Food food) => new(
@@ -31,5 +32,6 @@ public record FoodDetailDto(
             food.Nutrients.Iron,
             food.Nutrients.Magnesium,
             food.Nutrients.Potassium,
-            food.Nutrients.Leucine));
+            food.Nutrients.Leucine),
+        FoodProvenanceDto.Of(food));
 }

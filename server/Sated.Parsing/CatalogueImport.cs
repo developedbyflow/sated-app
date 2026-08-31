@@ -61,6 +61,7 @@ public static class CatalogueImport
             FdcId = food.FdcId,
             Description = food.Description,
             Category = food.Category!.Description,
+            Source = FoodSource.UsdaFndds,
             Nutrients = new NutrientAmounts
             {
                 Calories = amounts[NutrientCodes.Calories],

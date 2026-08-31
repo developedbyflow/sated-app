@@ -38,6 +38,7 @@ Status is one of `proposed`, `accepted`, `superseded by 00NN`.
 | [0009](0009-consent-is-a-document-and-a-signature.md) | Record consent as a document and a signature | accepted |
 | [0010](0010-ask-for-the-password-before-export-and-deletion.md) | Ask for the password before export and deletion | accepted |
 | [0011](0011-a-food-belongs-to-one-account-or-to-the-catalogue.md) | A food belongs to one account, or to the catalogue | accepted |
+| [0012](0012-store-the-source-of-a-row-and-derive-the-rest.md) | Store the source of a row and derive the rest | accepted |
 
 ## The scoring decisions are not here yet
 
