@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Sated.Data;
@@ -11,9 +12,11 @@ using Sated.Data;
 namespace Sated.Data.Migrations
 {
     [DbContext(typeof(SatedDbContext))]
-    partial class SatedDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260831070929_AddIdentityTables")]
+    partial class AddIdentityTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -162,9 +165,6 @@ namespace Sated.Data.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
-                    b.Property<string>("ActiveLensId")
-                        .HasColumnType("text");
-
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
@@ -209,9 +209,6 @@ namespace Sated.Data.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<double?>("WeightKg")
-                        .HasColumnType("double precision");
-
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")
@@ -222,77 +219,6 @@ namespace Sated.Data.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("Sated.Data.Entities.Consent", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("DocumentId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset>("GivenAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset?>("WithdrawnAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DocumentId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Consents");
-                });
-
-            modelBuilder.Entity("Sated.Data.Entities.ConsentDocument", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTimeOffset>("PublishedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Purpose")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Version")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Purpose", "Version")
-                        .IsUnique();
-
-                    b.ToTable("ConsentDocuments");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            PublishedAt = new DateTimeOffset(new DateTime(2026, 8, 31, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Purpose = "HealthData",
-                            Text = "Sated needs two kinds of information about you that count as health data: your body\nweight, and what you eat.\n\nYour weight is used to work out your daily protein target. What you eat is used to\ngrade your food and to show you your day. Neither is used for anything else, and\nneither is shared with anyone outside Sated.\n\nThe law treats this as a special category of personal data. That is why you are being\nasked here, separately from the terms you accepted when you created your account.\nNothing on this screen covers marketing, analytics, or passing anything to anyone else.\nSated does none of those.\n\nYou can withdraw this at any time from Settings, in one action — the same as giving it.\n\nWithdrawing deletes the data it covers: your weight, and everything you have logged.\nYour account stays and you can still sign in, but Sated has nothing left to work with,\nso grades and targets stop. That is not a penalty for withdrawing; it is what the\nproduct is made of.",
-                            Version = "2026-08-31"
-                        });
                 });
 
             modelBuilder.Entity("Sated.Data.Entities.Food", b =>
@@ -371,23 +297,6 @@ namespace Sated.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Sated.Data.Entities.Consent", b =>
-                {
-                    b.HasOne("Sated.Data.Entities.ConsentDocument", "Document")
-                        .WithMany()
-                        .HasForeignKey("DocumentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Sated.Data.Entities.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Document");
                 });
 
             modelBuilder.Entity("Sated.Data.Entities.Food", b =>
