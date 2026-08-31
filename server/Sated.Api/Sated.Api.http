@@ -771,3 +771,116 @@ Accept: application/json
 ### The list — 200. Every row carries source; nothing else about it changed
 GET {{secureHost}}/api/foods?pageSize=3
 Accept: application/json
+
+# =============================================================================
+# POST   /api/recipes          GET /api/recipes         GET /api/recipes/{id}
+# PUT    /api/recipes/{id}     DELETE /api/recipes/{id}
+# GET    /api/recipes/{id}/grade?lensId=
+#
+# Story 3.4, FR-12. A saved composition of foods with weights. Private, like
+# your own foods, and behind the same global query filter — a recipe belongs to
+# exactly one account and there is no shared catalogue of them.
+#
+# The nutrient profile is NOT stored. PortionAggregate (Story 1.10) sums the
+# nutrients across the portions and restates them per 100 g of total weight,
+# every time it is read. A stored profile would drift the moment an ingredient
+# changed. The grade is then computed on that profile by the same formula that
+# grades a single food — a plate of spinach and butter reads as butter, because
+# 97% of its calories are butter, and no average of letters could say that.
+#
+# Absent stays absent all the way up: one ingredient that does not know its
+# vitamin C makes the whole recipe not know it.
+#
+# Ingredients are in GRAMS only. "2 eggs" needs Food.Servings, which does not
+# exist yet, so DisplayAmount/DisplayUnit from the architecture are not here.
+#
+# NOT built, and it is not an oversight: "adding a recipe to a Meal is one
+# action" and "editing a recipe does not rewrite meals already logged" both
+# need Meal, which is Epic 4. The second is solved on the Meal side — grams are
+# frozen at logging time.
+# =============================================================================
+
+### Sign in — 200
+POST {{secureHost}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Compose one — 201 + Location. 5347 is Milk, NFS; 5348 is Milk, whole
+POST {{secureHost}}/api/recipes
+Content-Type: application/json
+
+{
+  "name": "Milk and the next thing along",
+  "ingredients": [
+    { "foodId": 5347, "grams": 200 },
+    { "foodId": 5348, "grams": 100 }
+  ]
+}
+
+### My recipes — 200, each with its ingredient count and total weight
+GET {{secureHost}}/api/recipes
+Accept: application/json
+
+### One recipe — 200 with the derived profile per 100 g of the 300 g total.
+### Replace 1 with the id the Location header returned.
+GET {{secureHost}}/api/recipes/1
+Accept: application/json
+
+### Its grade — 200, computed on the aggregate like any single food
+GET {{secureHost}}/api/recipes/1/grade?lensId=weight-loss
+Accept: application/json
+
+### A recipe with no ingredients — 400, the error sits on ingredients
+POST {{secureHost}}/api/recipes
+Content-Type: application/json
+
+{
+  "name": "Nothing at all",
+  "ingredients": []
+}
+
+### A food that does not exist, or is somebody else's — 400. Same answer for
+### both, so this cannot be used to find out whether an id is taken
+POST {{secureHost}}/api/recipes
+Content-Type: application/json
+
+{
+  "name": "Not mine to use",
+  "ingredients": [
+    { "foodId": 999999, "grams": 100 }
+  ]
+}
+
+### Edit it — 200, the ingredients are replaced and the profile follows
+PUT {{secureHost}}/api/recipes/1
+Content-Type: application/json
+
+{
+  "name": "Just the milk now",
+  "ingredients": [
+    { "foodId": 5347, "grams": 250 }
+  ]
+}
+
+### The export carries recipes too — 200, with every ingredient and its weight
+POST {{secureHost}}/api/account/export
+Content-Type: application/json
+
+{
+  "password": "{{password}}"
+}
+
+### Delete it — 204, and its ingredients go with it
+DELETE {{secureHost}}/api/recipes/1
+
+### Gone — 404
+GET {{secureHost}}/api/recipes/1
+Accept: application/json
+
+### Recipes without a session — 401
+GET {{secureHost}}/api/recipes
+Accept: application/json

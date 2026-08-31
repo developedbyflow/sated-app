@@ -81,4 +81,5 @@ nav:
       - 0010 - Ask for the password before export and deletion: decisions/0010-ask-for-the-password-before-export-and-deletion.md
       - 0011 - A food belongs to one account: decisions/0011-a-food-belongs-to-one-account-or-to-the-catalogue.md
       - 0012 - Store the source of a row: decisions/0012-store-the-source-of-a-row-and-derive-the-rest.md
+      - 0013 - A recipe derives its profile: decisions/0013-a-recipe-stores-its-parts-and-derives-everything-else.md
       - Record template: decisions/_template.md

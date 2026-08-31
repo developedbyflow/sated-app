@@ -109,6 +109,43 @@ database in the test suite, so the `UsdaFndds` fill has no test behind it; it wa
 counting rows in the development database after `database update`: 1,933 `UsdaFndds`, 0 anything
 else.
 
+## `Recipes` and `RecipeIngredients`
+
+A recipe is a saved composition of foods with weights. It belongs to exactly one account — there is
+no shared catalogue of recipes — and it is behind the same kind of global query filter as `Foods`.
+
+| `Recipes` | Type | Null | Meaning |
+|---|---|---|---|
+| `Id` | integer identity | no | |
+| `Name` | text | no | what the person called it |
+| `OwnerId` | text | no | **required**, unlike `Foods.OwnerId`. Cascades from `AspNetUsers` |
+
+| `RecipeIngredients` | Type | Null | Meaning |
+|---|---|---|---|
+| `Id` | integer identity | no | |
+| `RecipeId` | integer | no | cascades from `Recipes` |
+| `FoodId` | integer | no | cascades from `Foods` — see below |
+| `Grams` | double precision | no | the weight of this food in the recipe |
+
+**No nutrient columns.** The profile is computed on every read by `PortionAggregate`, which sums the
+nutrients across the portions and restates them per 100 g of total weight. A stored profile would
+be wrong the moment an ingredient changed, and there is nothing expensive about the arithmetic.
+
+**`FoodId` cascades, and that was measured rather than chosen.** It was `Restrict` first, on the
+reasoning that a food in use should not vanish. Deleting an account then failed with a `500`:
+the account's own foods and its recipes both cascade from `AspNetUsers`, and `Restrict` on the way
+to `RecipeIngredients` blocks it. The test `DeletingTheAccount_WithARecipeOverMyOwnFood_TakesEverything`
+is what found it.
+
+The consequence to know: if a delete-a-food endpoint is ever added, a recipe will silently lose an
+ingredient. There is no such endpoint today, and the catalogue is never deleted from
+([0006](../decisions/0006-load-the-catalogue-once-then-own-it.md)), so account deletion — where
+everything goes anyway — is the only path that reaches it.
+
+**Grams only.** The architecture asks for `DisplayAmount`/`DisplayUnit` alongside, so that "2 eggs"
+survives a round trip. Turning "2 eggs" into grams needs `Food.Servings`, which does not exist yet,
+so neither does the display pair.
+
 ## Loading the catalogue
 
 `tools/CatalogueLoad` reads the FNDDS survey file, drops every row of `Foods` and inserts what
@@ -160,6 +197,7 @@ the wrong column fails silently: it produces a different grade, not an error.
 | `20260831075022_AddProfileAndConsent` | added `WeightKg` and `ActiveLensId`, plus `ConsentDocuments` and `Consents` |
 | `20260831125607_FoodBelongsToItsOwner` | added `Foods.OwnerId`, its index, and the cascade from `AspNetUsers` |
 | `20260831131409_FoodCarriesItsSource` | added `Foods.Source`, filled the 1,933 existing rows with `UsdaFndds`, then dropped the default |
+| `20260831151030_AddRecipes` | added `Recipes` and `RecipeIngredients` |
 
 ```bash
 dotnet ef migrations add <Name> -p Sated.Data -s Sated.Api

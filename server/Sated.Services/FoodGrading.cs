@@ -14,13 +14,15 @@ public class FoodGrading(SatedDbContext database, Calibration calibration, Score
     {
         var food = await database.Foods.FirstOrDefaultAsync(food => food.Id == foodId);
 
-        if (food is null)
-        {
-            return null;
-        }
+        return food is null
+            ? null
+            : Grade(ScoringInput.From(food), food.Id, food.Description, lens);
+    }
 
-        var score = combiner.Combine(ScoringInput.From(food), lens);
+    public GradedFood Grade(FoodInput input, int id, string description, Lens lens)
+    {
+        var score = combiner.Combine(input, lens);
 
-        return new GradedFood(food.Id, food.Description, calibration.GradeFor(score, lens), score);
+        return new GradedFood(id, description, calibration.GradeFor(score, lens), score);
     }
 }

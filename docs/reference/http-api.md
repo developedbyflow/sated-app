@@ -758,3 +758,67 @@ component.
 
 `leucine` is never in both lists. It is absent on every row in the catalogue, and it is the one
 nutrient the engine has a replacement for.
+
+## `/api/recipes`
+
+A recipe is a saved composition of foods with weights. Every route requires a session, and every
+route only ever sees your own — the global query filter on `Recipe` is `OwnerId == you`, with no
+catalogue half.
+
+| | |
+|---|---|
+| `POST /api/recipes` | `201` + `Location` |
+| `GET /api/recipes` | your recipes, with ingredient count and total weight |
+| `GET /api/recipes/{id}` | the derived profile and the ingredients |
+| `PUT /api/recipes/{id}` | replaces the name and **all** the ingredients |
+| `DELETE /api/recipes/{id}` | `204`; the ingredients go with it |
+| `GET /api/recipes/{id}/grade?lensId=` | the same shape `GET /api/foods/{id}/grade` returns |
+
+```json
+{
+  "name": "Milk and the next thing along",
+  "ingredients": [
+    { "foodId": 5347, "grams": 200 },
+    { "foodId": 5348, "grams": 100 }
+  ]
+}
+```
+
+**Ingredients are in grams.** `DisplayAmount`/`DisplayUnit` from the architecture wait on
+`Food.Servings`, which does not exist yet — without it nothing can turn "2 eggs" into a weight.
+
+**An ingredient can be a catalogue food or one of your own**, and the API cannot tell you which
+foods exist: a food that is not yours and a food that never existed get the identical `400`.
+
+### The profile is derived on every read
+
+```json
+{
+  "totalGrams": 300,
+  "nutrients": { "calories": 55.0, "protein": 3.31, "..." : null },
+  "leucineIsEstimated": true
+}
+```
+
+Nutrients are stated **per 100 g of total weight**, which is what makes the formula that grades one
+food grade a recipe unchanged. Nothing is stored: a saved profile would be wrong the moment an
+ingredient changed.
+
+**A grade is never the average of its parts' letters.** 100 g of spinach (`A`) with 100 g of butter
+(`E`) is not a `C` — the mixture carries about 740 kcal, 97% of them from the butter, so per
+100 kcal it reads as butter.
+
+**Absent stays absent all the way up.** One ingredient that does not know its vitamin C makes the
+recipe not know it either: summing only the ingredients that do would spread the spinach's vitamin C
+over the butter as well, a larger claim than any ingredient made.
+
+`leucineIsEstimated` is true when any ingredient's leucine had to be estimated from its category.
+One guessed ingredient makes the whole plate a guess.
+
+### What FR-12 asks for that is not here
+
+Two of the four acceptance criteria need `Meal`, which is Epic 4:
+
+- **adding a recipe to a meal is one action** — there are no meals to add it to;
+- **editing a recipe does not rewrite meals already logged** — solved on the meal side, where the
+  architecture freezes grams at logging time. Nothing on the recipe can enforce it.

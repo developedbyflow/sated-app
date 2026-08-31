@@ -38,7 +38,12 @@ public class AccountsDatabase : IAsyncLifetime
 
     public static string UnusedEmail() => $"{Guid.NewGuid():N}@sated.test";
 
-    public async Task<int> AddFood(string description, string? ownerId)
+    public async Task<int> AddFood(
+        string description,
+        string? ownerId,
+        double calories = 250,
+        double protein = 17,
+        double fat = 20)
     {
         using var scope = api.Services.CreateScope();
         var database = scope.ServiceProvider.GetRequiredService<SatedDbContext>();
@@ -51,9 +56,9 @@ public class AccountsDatabase : IAsyncLifetime
             OwnerId = ownerId,
             Nutrients = new NutrientAmounts
             {
-                Calories = 250,
-                Protein = 17,
-                Fat = 20,
+                Calories = calories,
+                Protein = protein,
+                Fat = fat,
                 Fiber = 0,
                 SaturatedFat = 12,
                 Sodium = 900
@@ -72,6 +77,18 @@ public class AccountsDatabase : IAsyncLifetime
         var database = scope.ServiceProvider.GetRequiredService<SatedDbContext>();
 
         return await database.Foods.IgnoreQueryFilters().CountAsync(food => food.Id == id);
+    }
+
+    public Task<int> Water() => AddFood("Water", ownerId: null, calories: 0, protein: 0, fat: 0);
+
+    public async Task<int> IngredientsOf(int recipeId)
+    {
+        using var scope = api.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<SatedDbContext>();
+
+        return await database.Set<RecipeIngredient>()
+            .IgnoreQueryFilters()
+            .CountAsync(ingredient => ingredient.RecipeId == recipeId);
     }
 
     public async Task<int> ConsentsOf(string userId)

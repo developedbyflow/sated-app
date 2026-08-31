@@ -14,6 +14,7 @@ public class AccountController(
     UserManager<AppUser> users,
     SignInManager<AppUser> sessions,
     Accounts accounts,
+    Recipes recipes,
     TimeProvider clock) : ControllerBase
 {
     [HttpPost("export")]
@@ -28,6 +29,7 @@ public class AccountController(
 
         var signed = await accounts.SignedDocuments(user!.Id);
         var own = await accounts.OwnFoods(user.Id);
+        var composed = await recipes.Mine();
         var exportedAt = clock.GetUtcNow();
 
         Response.Headers.ContentDisposition =
@@ -44,7 +46,8 @@ public class AccountController(
                 consent.GivenAt,
                 consent.WithdrawnAt,
                 consent.Document.Text)).ToArray(),
-            own.Select(FoodDetailDto.From).ToArray());
+            own.Select(FoodDetailDto.From).ToArray(),
+            composed.Select(RecipeDetailDto.From).ToArray());
     }
 
     [HttpDelete]

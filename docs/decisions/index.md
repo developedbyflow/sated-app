@@ -39,6 +39,7 @@ Status is one of `proposed`, `accepted`, `superseded by 00NN`.
 | [0010](0010-ask-for-the-password-before-export-and-deletion.md) | Ask for the password before export and deletion | accepted |
 | [0011](0011-a-food-belongs-to-one-account-or-to-the-catalogue.md) | A food belongs to one account, or to the catalogue | accepted |
 | [0012](0012-store-the-source-of-a-row-and-derive-the-rest.md) | Store the source of a row and derive the rest | accepted |
+| [0013](0013-a-recipe-stores-its-parts-and-derives-everything-else.md) | A recipe stores its parts and derives everything else | accepted |
 
 ## The scoring decisions are not here yet
 

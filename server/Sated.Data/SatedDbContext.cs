@@ -16,6 +16,8 @@ public class SatedDbContext(
 
     public DbSet<Consent> Consents => Set<Consent>();
 
+    public DbSet<Recipe> Recipes => Set<Recipe>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -33,6 +35,34 @@ public class SatedDbContext(
                 .OnDelete(DeleteBehavior.Cascade);
 
             food.HasQueryFilter(entry => entry.OwnerId == null || entry.OwnerId == AskedBy);
+        });
+
+        modelBuilder.Entity<Recipe>(recipe =>
+        {
+            recipe.HasMany(entry => entry.Ingredients)
+                .WithOne()
+                .HasForeignKey(ingredient => ingredient.RecipeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            recipe.HasOne<AppUser>()
+                .WithMany()
+                .HasForeignKey(entry => entry.OwnerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            recipe.HasIndex(entry => entry.OwnerId);
+
+            recipe.HasQueryFilter(entry => entry.OwnerId == AskedBy);
+        });
+
+        modelBuilder.Entity<RecipeIngredient>(ingredient =>
+        {
+            ingredient.HasOne(entry => entry.Food)
+                .WithMany()
+                .HasForeignKey(entry => entry.FoodId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            ingredient.HasQueryFilter(entry =>
+                entry.Food.OwnerId == null || entry.Food.OwnerId == AskedBy);
         });
 
         modelBuilder.Entity<ConsentDocument>(document =>
