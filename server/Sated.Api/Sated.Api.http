@@ -320,6 +320,49 @@ GET {{host}}/api/foods/milk/grades
 Accept: application/json
 
 # =============================================================================
+# GET /api/foods/{id}/swap?lensId=…
+#
+# Three foods from the same category that carry a better letter under that lens
+# (Story 6.1). Only on request: nothing else in the API returns a swap.
+#
+#   200  up to three alternatives, best score first
+#   400  lensId missing or unknown — same shape as /grade
+#   404  no food with that id, and any id that is not a number
+#
+# The candidates must beat the food on the LETTER, and are ranked among
+# themselves by SCORE, with the lower id winning an exact tie. Measured over the
+# catalogue: 44.0% of foods have no better letter in their category at all, and
+# that answer is a 200 with an empty list and the message, never a 404.
+#
+# Only catalogue foods are ever suggested, so a signed-in caller and a stranger
+# get the same three. A food you entered yourself is not offered back to you.
+# =============================================================================
+
+### Canned peach in syrup (B) — 200, three A's: nectarine, juice pack, raw peach
+GET {{host}}/api/foods/6416/swap?lensId=weight-loss
+Accept: application/json
+
+### The same peach under Fitness — 200, and only ONE alternative, a C
+GET {{host}}/api/foods/6416/swap?lensId=fitness
+Accept: application/json
+
+### Raw nectarine, the best of its category — 200, empty list plus the message
+GET {{host}}/api/foods/6410/swap?lensId=weight-loss
+Accept: application/json
+
+### Tap water, which has no letter — 200, empty, nothing can be better than none
+GET {{host}}/api/foods/7242/swap?lensId=weight-loss
+Accept: application/json
+
+### A lens that does not exist — 400, the error sits on lensId
+GET {{host}}/api/foods/6416/swap?lensId=keto
+Accept: application/json
+
+### A food that is not there — 404
+GET {{host}}/api/foods/999999/swap?lensId=weight-loss
+Accept: application/json
+
+# =============================================================================
 # /api/auth  —  register, login, logout, me
 #
 # THESE REQUESTS NEED HTTPS. The session cookie is marked Secure, so a client

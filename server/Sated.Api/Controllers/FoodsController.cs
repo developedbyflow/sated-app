@@ -13,6 +13,7 @@ namespace Sated.Api.Controllers;
 public class FoodsController(
     SatedDbContext database,
     FoodGrading grading,
+    FoodSwaps swaps,
     FoodCatalogue catalogue,
     ICurrentUser currentUser) : ControllerBase
 {
@@ -141,5 +142,26 @@ public class FoodsController(
         return Ok(graded
             .Select(entry => LensGradeResponseDto.From(entry.Lens, entry.Graded.Grade, entry.Graded.Score))
             .ToList());
+    }
+
+    [HttpGet("{id:int}/swap")]
+    public async Task<ActionResult<SwapResponseDto>> Swap(int id, [FromQuery] string? lensId)
+    {
+        var lens = grading.LensFor(lensId);
+
+        if (lens is null)
+        {
+            ModelState.AddModelError(
+                nameof(lensId),
+                $"No lens has the id '{lensId}'. GET /api/lenses lists the ones that exist.");
+
+            return ValidationProblem(ModelState);
+        }
+
+        var alternatives = await swaps.Better(id, lens);
+
+        return alternatives is null
+            ? NotFound()
+            : SwapResponseDto.From(alternatives);
     }
 }

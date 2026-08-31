@@ -84,6 +84,7 @@ var calibration = Calibration.Load();
 builder.Services.AddSingleton(calibration);
 builder.Services.AddSingleton(calibration.Engine());
 builder.Services.AddScoped<FoodGrading>();
+builder.Services.AddScoped<FoodSwaps>();
 builder.Services.AddScoped<Consents>();
 builder.Services.AddScoped<Profiles>();
 builder.Services.AddScoped<Accounts>();

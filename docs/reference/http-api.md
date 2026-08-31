@@ -422,6 +422,58 @@ between lenses.** Weight Loss and Fitness disagree on 69.8% of them; GLP-1 and W
 Expect the GLP-1 column to repeat the Weight Loss one most of the time. See
 [0020](../decisions/0020-compare-every-lens-in-one-request.md).
 
+## `GET /api/foods/{id}/swap`
+
+Three foods from the same category that carry a better letter under that lens (Story 6.1). Returned
+only when asked for: nothing else in the API offers a swap.
+
+**Request** — `id` in the path, `lensId` in the query. Both required. No cookie.
+
+**Response** — `200 OK`, best score first.
+
+```json
+{
+  "alternatives": [
+    { "id": 6410, "description": "Nectarine, raw", "grade": "A", "score": 75.67 },
+    { "id": 6417, "description": "Peach, canned, juice pack", "grade": "A", "score": 75.19 },
+    { "id": 6414, "description": "Peach, raw", "grade": "A", "score": 75.03 }
+  ],
+  "message": null
+}
+```
+
+When nothing in the category carries a better letter, the same `200` comes back with an empty list
+and the message instead:
+
+```json
+{ "alternatives": [], "message": "No higher-graded foods in this category." }
+```
+
+**`400 Bad Request`** when `lensId` is missing or names no lens, exactly as `/grade` answers.
+
+**`404 Not Found`** when no food carries that id, and when the id is not a number. Having nothing to
+suggest is never a 404.
+
+### The two rules that pick the three
+
+**A candidate must beat the food on the letter.** An A is offered to a B; another B is not, however
+much better its score. The letter is the product's public claim, and a swap that leaves it unchanged
+contradicts it.
+
+**Among candidates, the order is by score**, descending — an A at 95 really is a better answer than
+an A at 71. An exact tie goes to the lower id, which is what makes the same request answer the same
+way every time.
+
+A food you entered yourself is never suggested, to you or to anybody: only catalogue rows are
+candidates, so a signed-in caller and a stranger get the same three.
+
+### What the empty answer means
+
+Measured over the catalogue: **44.0% of foods have no better letter in their category**. The empty
+answer is the normal case, not a failure — and the same measurement is the reason the selection rule
+is worth reading before changing. See
+[0021](../decisions/0021-a-swap-beats-the-letter-and-is-ranked-by-score.md).
+
 ## Breaking change: `lens` became `lensId`
 
 `POST /api/grades` used to take the display name in a field called `lens`. It now takes the slug in

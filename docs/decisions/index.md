@@ -47,6 +47,7 @@ Status is one of `proposed`, `accepted`, `superseded by 00NN`.
 | [0018](0018-the-day-is-one-plate.md) | The day is one plate | accepted |
 | [0019](0019-the-calorie-target-is-its-own-resource.md) | The calorie target is its own resource | accepted |
 | [0020](0020-compare-every-lens-in-one-request.md) | Compare every lens in one request | accepted |
+| [0021](0021-a-swap-beats-the-letter-and-is-ranked-by-score.md) | A swap beats the letter, and is ranked by score | accepted |
 
 ## The scoring decisions are not here yet
 
