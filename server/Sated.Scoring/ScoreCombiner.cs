@@ -55,8 +55,7 @@ public sealed class ScoreCombiner
         var fatWeight = lens.Satiety * handover;
 
         // A missing component drops out of both sums. Dividing by the weight actually used,
-        // instead of by 100, is the redistribution FR-7 asks for: a zero-calorie food has no
-        // density, so satiety 50 and protein 20 end up counting 71.4% and 28.6%.
+        // instead of by 100, is the redistribution FR-7 asks for.
         // Only the general strategies can leave a component out now — a category rule that has
         // no answer hands the food back to them instead of removing the component.
         var weighted = satietyWeight * satiety.Score;
