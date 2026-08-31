@@ -1,0 +1,54 @@
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Sated.Data;
+
+namespace Sated.Api.Tests;
+
+public class AccountsDatabase : IAsyncLifetime
+{
+    private const string ConnectionString =
+        "Host=localhost;Port=5432;Database=sated_test;Username=sated;Password=sated";
+
+    private readonly WebApplicationFactory<Program> api = Api("1000");
+
+    private readonly WebApplicationFactory<Program> throttled = Api("3");
+
+    public async Task InitializeAsync()
+    {
+        using var scope = api.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<SatedDbContext>();
+
+        await database.Database.EnsureDeletedAsync();
+        await database.Database.MigrateAsync();
+    }
+
+    public async Task DisposeAsync()
+    {
+        await api.DisposeAsync();
+        await throttled.DisposeAsync();
+    }
+
+    public HttpClient NewBrowser() => OverHttps(api);
+
+    public HttpClient NewThrottledBrowser() => OverHttps(throttled);
+
+    public static string UnusedEmail() => $"{Guid.NewGuid():N}@sated.test";
+
+    private static WebApplicationFactory<Program> Api(string loginAttemptsPerMinute) =>
+        new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+            builder.ConfigureAppConfiguration(configuration =>
+                configuration.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:Sated"] = ConnectionString,
+                    ["RateLimits:LoginPerMinute"] = loginAttemptsPerMinute
+                })));
+
+    private static HttpClient OverHttps(WebApplicationFactory<Program> api) =>
+        api.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost")
+        });
+}

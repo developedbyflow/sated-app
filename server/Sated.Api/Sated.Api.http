@@ -280,3 +280,234 @@ Accept: application/json
 ### An id that is not a number — 404 from the route constraint
 GET {{host}}/api/foods/milk/grade?lensId=fitness
 Accept: application/json
+
+# =============================================================================
+# /api/auth  —  register, login, logout, me
+#
+# THESE REQUESTS NEED HTTPS. The session cookie is marked Secure, so a client
+# talking to {{host}} over plain http receives the Set-Cookie header and throws
+# it away — register would answer 200 and the next request would still be 401.
+# Run the API with the https profile: dotnet run --launch-profile https
+#
+# There is no token to copy anywhere. The client sends the cookie by itself
+# after register or login, and stops sending it after logout.
+#
+# Password rules, from Program.cs: at least 12 characters, and nothing else.
+# No digit, no capital, no symbol — length is what is asked for. See
+# 02_planning/6.prd-addendum-account-security §3.2 in the private docs.
+#
+# A failed login answers the same way whether the email has an account or the
+# password is wrong. Registration is the deliberate exception: it has to say
+# that the address is taken, or nobody could tell why they cannot sign up.
+# =============================================================================
+
+@secureHost = https://localhost:7245
+@email = florin@sated.test
+@password = abcdefghijkl
+
+### Register — 200, returns id and email, and sets the sated.session cookie
+POST {{secureHost}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Who am I — 200 with the same id, because register already signed you in
+GET {{secureHost}}/api/auth/me
+Accept: application/json
+
+### Sign out — 204, and the cookie is cleared
+POST {{secureHost}}/api/auth/logout
+
+### Who am I now — 401, and no Location header pointing anywhere
+GET {{secureHost}}/api/auth/me
+Accept: application/json
+
+### Sign back in — 200, a fresh cookie
+POST {{secureHost}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### The same email twice — 400, DuplicateEmail and DuplicateUserName
+POST {{secureHost}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Eleven characters — 400, PasswordTooShort
+POST {{secureHost}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "eleven@sated.test",
+  "password": "abcdefghijk"
+}
+
+### Twelve lowercase letters, no digit or symbol — 200, this is allowed on purpose
+POST {{secureHost}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "twelve@sated.test",
+  "password": "abcdefghijkl"
+}
+
+### Not an email — 400 from [ApiController], before the action runs
+POST {{secureHost}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "florin",
+  "password": "{{password}}"
+}
+
+### Wrong password — 401, body says only Unauthorized
+POST {{secureHost}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "wrongbutlongenough"
+}
+
+### An email with no account — 401, byte for byte the same answer as above
+POST {{secureHost}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "nobody@sated.test",
+  "password": "{{password}}"
+}
+
+# Send the one above five times, then the RIGHT password below — still 401,
+# because the account is locked for five minutes. That is the only way to see it.
+### After five wrong attempts, the right password — 401, the account is locked
+POST {{secureHost}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### More than ten logins in a minute from one address — 429, whatever the email
+POST {{secureHost}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Logout without a session — 401, not 204
+POST {{secureHost}}/api/auth/logout
+
+# =============================================================================
+# /api/consents  and  /api/profile  —  onboarding (Story 2.2)
+#
+# Same rule as the block above: HTTPS, or the session cookie is thrown away.
+# Sign in with the register or login request above before running these.
+#
+# The order matters, and it is the point of the story. Weight is health data,
+# so PUT /api/profile refuses with 403 until a consent exists. Consent is its
+# own request against its own resource — it is never a field inside the request
+# that carries the data, because then it would not be a separate act.
+#
+# Consent is a document plus a signature, not a flag. GET returns the text in
+# force; POST names the version you are signing. A version you never fetched is
+# refused, so nobody can consent to a text they were never shown.
+#
+# Withdrawing deletes what the consent covered — the weight. That is written in
+# the text itself, before anyone accepts it.
+# =============================================================================
+
+### The consent text in force — 200, with version, full text, and givenAt null
+GET {{secureHost}}/api/consents/HealthData
+Accept: application/json
+
+### Before consenting — 200, but weightKg and activeLensId are both null
+GET {{secureHost}}/api/profile
+Accept: application/json
+
+### Onboarding without consent — 403, and nothing is stored
+PUT {{secureHost}}/api/profile
+Content-Type: application/json
+
+{
+  "weightKg": 82,
+  "activeLensId": "weight-loss"
+}
+
+### A version that was never published — 400, the error sits on version
+POST {{secureHost}}/api/consents/HealthData
+Content-Type: application/json
+
+{
+  "version": "1999-01-01"
+}
+
+### Consent to the version GET returned — 200, and givenAt is now set
+POST {{secureHost}}/api/consents/HealthData
+Content-Type: application/json
+
+{
+  "version": "2026-08-31"
+}
+
+### The same request again — 200, and givenAt has NOT moved. One signature.
+POST {{secureHost}}/api/consents/HealthData
+Content-Type: application/json
+
+{
+  "version": "2026-08-31"
+}
+
+### Onboarding, now allowed — 200 with the profile that was just stored
+PUT {{secureHost}}/api/profile
+Content-Type: application/json
+
+{
+  "weightKg": 82,
+  "activeLensId": "weight-loss"
+}
+
+### A lens that does not exist — 400, the error sits on activeLensId
+PUT {{secureHost}}/api/profile
+Content-Type: application/json
+
+{
+  "weightKg": 82,
+  "activeLensId": "keto"
+}
+
+### Ten kilograms — 400 from the range on the DTO, before the action runs
+PUT {{secureHost}}/api/profile
+Content-Type: application/json
+
+{
+  "weightKg": 10,
+  "activeLensId": "weight-loss"
+}
+
+### Withdraw — 204. As few steps as giving it was.
+DELETE {{secureHost}}/api/consents/HealthData
+
+### The profile now — 200, weightKg is null again, consent is false
+GET {{secureHost}}/api/profile
+Accept: application/json
+
+### Withdraw again, with nothing to withdraw — 404
+DELETE {{secureHost}}/api/consents/HealthData
+
+### Consents without a session — 401
+GET {{secureHost}}/api/consents/HealthData
+Accept: application/json

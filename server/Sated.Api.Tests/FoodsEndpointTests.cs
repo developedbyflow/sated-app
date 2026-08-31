@@ -8,6 +8,7 @@ using Sated.Scoring;
 
 namespace Sated.Api.Tests;
 
+[Collection("Database")]
 public class FoodsEndpointTests(FoodsDatabase database) : IClassFixture<FoodsDatabase>
 {
     private static readonly JsonSerializerOptions Json =
