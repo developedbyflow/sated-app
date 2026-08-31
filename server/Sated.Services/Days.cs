@@ -7,7 +7,9 @@ namespace Sated.Services;
 
 public record DayProtein(double Grams, ProteinTarget? Target);
 
-public record DaySummary(DayProtein Protein, GradedFood? Grade);
+public record DayCalories(double Consumed, int TargetKcal);
+
+public record DaySummary(DayProtein Protein, DayCalories? Calories, GradedFood? Grade);
 
 public class Days(SatedDbContext database, FoodGrading grading, ICurrentUser currentUser)
 {
@@ -27,11 +29,18 @@ public class Days(SatedDbContext database, FoodGrading grading, ICurrentUser cur
                 entry.QuantityGrams / NutrientsAreReportedPer * entry.Food.Nutrients.Protein),
             lens is null ? null : ProteinTarget.For(user.WeightKg, user.HeightCm, lens));
 
+        var calories = user.CalorieTargetKcal is null
+            ? null
+            : new DayCalories(
+                entries.Sum(entry =>
+                    entry.QuantityGrams / NutrientsAreReportedPer * entry.Food.Nutrients.Calories),
+                user.CalorieTargetKcal.Value);
+
         var grade = entries.Length == 0 || lens is null
             ? null
             : grading.Grade(Profile(entries), day!.Id, day.Date.ToString("O"), lens);
 
-        return new DaySummary(protein, grade);
+        return new DaySummary(protein, calories, grade);
     }
 
     public static FoodInput Profile(IReadOnlyList<MealEntry> entries) =>

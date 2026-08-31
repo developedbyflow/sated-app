@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Sated.Data;
@@ -11,9 +12,11 @@ using Sated.Data;
 namespace Sated.Data.Migrations
 {
     [DbContext(typeof(SatedDbContext))]
-    partial class SatedDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260831180823_ConsentNamesTheHeightItCovers")]
+    partial class ConsentNamesTheHeightItCovers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -164,9 +167,6 @@ namespace Sated.Data.Migrations
 
                     b.Property<string>("ActiveLensId")
                         .HasColumnType("text");
-
-                    b.Property<int?>("CalorieTargetKcal")
-                        .HasColumnType("integer");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()

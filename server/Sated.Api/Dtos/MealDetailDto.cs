@@ -51,9 +51,16 @@ public record DayProteinDto(double Grams, double? TargetMinGrams, double? Target
         protein.Grams, protein.Target?.MinGrams, protein.Target?.MaxGrams);
 }
 
+public record DayCaloriesDto(double Consumed, int TargetKcal)
+{
+    public static DayCaloriesDto? From(DayCalories? calories) =>
+        calories is null ? null : new DayCaloriesDto(calories.Consumed, calories.TargetKcal);
+}
+
 public record DayDto(
     DateOnly Date,
     DayProteinDto Protein,
+    DayCaloriesDto? Calories,
     GradeResponseDto? Grade,
     MealDetailDto[] Meals);
 

@@ -22,8 +22,25 @@ public class ProfileController(
         return new ProfileResponseDto(
             user.WeightKg,
             user.HeightCm,
+            user.CalorieTargetKcal,
             user.ActiveLensId,
             await consents.IsGiven(userId, ConsentPurpose.HealthData));
+    }
+
+    [HttpPut("calorie-target")]
+    public async Task<CalorieTargetResponseDto> PutCalorieTarget(CalorieTargetRequestDto request)
+    {
+        await profiles.SetCalorieTarget(users.GetUserId(User)!, request.Kcal!.Value);
+
+        return CalorieTargetResponseDto.For(request.Kcal.Value);
+    }
+
+    [HttpDelete("calorie-target")]
+    public async Task<NoContentResult> DeleteCalorieTarget()
+    {
+        await profiles.ClearCalorieTarget(users.GetUserId(User)!);
+
+        return NoContent();
     }
 
     [HttpPut]

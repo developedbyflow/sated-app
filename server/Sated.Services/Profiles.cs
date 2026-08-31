@@ -16,6 +16,24 @@ public class Profiles(SatedDbContext database, Consents consents, FoodGrading gr
     public Task<AppUser> Of(string userId) =>
         database.Users.FirstAsync(account => account.Id == userId);
 
+    public async Task SetCalorieTarget(string userId, int kcal)
+    {
+        var user = await Of(userId);
+
+        user.CalorieTargetKcal = kcal;
+
+        await database.SaveChangesAsync();
+    }
+
+    public async Task ClearCalorieTarget(string userId)
+    {
+        var user = await Of(userId);
+
+        user.CalorieTargetKcal = null;
+
+        await database.SaveChangesAsync();
+    }
+
     public async Task<ProfileUpdate> Update(
         string userId, double weightKg, double heightCm, string? lensId)
     {

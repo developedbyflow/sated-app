@@ -8,5 +8,7 @@ public class AppUser : IdentityUser
 
     public double? HeightCm { get; set; }
 
+    public int? CalorieTargetKcal { get; set; }
+
     public string? ActiveLensId { get; set; }
 }

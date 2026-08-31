@@ -42,6 +42,7 @@ public class AccountController(
             user.Email!,
             user.WeightKg,
             user.HeightCm,
+            user.CalorieTargetKcal,
             user.ActiveLensId,
             signed.Select(consent => new ConsentExportDto(
                 consent.Document.Purpose,

@@ -161,6 +161,133 @@ public class ProfileEndpointTests(AccountsDatabase database) : IClassFixture<Acc
     }
 
     [Fact]
+    public async Task PutCalorieTarget_TwoThousand_IsStoredWithoutAWarning()
+    {
+        using var browser = await SignedIn();
+
+        var response = await Target(browser, kcal: 2000);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var target = await response.Content.ReadFromJsonAsync<CalorieTargetResponseDto>(ApiJson.Options);
+        Assert.Equal(2000, target!.Kcal);
+        Assert.Null(target.Warning);
+    }
+
+    [Fact]
+    public async Task PutCalorieTarget_BelowTwelveHundred_IsStoredAnywayAndWarns()
+    {
+        using var browser = await SignedIn();
+
+        var response = await Target(browser, kcal: 1100);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var target = await response.Content.ReadFromJsonAsync<CalorieTargetResponseDto>(ApiJson.Options);
+        Assert.Equal(1100, target!.Kcal);
+        Assert.Equal("Below 1,200 calories a day. Consider talking to a doctor.", target.Warning);
+
+        var profile = await browser.GetFromJsonAsync<ProfileResponseDto>("/api/profile");
+        Assert.Equal(1100, profile!.CalorieTargetKcal);
+    }
+
+    [Fact]
+    public async Task PutCalorieTarget_ExactlyTwelveHundred_DoesNotWarn()
+    {
+        using var browser = await SignedIn();
+
+        var response = await Target(browser, kcal: 1200);
+
+        var target = await response.Content.ReadFromJsonAsync<CalorieTargetResponseDto>(ApiJson.Options);
+        Assert.Null(target!.Warning);
+    }
+
+    [Fact]
+    public async Task PutCalorieTarget_BelowTheRange_IsRejected()
+    {
+        using var browser = await SignedIn();
+
+        var response = await Target(browser, kcal: 100);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PutCalorieTarget_WithoutConsent_IsStoredAnyway()
+    {
+        using var browser = await SignedIn();
+
+        var response = await Target(browser, kcal: 2000);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteCalorieTarget_AfterSettingOne_LeavesTheRestOfTheProfileAlone()
+    {
+        using var browser = await SignedIn();
+        await Consent(browser);
+        await Save(browser, weightKg: 82, lensId: "weight-loss");
+        await Target(browser, kcal: 2000);
+
+        var response = await browser.DeleteAsync("/api/profile/calorie-target");
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        var profile = await browser.GetFromJsonAsync<ProfileResponseDto>("/api/profile");
+        Assert.Null(profile!.CalorieTargetKcal);
+        Assert.Equal(82, profile.WeightKg);
+        Assert.Equal(180, profile.HeightCm);
+        Assert.Equal("weight-loss", profile.ActiveLensId);
+    }
+
+    [Fact]
+    public async Task Withdraw_AfterConsenting_ErasesTheHeightToo()
+    {
+        using var browser = await SignedIn();
+        await Consent(browser);
+        await Save(browser, weightKg: 82, lensId: "weight-loss");
+
+        await browser.DeleteAsync(HealthData);
+
+        var profile = await browser.GetFromJsonAsync<ProfileResponseDto>("/api/profile");
+        Assert.Null(profile!.HeightCm);
+    }
+
+    [Fact]
+    public async Task Withdraw_AfterLogging_ErasesWhatTheDocumentPromisesItErases()
+    {
+        using var browser = await SignedIn();
+        await Consent(browser);
+        await Save(browser, weightKg: 82, lensId: "weight-loss");
+
+        var created = await browser.PostAsJsonAsync(
+            "/api/meals", new { date = new DateOnly(2026, 8, 31), name = "Lunch" });
+        var meal = (await created.Content.ReadFromJsonAsync<MealDetailDto>(ApiJson.Options))!;
+
+        await browser.DeleteAsync(HealthData);
+
+        var day = await browser.GetFromJsonAsync<DayDto>("/api/days/2026-08-31", ApiJson.Options);
+        Assert.Empty(day!.Meals);
+        Assert.Equal(HttpStatusCode.NotFound, (await browser.GetAsync($"/api/meals/{meal.Id}")).StatusCode);
+    }
+
+    [Fact]
+    public async Task Withdraw_ByOneAccount_LeavesAnotherAccountsLogAlone()
+    {
+        using var mine = await SignedIn();
+        using var theirs = await SignedIn();
+        await Consent(mine);
+        await Consent(theirs);
+        await Save(mine, weightKg: 82, lensId: "weight-loss");
+        await Save(theirs, weightKg: 70, lensId: "fitness");
+        await theirs.PostAsJsonAsync(
+            "/api/meals", new { date = new DateOnly(2026, 8, 31), name = "Theirs" });
+
+        await mine.DeleteAsync(HealthData);
+
+        var day = await theirs.GetFromJsonAsync<DayDto>("/api/days/2026-08-31", ApiJson.Options);
+        Assert.Single(day!.Meals);
+    }
+
+    [Fact]
     public async Task Withdraw_WithNothingToWithdraw_IsNotFound()
     {
         using var browser = await SignedIn();
@@ -212,6 +339,9 @@ public class ProfileEndpointTests(AccountsDatabase database) : IClassFixture<Acc
 
         return given!.GivenAt;
     }
+
+    private static Task<HttpResponseMessage> Target(HttpClient browser, int kcal) =>
+        browser.PutAsJsonAsync("/api/profile/calorie-target", new { kcal });
 
     private static Task<HttpResponseMessage> Save(
         HttpClient browser, double weightKg, string lensId) =>

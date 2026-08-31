@@ -552,7 +552,10 @@ One `POST` and one `DELETE`, deliberately symmetric. Withdrawal has to be as eas
 ## `GET /api/profile`
 
 ```json
-{ "weightKg": 82, "heightCm": 180, "activeLensId": "weight-loss", "healthDataConsentGiven": true }
+{
+  "weightKg": 82, "heightCm": 180, "calorieTargetKcal": 2000,
+  "activeLensId": "weight-loss", "healthDataConsentGiven": true
+}
 ```
 
 All three values are `null` for an account that has not finished onboarding. That is not an error state
@@ -588,6 +591,30 @@ not a rule. The body names the request to make first.
 
 `403` rather than `400`: the request is well formed and the caller is known. What is missing is
 permission.
+
+## `PUT /api/profile/calorie-target` and `DELETE`
+
+```json
+{ "kcal": 2000 }   ->   { "kcal": 2000, "warning": null }
+{ "kcal": 1100 }   ->   { "kcal": 1100, "warning": "Below 1,200 calories a day. Consider talking to a doctor." }
+```
+
+`DELETE` answers `204` and removes it.
+
+**Its own resource, not a field on `PUT /api/profile`.** Onboarding must not ask for a calorie
+target, and as a field it would be asked for on every profile save — worse, a client updating only
+the weight would wipe it, because a missing field and an explicit `null` are the same thing once
+bound. See [0019](../decisions/0019-the-calorie-target-is-its-own-resource.md).
+
+**Under 1,200 kcal the response warns and stores the value anyway.** It never blocks, never asks for
+a second confirmation, and never appears again — not on the Day Ring, not daily. Exactly 1,200 does
+not warn. Below 500 is a `400`: that is a typo, not a choice.
+
+**Nothing derives this number** from weight, height, age or activity, and nothing ever will — it is
+a requirement to not build something.
+
+**No consent needed, and withdrawing consent does not clear it.** A calorie goal is a preference you
+type, like your active lens; it is neither a measurement of your body nor something you ate.
 
 ## `POST /api/account/export`
 
@@ -951,6 +978,18 @@ whose meals are all empty. A day nobody logged is not a bad day.
 
 **No active lens, no grade.** Same rule a meal follows: the letter needs a lens, and onboarding is
 where it gets set.
+
+### The third axis is absent unless you asked for it
+
+```json
+"calories": { "consumed": 1530.2, "targetKcal": 2000 }   // a target is set
+"calories": null                                          // no target
+```
+
+`null`, not an object with a null target and not a zero. **If you have not set a calorie target,
+Sated does not show you calories at all** — deliberately unlike protein, which reports absolute
+grams with no target. Removing the target drops the axis and moves neither the protein nor the Day
+Grade.
 
 ### `engineVersion`
 

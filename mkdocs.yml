@@ -87,4 +87,5 @@ nav:
       - 0016 - Unpack a recipe when logged: decisions/0016-unpack-a-recipe-when-it-is-logged.md
       - 0017 - The protein target uses adjusted weight: decisions/0017-derive-the-protein-target-from-adjusted-body-weight.md
       - 0018 - The day is one plate: decisions/0018-the-day-is-one-plate.md
+      - 0019 - The calorie target is its own resource: decisions/0019-the-calorie-target-is-its-own-resource.md
       - Record template: decisions/_template.md

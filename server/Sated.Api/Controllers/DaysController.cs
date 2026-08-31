@@ -17,13 +17,14 @@ public class DaysController(Meals meals, Days days) : ControllerBase
         var summary = await days.Summarise(day);
 
         var protein = DayProteinDto.From(summary.Protein);
+        var calories = DayCaloriesDto.From(summary.Calories);
         var grade = summary.Grade is null
             ? null
             : GradeResponseDto.From(summary.Grade.Grade, summary.Grade.Score);
 
         if (day is null)
         {
-            return new DayDto(date, protein, grade, []);
+            return new DayDto(date, protein, calories, grade, []);
         }
 
         var listed = new List<MealDetailDto>();
@@ -36,6 +37,6 @@ public class DaysController(Meals meals, Days days) : ControllerBase
                 meal, graded is null ? null : GradeResponseDto.From(graded.Grade, graded.Score)));
         }
 
-        return new DayDto(date, protein, grade, [.. listed]);
+        return new DayDto(date, protein, calories, grade, [.. listed]);
     }
 }

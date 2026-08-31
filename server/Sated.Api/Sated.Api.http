@@ -521,10 +521,79 @@ Content-Type: application/json
   "activeLensId": "weight-loss"
 }
 
+# =============================================================================
+# PUT /api/profile/calorie-target      DELETE /api/profile/calorie-target
+#
+# Story 7.4 and 7.5, FR-31 and FR-32. The third axis of the Day Ring, and the
+# only one the user sets rather than the product deriving.
+#
+# ITS OWN RESOURCE, not a field in PUT /api/profile. The criterion is that
+# onboarding must not ask for it. As a field it would be asked for on every
+# profile save, and a client updating only the weight would wipe it — "absent"
+# and "null" arrive identically in a double?. Same argument consent gets.
+#
+# NOTHING derives it. Not from weight, not from age, not from activity. That is
+# a requirement to NOT build something, so there is no code to point at.
+#
+# Below 1,200 kcal the response carries a warning. It does NOT block, does not
+# ask for confirmation, and does not repeat itself on the Day Ring afterwards —
+# it is returned by the write that caused it, and nowhere else.
+# =============================================================================
+
+### A target of 2,000 — 200, stored, no warning
+PUT {{secureHost}}/api/profile/calorie-target
+Content-Type: application/json
+
+{
+  "kcal": 2000
+}
+
+### 1,100 — 200 and STORED, with the warning alongside. Not a 400.
+PUT {{secureHost}}/api/profile/calorie-target
+Content-Type: application/json
+
+{
+  "kcal": 1100
+}
+
+### Exactly 1,200 — 200, and no warning. The threshold is below, not below-or-equal.
+PUT {{secureHost}}/api/profile/calorie-target
+Content-Type: application/json
+
+{
+  "kcal": 1200
+}
+
+### 100 kcal — 400 from the range on the DTO. That is a typo, not a choice.
+PUT {{secureHost}}/api/profile/calorie-target
+Content-Type: application/json
+
+{
+  "kcal": 100
+}
+
+### The day now carries the third axis — calories.consumed against calories.targetKcal
+GET {{secureHost}}/api/days/2026-08-31
+Accept: application/json
+
+### Remove the target — 204
+DELETE {{secureHost}}/api/profile/calorie-target
+
+### The day again — calories is null now, and NOTHING else moved
+# Not an empty object, not a zero target: the axis is absent. Compare protein
+# and grade against the request two above — both identical.
+GET {{secureHost}}/api/days/2026-08-31
+Accept: application/json
+
 ### Withdraw — 204. As few steps as giving it was.
+# This deletes what the consent document says it deletes: the weight, the HEIGHT,
+# and every day logged. Meals, entries and days all go with it, by cascade.
+# What stays: the account, the signature with its withdrawnAt, the active lens,
+# the calorie target, and any foods or recipes of your own — none of those are
+# what the document names.
 DELETE {{secureHost}}/api/consents/HealthData
 
-### The profile now — 200, weightKg is null again, consent is false
+### The profile now — 200, weightKg AND heightCm are null again, consent is false
 GET {{secureHost}}/api/profile
 Accept: application/json
 

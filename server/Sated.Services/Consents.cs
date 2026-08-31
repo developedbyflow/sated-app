@@ -78,6 +78,13 @@ public class Consents(SatedDbContext database, TimeProvider clock)
         var user = await database.Users.FirstAsync(account => account.Id == userId);
 
         user.WeightKg = null;
+        user.HeightCm = null;
+
+        var logged = await database.Days
+            .Where(day => day.OwnerId == userId)
+            .ToListAsync();
+
+        database.Days.RemoveRange(logged);
     }
 
     private DateTimeOffset Now()

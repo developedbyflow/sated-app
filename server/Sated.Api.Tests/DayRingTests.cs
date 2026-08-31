@@ -65,6 +65,52 @@ public class DayRingTests(AccountsDatabase database) : IClassFixture<AccountsDat
     }
 
     [Fact]
+    public async Task Get_WithoutACalorieTarget_HasNoCaloriesAxisAtAll()
+    {
+        using var browser = await Onboarded();
+        var food = await database.AddFood("Cheese, uncounted", ownerId: null);
+        await Log(browser, Today, "Lunch", (food, 200));
+
+        var day = await Day(browser, Today);
+
+        Assert.Null(day.Calories);
+    }
+
+    [Fact]
+    public async Task Get_WithACalorieTarget_CountsWhatWasEatenAgainstIt()
+    {
+        using var browser = await Onboarded();
+        var food = await database.AddFood("Cheese, counted", ownerId: null);
+        await Log(browser, Today, "Lunch", (food, 200));
+
+        await browser.PutAsJsonAsync("/api/profile/calorie-target", new { kcal = 2000 });
+
+        var calories = (await Day(browser, Today)).Calories;
+
+        Assert.Equal(500, calories!.Consumed, tolerance: 0.01);
+        Assert.Equal(2000, calories.TargetKcal);
+    }
+
+    [Fact]
+    public async Task Delete_TheCalorieTarget_DropsTheAxisAndTouchesNothingElse()
+    {
+        using var browser = await Onboarded();
+        var food = await database.AddFood("Cheese, dropped", ownerId: null);
+        await Log(browser, Today, "Lunch", (food, 200));
+        await browser.PutAsJsonAsync("/api/profile/calorie-target", new { kcal = 2000 });
+        var before = await Day(browser, Today);
+
+        await browser.DeleteAsync("/api/profile/calorie-target");
+
+        var after = await Day(browser, Today);
+        Assert.Null(after.Calories);
+        Assert.Equal(before.Protein.Grams, after.Protein.Grams);
+        Assert.Equal(before.Protein.TargetMinGrams, after.Protein.TargetMinGrams);
+        Assert.Equal(before.Grade!.Score, after.Grade!.Score);
+        Assert.Equal(before.Grade.Grade, after.Grade.Grade);
+    }
+
+    [Fact]
     public async Task Get_ADayWithNothingLogged_HasNoGradeRatherThanAnE()
     {
         using var browser = await Onboarded();

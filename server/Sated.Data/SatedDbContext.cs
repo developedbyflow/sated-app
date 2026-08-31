@@ -155,12 +155,12 @@ public class SatedDbContext(
         PublishedAt = new DateTimeOffset(2026, 8, 31, 0, 0, 0, TimeSpan.Zero),
         Text =
             """
-            Sated needs two kinds of information about you that count as health data: your body
-            weight, and what you eat.
+            Sated needs three kinds of information about you that count as health data: your body
+            weight, your height, and what you eat.
 
-            Your weight is used to work out your daily protein target. What you eat is used to
-            grade your food and to show you your day. Neither is used for anything else, and
-            neither is shared with anyone outside Sated.
+            Your weight and height are used together to work out your daily protein target. What
+            you eat is used to grade your food and to show you your day. None of it is used for
+            anything else, and none of it is shared with anyone outside Sated.
 
             The law treats this as a special category of personal data. That is why you are being
             asked here, separately from the terms you accepted when you created your account.
@@ -169,7 +169,8 @@ public class SatedDbContext(
 
             You can withdraw this at any time from Settings, in one action — the same as giving it.
 
-            Withdrawing deletes the data it covers: your weight, and everything you have logged.
+            Withdrawing deletes the data it covers: your weight, your height, and everything you
+            have logged.
             Your account stays and you can still sign in, but Sated has nothing left to work with,
             so grades and targets stop. That is not a penalty for withdrawing; it is what the
             product is made of.
