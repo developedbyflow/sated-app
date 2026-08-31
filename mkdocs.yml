@@ -86,4 +86,5 @@ nav:
       - 0015 - Freeze the day and the grams: decisions/0015-freeze-the-day-and-the-grams-when-a-meal-is-logged.md
       - 0016 - Unpack a recipe when logged: decisions/0016-unpack-a-recipe-when-it-is-logged.md
       - 0017 - The protein target uses adjusted weight: decisions/0017-derive-the-protein-target-from-adjusted-body-weight.md
+      - 0018 - The day is one plate: decisions/0018-the-day-is-one-plate.md
       - Record template: decisions/_template.md

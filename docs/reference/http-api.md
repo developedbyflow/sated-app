@@ -858,7 +858,7 @@ hand-entered food is logged in grams. That is a known gap, not a decision.
 | `POST /api/meals` | `{ "date": "2026-08-31", "name": "Breakfast" }` → `201` + `Location` |
 | `POST /api/meals/{id}/entries` | adds a food; returns the whole meal, grade included |
 | `GET /api/meals/{id}` | the meal with its entries and aggregate grade |
-| `GET /api/days/{date}` | every meal on that date, plus the day's protein against its target |
+| `GET /api/days/{date}` | every meal on that date, the day's protein against its target, and the Day Grade |
 
 **The date comes from the client.** The server does not know your time zone, and "which day was it"
 has to be settled when you log rather than worked out later — otherwise changing time zone
@@ -904,6 +904,7 @@ A meal with no entries has no grade either. There is nothing to aggregate.
 {
   "date": "2026-08-31",
   "protein": { "grams": 91.7, "targetMinGrams": 118.33, "targetMaxGrams": 162.71 },
+  "grade": { "grade": "B", "score": 61.2, "isPartial": false, "satiety": { ... } },
   "meals": []
 }
 ```
@@ -929,6 +930,27 @@ past it.
 
 **Nothing here says whether you are over or under.** Exceeding the top of the range is not an error
 and gets no field — the API returns the three numbers and forms no opinion about them.
+
+### The Day Grade is the whole day recomputed as one plate
+
+`grade` has the same shape as a food's or a meal's: the letter, the score, and the three components.
+It is produced by pooling **every entry of every meal**, summing the nutrients by grams,
+renormalising to 100 g, and rerunning the formula — the call a meal already makes, one level up.
+
+**It is not an average of the meals**, of their letters or of their scores. The observable form of
+that is the property worth knowing:
+
+> How you group your food into meals cannot change the day's grade.
+
+A day holding one meal is graded byte for byte like that meal. Splitting it in two changes nothing.
+Why, and what the alternative would have cost, is
+[0018](../decisions/0018-the-day-is-one-plate.md).
+
+**A day with no entries has `grade: null`** — never `E`. That covers a day with no meals and a day
+whose meals are all empty. A day nobody logged is not a bad day.
+
+**No active lens, no grade.** Same rule a meal follows: the letter needs a lens, and onboarding is
+where it gets set.
 
 ### `engineVersion`
 

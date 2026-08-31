@@ -1034,7 +1034,11 @@ Content-Type: application/json
 GET {{secureHost}}/api/meals/1
 Accept: application/json
 
-### The day — 200 with every meal, and the protein block (Story 7.1)
+### The day — 200 with every meal, the protein block and the Day Grade (7.1, 7.2)
+# grade is the whole day recomputed as ONE plate: every entry of every meal pooled,
+# nutrients summed by grams, renormalised to 100 g, then the formula rerun. It is NOT
+# an average of the meals' letters, and not an average of their scores either — see
+# decision 0018. A day of one meal is graded byte for byte like that meal.
 # protein.grams counts every entry of every meal, at the food's protein per
 # 100 g times the grams logged. targetMinGrams/targetMaxGrams come from the
 # ADJUSTED weight — ideal weight at BMI 22 plus a quarter of the excess over
@@ -1051,10 +1055,34 @@ GET {{secureHost}}/api/days/2026-08-31
 Accept: application/json
 
 ### A day with nothing on it — 200, empty meals, protein.grams 0, target still there
-# An empty day is zero against a real target, not a day without one. FR-21 says
-# the opposite about the Day Grade — that one is absent for an empty day — but
-# that is Story 7.2, and this is not it.
+# An empty day is zero protein against a real target, and grade is null — never the
+# letter E. A day nobody logged is not a bad day (FR-21).
 GET {{secureHost}}/api/days/2020-01-01
+Accept: application/json
+
+### The same food split into two meals — same day grade (Story 7.2)
+# Log the two POSTs below on 2026-08-30, then read that day. Its grade must equal
+# the grade of the single meal above that holds the same two foods: how you group
+# your food into meals cannot move the day's letter. That is the whole decision.
+POST {{secureHost}}/api/meals
+Content-Type: application/json
+
+{
+  "date": "2026-08-30",
+  "name": "Split, first half"
+}
+
+### The second half, its own meal
+POST {{secureHost}}/api/meals
+Content-Type: application/json
+
+{
+  "date": "2026-08-30",
+  "name": "Split, second half"
+}
+
+### The split day — grade identical to the day above, protein identical too
+GET {{secureHost}}/api/days/2026-08-30
 Accept: application/json
 
 ### The export carries the meals, with the frozen grams — 200

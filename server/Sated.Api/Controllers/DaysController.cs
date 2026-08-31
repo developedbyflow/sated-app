@@ -14,11 +14,16 @@ public class DaysController(Meals meals, Days days) : ControllerBase
     public async Task<ActionResult<DayDto>> Get(DateOnly date)
     {
         var day = await meals.On(date);
-        var protein = DayProteinDto.From(await days.ProteinOf(day));
+        var summary = await days.Summarise(day);
+
+        var protein = DayProteinDto.From(summary.Protein);
+        var grade = summary.Grade is null
+            ? null
+            : GradeResponseDto.From(summary.Grade.Grade, summary.Grade.Score);
 
         if (day is null)
         {
-            return new DayDto(date, protein, []);
+            return new DayDto(date, protein, grade, []);
         }
 
         var listed = new List<MealDetailDto>();
@@ -31,6 +36,6 @@ public class DaysController(Meals meals, Days days) : ControllerBase
                 meal, graded is null ? null : GradeResponseDto.From(graded.Grade, graded.Score)));
         }
 
-        return new DayDto(date, protein, [.. listed]);
+        return new DayDto(date, protein, grade, [.. listed]);
     }
 }

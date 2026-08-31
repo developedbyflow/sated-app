@@ -51,7 +51,11 @@ public record DayProteinDto(double Grams, double? TargetMinGrams, double? Target
         protein.Grams, protein.Target?.MinGrams, protein.Target?.MaxGrams);
 }
 
-public record DayDto(DateOnly Date, DayProteinDto Protein, MealDetailDto[] Meals);
+public record DayDto(
+    DateOnly Date,
+    DayProteinDto Protein,
+    GradeResponseDto? Grade,
+    MealDetailDto[] Meals);
 
 public record MealExportDto(
     DateOnly Date,
