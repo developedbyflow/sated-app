@@ -34,6 +34,7 @@ Status is one of `proposed`, `accepted`, `superseded by 00NN`.
 | [0005](0005-fndds-is-the-catalogue.md) | Ship FNDDS 2021-2023 as the catalogue | accepted |
 | [0006](0006-load-the-catalogue-once-then-own-it.md) | Load the catalogue once, then own it | accepted |
 | [0007](0007-test-the-foods-query-against-a-real-database.md) | Test the foods query against a real database | accepted |
+| [0008](0008-keep-the-session-in-an-httponly-cookie.md) | Keep the session in an HttpOnly cookie | accepted |
 
 ## The scoring decisions are not here yet
 
