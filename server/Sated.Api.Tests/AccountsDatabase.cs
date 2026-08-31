@@ -91,6 +91,34 @@ public class AccountsDatabase : IAsyncLifetime
             .CountAsync(ingredient => ingredient.RecipeId == recipeId);
     }
 
+    public async Task<int> AddFoodWithServing(string description, string serving, double grams)
+    {
+        var id = await AddFood(description, ownerId: null);
+
+        using var scope = api.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<SatedDbContext>();
+
+        database.Set<FoodServing>().Add(new FoodServing
+        {
+            FoodId = id,
+            Description = serving,
+            Grams = grams,
+            Sequence = 1
+        });
+
+        await database.SaveChangesAsync();
+
+        return id;
+    }
+
+    public async Task<int> MealsWithId(int mealId)
+    {
+        using var scope = api.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<SatedDbContext>();
+
+        return await database.Set<Meal>().IgnoreQueryFilters().CountAsync(meal => meal.Id == mealId);
+    }
+
     public async Task<int> ConsentsOf(string userId)
     {
         using var scope = api.Services.CreateScope();

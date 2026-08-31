@@ -52,6 +52,7 @@ public sealed class Calibration
 
     private Calibration(CalibrationFile file)
     {
+        Version = file.Version;
         Catalogue = file.Catalogue;
         MeasuredOn = file.MeasuredOn;
         Notes = file.Notes;
@@ -90,6 +91,8 @@ public sealed class Calibration
     }
 
     /// <summary>The catalogue these numbers were measured on, and the date they were read.</summary>
+    public string Version { get; }
+
     public string Catalogue { get; }
 
     public string MeasuredOn { get; }
@@ -170,6 +173,7 @@ public sealed class Calibration
 // hand-edited file fails exactly the way a bad constructor call fails.
 internal sealed record CalibrationFile
 {
+    public required string Version { get; init; }
     public required string Catalogue { get; init; }
     public required string MeasuredOn { get; init; }
     public required string[] Notes { get; init; }

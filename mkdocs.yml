@@ -83,4 +83,5 @@ nav:
       - 0012 - Store the source of a row: decisions/0012-store-the-source-of-a-row-and-derive-the-rest.md
       - 0013 - A recipe derives its profile: decisions/0013-a-recipe-stores-its-parts-and-derives-everything-else.md
       - 0014 - USDA servings, sorted: decisions/0014-import-usda-servings-sorted-and-keep-the-default-apart.md
+      - 0015 - Freeze the day and the grams: decisions/0015-freeze-the-day-and-the-grams-when-a-meal-is-logged.md
       - Record template: decisions/_template.md

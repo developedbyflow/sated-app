@@ -847,3 +847,57 @@ It is here for FR-14, where a typed sentence may carry no quantity at all; nothi
 
 Both are `null`/empty for a food someone typed in. `POST /api/foods` accepts no servings, so a
 hand-entered food is logged in grams. That is a known gap, not a decision.
+
+## Logging a meal
+
+| | |
+|---|---|
+| `POST /api/meals` | `{ "date": "2026-08-31", "name": "Breakfast" }` → `201` + `Location` |
+| `POST /api/meals/{id}/entries` | adds a food; returns the whole meal, grade included |
+| `GET /api/meals/{id}` | the meal with its entries and aggregate grade |
+| `GET /api/days/{date}` | every meal on that date |
+
+**The date comes from the client.** The server does not know your time zone, and "which day was it"
+has to be settled when you log rather than worked out later — otherwise changing time zone
+reshuffles history. It is also what lets you log yesterday's dinner.
+
+### A quantity is grams **or** a serving, never both
+
+```json
+{ "foodId": 5943, "servingCount": 2, "servingDescription": "1 egg" }
+{ "foodId": 5347, "grams": 150 }
+```
+
+Both together, or neither, is a `400`. The API will not choose which one you meant.
+
+The serving must be one the food actually carries — `GET /api/foods/{id}` lists them. What comes
+back records all three things:
+
+```json
+{ "quantityGrams": 100, "displayAmount": 2, "displayUnit": "1 egg" }
+```
+
+**`quantityGrams` is frozen at logging.** Correcting a serving definition later changes future
+meals, never past ones. `displayAmount` and `displayUnit` exist because you cannot recover "2 eggs"
+from 100 g, and an edit screen that shows 100 g has lost what you typed.
+
+`quantityEstimated` is always `false` today; FR-14 is where a proposed quantity gets marked.
+
+### The grade comes back with the entry
+
+Adding an entry returns the meal already graded, **under your active lens** — no `lensId` parameter,
+because "the grade appears immediately, without a further action" means the client should not have
+to ask a second time.
+
+**No active lens yet, and the meal still logs**, with `grade: null`. Onboarding sets the lens
+(`PUT /api/profile`); until then the product works degraded, not not at all — the same stance the
+Day Ring takes on a missing weight.
+
+A meal with no entries has no grade either. There is nothing to aggregate.
+
+### `engineVersion`
+
+Every meal stamps the `version` from `calibration.json` as it was when the meal was logged. Nothing
+reads it: grades always render at the current version, so a recalibration moves old letters on
+purpose. The stamp is what makes that detectable and explainable later, and the architecture is
+explicit that adding it after months of history is a migration nobody performs.

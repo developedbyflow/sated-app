@@ -7,4 +7,5 @@ public record AccountExportDto(
     string? ActiveLensId,
     ConsentExportDto[] Consents,
     FoodDetailDto[] Foods,
-    RecipeDetailDto[] Recipes);
+    RecipeDetailDto[] Recipes,
+    MealExportDto[] Meals);

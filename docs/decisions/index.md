@@ -41,6 +41,7 @@ Status is one of `proposed`, `accepted`, `superseded by 00NN`.
 | [0012](0012-store-the-source-of-a-row-and-derive-the-rest.md) | Store the source of a row and derive the rest | accepted |
 | [0013](0013-a-recipe-stores-its-parts-and-derives-everything-else.md) | A recipe stores its parts and derives everything else | accepted |
 | [0014](0014-import-usda-servings-sorted-and-keep-the-default-apart.md) | Import USDA servings sorted, and keep the default apart | accepted |
+| [0015](0015-freeze-the-day-and-the-grams-when-a-meal-is-logged.md) | Freeze the day and the grams when a meal is logged | accepted |
 
 ## The scoring decisions are not here yet
 

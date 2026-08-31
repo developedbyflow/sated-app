@@ -204,6 +204,61 @@ It refuses in the same way if `FoodServings` already holds rows. A fresh `Catalo
 in one pass — `CatalogueImport` sets them alongside the nutrients — so this tool exists only for
 catalogues loaded before 2026-08-31.
 
+## `Days`, `Meals` and `MealEntries`
+
+| `Days` | Type | Null | Meaning |
+|---|---|---|---|
+| `Id` | integer identity | no | |
+| `OwnerId` | text | no | cascades from `AspNetUsers` |
+| `Date` | date | no | **the local date, frozen when the meal was logged** |
+
+| `Meals` | Type | Null | Meaning |
+|---|---|---|---|
+| `Id` | integer identity | no | |
+| `DayId` | integer | no | cascades from `Days` |
+| `Name` | text | no | what the person called it |
+| `LoggedAt` | timestamptz | no | when it was recorded |
+| `EngineVersion` | text | no | `calibration.json`'s `version`, in force at logging |
+
+| `MealEntries` | Type | Null | Meaning |
+|---|---|---|---|
+| `Id` | integer identity | no | |
+| `MealId` | integer | no | cascades from `Meals` |
+| `FoodId` | integer | no | cascades from `Foods` |
+| `QuantityGrams` | double precision | no | the truth for the engine, frozen |
+| `DisplayAmount` | double precision | no | what the person said — `2` |
+| `DisplayUnit` | text | no | what they said it in — `1 egg`, or `g` |
+| `QuantityEstimated` | boolean | no | false everywhere until FR-14 proposes a quantity |
+
+**`OwnerId` is on `Day`, not on `Meal`.** A meal reaches its owner through its day, and its query
+filter says so: `meal.Day.OwnerId == AskedBy`.
+
+### Why the date is stored and not derived
+
+`LoggedAt` is a UTC instant; the date a person means is a local one. Deriving it later needs a time
+zone, and a time zone that changes would silently reshuffle history — a meal logged at 23:30 in
+Bucharest would move to the previous day after a flight. So the client sends the date and it is
+frozen, the same principle as `QuantityGrams`: **derived values are recomputed, recorded inputs are
+not.**
+
+`(OwnerId, Date)` is unique — one row per person per day.
+
+### The three quantity fields
+
+All three come from the architecture, and the middle two exist for one reason: **you cannot recover
+"2 eggs" from 100 g.** Open an entry to edit it and, without them, the "2 eggs" you typed is gone.
+
+`QuantityEstimated` is written and never set true yet. It belongs to FR-14, where the system
+proposes a quantity the sentence did not carry.
+
+### `Meal`'s query filter is defence with no test behind it
+
+Removing it changes nothing today: every query that reaches a `Meal` also includes its `Day`, and
+EF filters the meal out when the day it requires is filtered away — measured, the stranger still
+gets a `404`. The filter stays for the query nobody has written yet, which is the whole argument
+for global filters in [0011](../decisions/0011-a-food-belongs-to-one-account-or-to-the-catalogue.md).
+It is stated here because no test can distinguish it.
+
 ## Loading the catalogue
 
 `tools/CatalogueLoad` reads the FNDDS survey file, drops every row of `Foods` and inserts what
@@ -258,6 +313,7 @@ the wrong column fails silently: it produces a different grade, not an error.
 | `20260831151030_AddRecipes` | added `Recipes` and `RecipeIngredients` |
 | `20260831162538_FoodCarriesItsServings` | added `FoodServings` and `Foods.TypicalGrams` |
 | `20260831162706_PluraliseTheChildTables` | renamed `RecipeIngredient` and `FoodServing` to their plural forms, matching every other table |
+| `20260831164107_AddDaysAndMeals` | added `Days`, `Meals` and `MealEntries` |
 
 ```bash
 dotnet ef migrations add <Name> -p Sated.Data -s Sated.Api

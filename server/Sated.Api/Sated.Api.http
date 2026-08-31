@@ -909,3 +909,123 @@ Accept: application/json
 ### An egg — 200. servings starts at "1 egg" 50 g, and typicalGrams is 50
 GET {{secureHost}}/api/foods/5943
 Accept: application/json
+
+# =============================================================================
+# POST /api/meals            POST /api/meals/{id}/entries
+# GET  /api/meals/{id}       GET  /api/days/{date}
+#
+# Story 4.1, FR-13. Log a food into a meal, by grams or by one of the servings
+# the food carries.
+#
+# THE DATE COMES FROM THE CLIENT. The server cannot know your time zone, and
+# "which day was it" has to be frozen when you log — otherwise a flight rewrites
+# your history. It is also what lets you log yesterday's dinner.
+#
+# Three quantity fields, all three from the architecture:
+#   QuantityGrams      the truth for the engine, frozen at logging
+#   DisplayAmount +    what you actually said — "2" and "1 egg". Without them,
+#   DisplayUnit        you open the entry to edit it and see 100 g, and "2 eggs"
+#                      is gone for good
+#   QuantityEstimated  false everywhere until FR-14 proposes a quantity
+#
+# Grams OR a serving, never both and never neither. Both would mean the API
+# picks which one you meant.
+#
+# The grade comes back with the entry, under YOUR active lens — that is what
+# "the grade appears immediately, without a further action" means. No active
+# lens yet (onboarding unfinished) and the meal still logs; grade is null.
+#
+# Each meal stamps EngineVersion, from calibration.json. Inert: written, never
+# read at render time. Grades always render at the current version.
+# =============================================================================
+
+### Sign in — 200
+POST {{secureHost}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### A meal on a date — 201 + Location. The Day is created if it is the first
+POST {{secureHost}}/api/meals
+Content-Type: application/json
+
+{
+  "date": "2026-08-31",
+  "name": "Breakfast"
+}
+
+### Two eggs, by serving — 200. Replace 1 with the meal id above.
+### quantityGrams comes back 100; displayAmount 2 and displayUnit "1 egg"
+POST {{secureHost}}/api/meals/1/entries
+Content-Type: application/json
+
+{
+  "foodId": 5943,
+  "servingCount": 2,
+  "servingDescription": "1 egg"
+}
+
+### And 150 g of something, by weight — 200, and the grade moves
+POST {{secureHost}}/api/meals/1/entries
+Content-Type: application/json
+
+{
+  "foodId": 5347,
+  "grams": 150
+}
+
+### Grams AND a serving — 400. The API will not pick which one you meant
+POST {{secureHost}}/api/meals/1/entries
+Content-Type: application/json
+
+{
+  "foodId": 5943,
+  "grams": 60,
+  "servingCount": 1,
+  "servingDescription": "1 egg"
+}
+
+### Neither — 400, same reason
+POST {{secureHost}}/api/meals/1/entries
+Content-Type: application/json
+
+{
+  "foodId": 5943
+}
+
+### A serving this food does not have — 400 on servingDescription
+POST {{secureHost}}/api/meals/1/entries
+Content-Type: application/json
+
+{
+  "foodId": 5943,
+  "servingCount": 1,
+  "servingDescription": "1 bucket"
+}
+
+### The meal — 200 with its entries and the aggregate grade
+GET {{secureHost}}/api/meals/1
+Accept: application/json
+
+### The day — 200 with every meal on it
+GET {{secureHost}}/api/days/2026-08-31
+Accept: application/json
+
+### A day with nothing on it — 200 and an empty list, not a 404
+GET {{secureHost}}/api/days/2020-01-01
+Accept: application/json
+
+### The export carries the meals, with the frozen grams — 200
+POST {{secureHost}}/api/account/export
+Content-Type: application/json
+
+{
+  "password": "{{password}}"
+}
+
+### Meals without a session — 401
+GET {{secureHost}}/api/days/2026-08-31
+Accept: application/json

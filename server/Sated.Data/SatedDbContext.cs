@@ -18,6 +18,8 @@ public class SatedDbContext(
 
     public DbSet<Recipe> Recipes => Set<Recipe>();
 
+    public DbSet<Day> Days => Set<Day>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -48,6 +50,48 @@ public class SatedDbContext(
 
             serving.HasQueryFilter(entry =>
                 entry.Food.OwnerId == null || entry.Food.OwnerId == AskedBy);
+        });
+
+        modelBuilder.Entity<Day>(day =>
+        {
+            day.HasMany(entry => entry.Meals)
+                .WithOne(meal => meal.Day)
+                .HasForeignKey(meal => meal.DayId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            day.HasOne<AppUser>()
+                .WithMany()
+                .HasForeignKey(entry => entry.OwnerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            day.HasIndex(entry => new { entry.OwnerId, entry.Date }).IsUnique();
+
+            day.HasQueryFilter(entry => entry.OwnerId == AskedBy);
+        });
+
+        modelBuilder.Entity<Meal>(meal =>
+        {
+            meal.ToTable("Meals");
+
+            meal.HasMany(entry => entry.Entries)
+                .WithOne()
+                .HasForeignKey(entry => entry.MealId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            meal.HasQueryFilter(entry => entry.Day.OwnerId == AskedBy);
+        });
+
+        modelBuilder.Entity<MealEntry>(entry =>
+        {
+            entry.ToTable("MealEntries");
+
+            entry.HasOne(logged => logged.Food)
+                .WithMany()
+                .HasForeignKey(logged => logged.FoodId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entry.HasQueryFilter(logged =>
+                logged.Food.OwnerId == null || logged.Food.OwnerId == AskedBy);
         });
 
         modelBuilder.Entity<Recipe>(recipe =>
