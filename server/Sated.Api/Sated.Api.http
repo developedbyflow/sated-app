@@ -511,3 +511,99 @@ DELETE {{secureHost}}/api/consents/HealthData
 ### Consents without a session — 401
 GET {{secureHost}}/api/consents/HealthData
 Accept: application/json
+
+# =============================================================================
+# POST /api/account/export
+# DELETE /api/account
+#
+# Story 2.3, FR-29. Two endpoints, one rule: both ask for the password again.
+# A session cookie on its own opens neither.
+#
+# Why export is a POST and not a GET: a GET has nowhere to carry a password.
+# The export is the whole health file in one document, so it is the request
+# worth protecting most — a stolen cookie that could fetch it takes everything
+# and leaves no trace. Google Takeout and Facebook re-ask for the same reason.
+#
+# Wrong passwords count towards the same lockout as a failed login: five, and
+# the account is locked for five minutes. A wrong password answers 403, not
+# 401 — the caller is known, the request is well formed, permission is what is
+# missing. A locked account answers 403 too, and says nothing about being
+# locked.
+#
+# Deletion is final. There is no soft delete, no grace period, no undo.
+# =============================================================================
+
+### Sign in, so this section stands on its own — 200
+POST {{secureHost}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Consent, so the export has something to carry — 200
+POST {{secureHost}}/api/consents/HealthData
+Content-Type: application/json
+
+{
+  "version": "2026-08-31"
+}
+
+### Onboarding, so the export has a weight and a lens — 200
+PUT {{secureHost}}/api/profile
+Content-Type: application/json
+
+{
+  "weightKg": 82,
+  "activeLensId": "weight-loss"
+}
+
+### Export with the wrong password — 403, and no data in the body
+POST {{secureHost}}/api/account/export
+Content-Type: application/json
+
+{
+  "password": "not the password"
+}
+
+### Export — 200, attachment, with the weight, the lens and every consent text
+POST {{secureHost}}/api/account/export
+Content-Type: application/json
+
+{
+  "password": "{{password}}"
+}
+
+### Delete with the wrong password — 403, and the account is still there
+DELETE {{secureHost}}/api/account
+Content-Type: application/json
+
+{
+  "password": "not the password"
+}
+
+### The account is still there — 200
+GET {{secureHost}}/api/profile
+Accept: application/json
+
+### Delete — 204, and Set-Cookie clears sated.session
+DELETE {{secureHost}}/api/account
+Content-Type: application/json
+
+{
+  "password": "{{password}}"
+}
+
+### The session is gone — 401
+GET {{secureHost}}/api/profile
+Accept: application/json
+
+### The email is free again, so the row really went — 200
+POST {{secureHost}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}

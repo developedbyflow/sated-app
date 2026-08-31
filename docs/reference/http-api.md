@@ -585,3 +585,72 @@ not a rule. The body names the request to make first.
 
 `403` rather than `400`: the request is well formed and the caller is known. What is missing is
 permission.
+
+## `POST /api/account/export`
+
+```json
+{ "password": "..." }
+```
+
+Returns the whole account as one JSON document, sent as an attachment named
+`sated-export-YYYY-MM-DD.json`.
+
+```json
+{
+  "exportedAt": "2026-08-31T09:22:56.951492+00:00",
+  "email": "florin@sated.test",
+  "weightKg": 82,
+  "activeLensId": "weight-loss",
+  "consents": [
+    {
+      "purpose": "HealthData",
+      "version": "2026-08-31",
+      "givenAt": "2026-08-31T09:22:49.888733+00:00",
+      "withdrawnAt": null,
+      "text": "Sated needs two kinds of information about you..."
+    }
+  ]
+}
+```
+
+**A `POST`, not a `GET`, because a `GET` has nowhere to carry a password.** The verb is the price of
+the guard; see [0010](../decisions/0010-ask-for-the-password-before-export-and-deletion.md).
+
+**Every consent carries the full text that was signed**, not a reference to it. A row saying
+"document 1" means nothing outside this database, and the point of exporting a consent is to show
+what was agreed to.
+
+**Withdrawn consents are in the export**, with `withdrawnAt` filled in. The export is an archive,
+not a snapshot of the present: both facts are the account holder's.
+
+## `DELETE /api/account`
+
+```json
+{ "password": "..." }
+```
+
+`204`, and the response clears `sated.session`. Everything belonging to the account goes with it —
+the profile row, every consent, and the Identity tables — in one transaction, because PostgreSQL
+cascades from the user row.
+
+**No soft delete, no grace period, no undo.** FR-29 asks for complete and irreversible.
+
+A copied cookie does not survive the deletion either: the security stamp is validated on every
+request (`SecurityStampValidatorOptions.ValidationInterval` is zero in `Program.cs`), so a session
+whose user row is gone is refused on its next call, wherever it is held.
+
+### Why both endpoints answer 403
+
+| | |
+|---|---|
+| No session | `401` |
+| Session, wrong password | **`403`** |
+| Session, right password, account locked | **`403`** |
+
+`403` rather than `401`: the caller is known and the request is well formed. What is missing is
+permission for this particular action.
+
+**A wrong password here counts towards the same lockout as a failed login** — five attempts, then
+five minutes locked. Without that, a stolen session could be used to guess the password at leisure
+against an endpoint with no counter. A locked account gets the identical `403`, and the body never
+says which of the two happened.

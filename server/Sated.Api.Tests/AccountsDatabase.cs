@@ -37,6 +37,14 @@ public class AccountsDatabase : IAsyncLifetime
 
     public static string UnusedEmail() => $"{Guid.NewGuid():N}@sated.test";
 
+    public async Task<int> ConsentsOf(string userId)
+    {
+        using var scope = api.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<SatedDbContext>();
+
+        return await database.Consents.CountAsync(consent => consent.UserId == userId);
+    }
+
     private static WebApplicationFactory<Program> Api(string loginAttemptsPerMinute) =>
         new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {

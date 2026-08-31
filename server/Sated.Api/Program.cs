@@ -83,6 +83,7 @@ builder.Services.AddSingleton(calibration.Engine());
 builder.Services.AddScoped<FoodGrading>();
 builder.Services.AddScoped<Consents>();
 builder.Services.AddScoped<Profiles>();
+builder.Services.AddScoped<Accounts>();
 builder.Services.AddSingleton(TimeProvider.System);
 
 var app = builder.Build();
