@@ -127,4 +127,19 @@ public class FoodsController(
 
         return GradeResponseDto.From(graded.Grade, graded.Score);
     }
+
+    [HttpGet("{id:int}/grades")]
+    public async Task<ActionResult<IReadOnlyList<LensGradeResponseDto>>> Grades(int id)
+    {
+        var graded = await grading.GradeUnderEveryLens(id);
+
+        if (graded is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(graded
+            .Select(entry => LensGradeResponseDto.From(entry.Lens, entry.Graded.Grade, entry.Graded.Score))
+            .ToList());
+    }
 }

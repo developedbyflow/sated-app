@@ -282,6 +282,44 @@ GET {{host}}/api/foods/milk/grade?lensId=fitness
 Accept: application/json
 
 # =============================================================================
+# GET /api/foods/{id}/grades
+#
+# The same food under every lens at once, so a client can show the comparison
+# without switching the user's active lens (Story 5.3). Plural, and it takes no
+# lensId: asking for all of them is the whole point.
+#
+#   200  one entry per lens, in the order GET /api/lenses uses
+#   404  no food with that id, and any id that is not a number
+#
+# Each entry nests the response of GET /api/foods/{id}/grade unchanged, so the
+# letter reads grade.grade. The outer object is the lens, the inner one is the
+# grade under it.
+#
+# Measured over the whole catalogue: 71.6% of foods change letter between
+# lenses, so the comparison has something to show. Weight Loss and Fitness
+# disagree on 69.8% of foods; GLP-1 and Weight Loss on 8.5%, because those two
+# carry the same weights and differ only in which nutrients density counts.
+#
+# No cookie needed. The public food page of Story 9.1 calls this endpoint.
+# =============================================================================
+
+### Whole milk under all three lenses — 200, B / C / B in that order
+GET {{host}}/api/foods/5348/grades
+Accept: application/json
+
+### Tap water — 200, three entries, every one with grade: null
+GET {{host}}/api/foods/7242/grades
+Accept: application/json
+
+### A food that is not there — 404, not an empty list
+GET {{host}}/api/foods/999999/grades
+Accept: application/json
+
+### An id that is not a number — 404 from the route constraint
+GET {{host}}/api/foods/milk/grades
+Accept: application/json
+
+# =============================================================================
 # /api/auth  —  register, login, logout, me
 #
 # THESE REQUESTS NEED HTTPS. The session cookie is marked Secure, so a client

@@ -383,6 +383,45 @@ Tap water (`id` 7242) answers `200` with `"grade": null`, `"density": null` and
 `"isPartial": true`. There is nothing to grade: no energy means the density score has nothing to
 divide by. The product shows no letter at all — never an E.
 
+## `GET /api/foods/{id}/grades`
+
+The same food under every lens at once, so the comparison can be shown without switching the lens
+the user is on (Story 5.3). Plural, and it takes no `lensId`: asking for all of them is the point.
+
+**Request** — `id` in the path. Nothing else, and no cookie.
+
+**Response** — `200 OK`, one entry per lens, in the order `GET /api/lenses` returns.
+
+```json
+[
+  { "lensId": "weight-loss", "name": "Weight Loss",
+    "grade": { "grade": "B", "score": 67.77, "isPartial": false,
+               "satiety":        { "score": 83.14, "isEstimated": false },
+               "density":        { "score": 61.55, "isEstimated": false },
+               "proteinQuality": { "score": 31.04, "isEstimated": true  },
+               "fatQuality":     { "score": 40.22, "isEstimated": false } } },
+  { "lensId": "fitness", "name": "Fitness", "grade": { "grade": "C", "score": 51.69, "…": "…" } },
+  { "lensId": "glp-1",   "name": "GLP-1",   "grade": { "grade": "B", "score": 71.01, "…": "…" } }
+]
+```
+
+Each `grade` object is the body of `GET /api/foods/{id}/grade`, unchanged — so **the letter reads
+`grade.grade`**. The outer object is the lens, the inner one is the grade under it.
+
+**`404 Not Found`** when no food carries that id, and when the id is not a number. A missing food is
+never an empty list.
+
+A food with no letter keeps its entry, with `grade: null` — tap water answers with three entries and
+three nulls.
+
+### What the comparison is worth
+
+Measured over the whole catalogue by `tools/LensAgreementQuery`: **71.6% of foods change letter
+between lenses.** Weight Loss and Fitness disagree on 69.8% of them; GLP-1 and Weight Loss on only
+8.5%, because those two carry the same weights and differ solely in which nutrients density counts.
+Expect the GLP-1 column to repeat the Weight Loss one most of the time. See
+[0020](../decisions/0020-compare-every-lens-in-one-request.md).
+
 ## Breaking change: `lens` became `lensId`
 
 `POST /api/grades` used to take the display name in a field called `lens`. It now takes the slug in

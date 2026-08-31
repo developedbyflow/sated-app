@@ -275,9 +275,52 @@ public class FoodsEndpointTests(FoodsDatabase database) : IClassFixture<FoodsDat
         Assert.Equal(fromTheClient, fromTheCatalogue);
     }
 
+    [Fact]
+    public async Task GetGrades_WholeMilk_LettersEveryLensInTheOrderTheLensListUses()
+    {
+        var compared = await Compared(await IdOf("Milk, whole"));
+
+        Assert.Equal(["weight-loss", "fitness", "glp-1"], compared.Select(entry => entry.LensId));
+        Assert.Equal<Grade?>([Grade.B, Grade.C, Grade.B], compared.Select(entry => entry.Grade.Grade));
+    }
+
+    [Fact]
+    public async Task GetGrades_EachEntry_MatchesTheSameFoodAskedForThatLensAlone()
+    {
+        var id = await IdOf("Milk, whole");
+
+        var compared = await Compared(id);
+
+        foreach (var entry in compared)
+        {
+            Assert.Equal(await Graded(id, entry.LensId), entry.Grade);
+        }
+    }
+
+    [Fact]
+    public async Task GetGrades_AFoodWithNothingInIt_StillNamesEveryLensWithNoLetter()
+    {
+        var compared = await Compared(await IdOf("Cheddar cheese"));
+
+        Assert.Equal(3, compared.Count);
+        Assert.All(compared, entry => Assert.Null(entry.Grade.Grade));
+    }
+
+    [Fact]
+    public async Task GetGrades_AFoodThatIsNotThere_Returns404()
+    {
+        var response = await database.Client.GetAsync("/api/foods/999999/grades");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     private async Task<GradeResponseDto> Graded(int id, string lensId) =>
         (await database.Client
             .GetFromJsonAsync<GradeResponseDto>($"/api/foods/{id}/grade?lensId={lensId}", ApiJson.Options))!;
+
+    private async Task<IReadOnlyList<LensGradeResponseDto>> Compared(int id) =>
+        (await database.Client
+            .GetFromJsonAsync<IReadOnlyList<LensGradeResponseDto>>($"/api/foods/{id}/grades", ApiJson.Options))!;
 
     private async Task<GradeResponseDto> Posted(GradeRequestDto request)
     {

@@ -19,6 +19,21 @@ public class FoodGrading(SatedDbContext database, Calibration calibration, Score
             : Grade(ScoringInput.From(food), food.Id, food.Description, lens);
     }
 
+    public async Task<IReadOnlyList<LensGrade>?> GradeUnderEveryLens(int foodId)
+    {
+        var food = await database.Foods.FirstOrDefaultAsync(food => food.Id == foodId);
+
+        if (food is null)
+        {
+            return null;
+        }
+
+        var input = ScoringInput.From(food);
+
+        return [.. calibration.Lenses.Select(lens =>
+            new LensGrade(lens, Grade(input, food.Id, food.Description, lens)))];
+    }
+
     public GradedFood Grade(FoodInput input, int id, string description, Lens lens)
     {
         var score = combiner.Combine(input, lens);

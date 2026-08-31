@@ -43,6 +43,10 @@ Status is one of `proposed`, `accepted`, `superseded by 00NN`.
 | [0014](0014-import-usda-servings-sorted-and-keep-the-default-apart.md) | Import USDA servings sorted, and keep the default apart | accepted |
 | [0015](0015-freeze-the-day-and-the-grams-when-a-meal-is-logged.md) | Freeze the day and the grams when a meal is logged | accepted |
 | [0016](0016-unpack-a-recipe-when-it-is-logged.md) | Unpack a recipe when it is logged | accepted |
+| [0017](0017-derive-the-protein-target-from-adjusted-body-weight.md) | Derive the protein target from adjusted body weight | accepted |
+| [0018](0018-the-day-is-one-plate.md) | The day is one plate | accepted |
+| [0019](0019-the-calorie-target-is-its-own-resource.md) | The calorie target is its own resource | accepted |
+| [0020](0020-compare-every-lens-in-one-request.md) | Compare every lens in one request | accepted |
 
 ## The scoring decisions are not here yet
 
