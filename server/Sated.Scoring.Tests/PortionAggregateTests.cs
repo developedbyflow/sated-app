@@ -14,8 +14,10 @@ public class PortionAggregateTests
         VitaminE: 2.03, Calcium: 99, Iron: 2.71, Magnesium: 79, Potassium: 558,
         SaturatedFat: 0.063, Sodium: 79, VitaminD: 0, Thiamine: 0);
 
+    private const string ButterCategory = "Butter and animal fats";
+
     private static readonly FoodInput Butter = new(
-        Category: "Butter and animal fats",
+        Category: ButterCategory,
         Calories: 717, Protein: 0.85, Fat: 81.11, Fiber: 0, VitaminA: 684, VitaminC: 0,
         VitaminE: 2.32, Calcium: 24, Iron: 0.02, Magnesium: 2, Potassium: 24,
         SaturatedFat: 51.37, Sodium: 643, VitaminD: 0, Thiamine: 0);
@@ -81,7 +83,7 @@ public class PortionAggregateTests
                 new PercentileScale(MeasuredSatiety), new PercentileScale(MeasuredDensity),
                 Frozen.ReferenceMealGrams),
             new CategoryRules([new CategoryRule(
-                Butter.Category, Frozen.WeightLoss.Id, ScoreComponent.Satiety,
+                ButterCategory, Frozen.WeightLoss.Id, ScoreComponent.Satiety,
                 FatQuality.UnsaturatedShare)]));
         var mixture = PortionAggregate.Aggregate([new Portion(Butter, 100)]);
 
