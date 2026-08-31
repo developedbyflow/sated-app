@@ -315,6 +315,33 @@ public class FoodsEndpointTests(FoodsDatabase database) : IClassFixture<FoodsDat
         Assert.DoesNotContain("leucine", thin.Provenance.Absent);
     }
 
+    [Fact]
+    public async Task Detail_AFoodWithServings_ListsThemBySequenceNotByArrayOrder()
+    {
+        var milk = await Detail(await IdOf("Milk, whole"));
+
+        Assert.Equal(
+            ["1 cup", "1 tbsp", "1 fl oz"],
+            milk.Servings.Select(serving => serving.Description));
+    }
+
+    [Fact]
+    public async Task Detail_AFoodWithServings_CarriesTheAmountUsdaAssumesWhenNobodySaid()
+    {
+        var milk = await Detail(await IdOf("Milk, whole"));
+
+        Assert.Equal(244, milk.TypicalGrams);
+    }
+
+    [Fact]
+    public async Task Detail_AFoodTheImportGaveNoServings_ListsNoneRatherThanGuessing()
+    {
+        var cheese = await Detail(await IdOf("Blue cheese"));
+
+        Assert.Empty(cheese.Servings);
+        Assert.Null(cheese.TypicalGrams);
+    }
+
     private async Task<FoodDetailDto> Detail(int id) =>
         (await database.Client.GetFromJsonAsync<FoodDetailDto>($"/api/foods/{id}", ApiJson.Options))!;
 

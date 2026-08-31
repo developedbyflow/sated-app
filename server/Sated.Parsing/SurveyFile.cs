@@ -10,7 +10,14 @@ public record SurveyFood(
     [property: JsonPropertyName("fdcId")] int FdcId,
     [property: JsonPropertyName("description")] string Description,
     [property: JsonPropertyName("foodNutrients")] IReadOnlyList<SurveyNutrient> Nutrients,
-    [property: JsonPropertyName("wweiaFoodCategory")] SurveyCategory? Category
+    [property: JsonPropertyName("wweiaFoodCategory")] SurveyCategory? Category,
+    [property: JsonPropertyName("foodPortions")] IReadOnlyList<SurveyPortion>? Portions = null
+);
+
+public record SurveyPortion(
+    [property: JsonPropertyName("gramWeight")] double GramWeight,
+    [property: JsonPropertyName("portionDescription")] string? Description,
+    [property: JsonPropertyName("sequenceNumber")] int SequenceNumber
 );
 
 public record SurveyNutrient(

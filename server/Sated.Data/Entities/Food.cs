@@ -8,5 +8,7 @@ public class Food
     public required string Category { get; set; }
     public required NutrientAmounts Nutrients { get; set; }
     public required FoodSource Source { get; set; }
+    public double? TypicalGrams { get; set; }
     public string? OwnerId { get; set; }
+    public List<FoodServing> Servings { get; set; } = [];
 }

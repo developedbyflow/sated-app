@@ -8,7 +8,9 @@ public record FoodDetailDto(
     string Description,
     string Category,
     NutrientAmountsDto Nutrients,
-    FoodProvenanceDto Provenance
+    FoodProvenanceDto Provenance,
+    double? TypicalGrams,
+    FoodServingDto[] Servings
 )
 {
     public static FoodDetailDto From(Food food) => new(
@@ -33,5 +35,9 @@ public record FoodDetailDto(
             food.Nutrients.Magnesium,
             food.Nutrients.Potassium,
             food.Nutrients.Leucine),
-        FoodProvenanceDto.Of(food));
+        FoodProvenanceDto.Of(food),
+        food.TypicalGrams,
+        [.. food.Servings
+            .OrderBy(serving => serving.Sequence)
+            .Select(serving => new FoodServingDto(serving.Description, serving.Grams))]);
 }

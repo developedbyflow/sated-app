@@ -62,6 +62,8 @@ public static class CatalogueImport
             Description = food.Description,
             Category = food.Category!.Description,
             Source = FoodSource.UsdaFndds,
+            TypicalGrams = SurveyPortions.TypicalGramsOf(food),
+            Servings = [.. SurveyPortions.Of(food)],
             Nutrients = new NutrientAmounts
             {
                 Calories = amounts[NutrientCodes.Calories],

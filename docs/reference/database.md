@@ -37,6 +37,7 @@ so they are columns in this same table rather than a related row.
 | `Description` | text | no | the catalogue's own name for the food |
 | `Category` | text | no | the catalogue's category, stored exactly as it arrives — it selects the category rule (FR-6) |
 | `Source` | text | no | where the row's numbers came from: `UsdaFndds` or `UserEntered`. No database default — an INSERT that forgets it fails |
+| `TypicalGrams` | double precision | yes | what USDA assumes was eaten when the survey respondent did not say. Null when the file carried no such row |
 | `OwnerId` | text | yes | **null means the shared catalogue.** Set means the row belongs to that one account and nobody else can see it |
 | `Nutrients_Calories` | double precision | no | |
 | `Nutrients_Protein` | double precision | no | |
@@ -109,6 +110,49 @@ database in the test suite, so the `UsdaFndds` fill has no test behind it; it wa
 counting rows in the development database after `database update`: 1,933 `UsdaFndds`, 0 anything
 else.
 
+## `FoodServings`
+
+The named household measures a person can pick instead of typing grams. Imported from the same
+FNDDS file the catalogue came from: **6,810 rows across all 1,933 foods, five each on average, none
+without.**
+
+| Column | Type | Null | Meaning |
+|---|---|---|---|
+| `Id` | integer identity | no | |
+| `FoodId` | integer | no | cascades from `Foods` |
+| `Description` | text | no | USDA's own wording — `1 egg`, `1 cup`, `1 fl oz` |
+| `Grams` | double precision | no | what that measure weighs |
+| `Sequence` | integer | no | USDA's `sequenceNumber`, kept so the order is theirs |
+
+### The trap, and it is not where the PRD says it is
+
+The product brief and PRD both record that *"USDA marks no portion as default, and the first in the
+list gives one egg = 243 g"*. Measured against the files:
+
+- **`foodPortions` is not in order in the JSON.** For `Egg, whole, raw, fresh` in SR Legacy, array
+  element `[0]` is `243 g — cup (4.86 large eggs)`, which carries `sequenceNumber: 5`. The row with
+  `sequenceNumber: 1` is `50 g — large`.
+- **In FNDDS, the catalogue actually shipped ([0005](../decisions/0005-fndds-is-the-catalogue.md)),
+  all seventeen egg entries give `1 egg = 50–55 g` first.** The 243 g figure does not appear.
+
+So the rule is not "USDA cannot be trusted for portions" but **"sort by `sequenceNumber`, never take
+`foodPortions[0]`"**. `SurveyPortionsTests` guards it with the 243 g row placed first in the array,
+where it was found.
+
+Decision G's conclusion is untouched: the engine is handed the quantity a person logged, never a
+portion it deduced.
+
+### `TypicalGrams` is a different question from `Servings`
+
+USDA does mark a default, in a row described literally as `Quantity not specified` — the amount
+assumed when a survey respondent did not say how much. **1,932 of our 1,933 foods have one.** It is
+kept out of `FoodServings` (nobody picks "quantity not specified" off a list) and stored on `Foods`.
+
+It is not a copy of one of the named servings: measured, it matches one exactly **40.7%** of the
+time. Egg → 50 g, the weight of one egg. `Milk, NFS` → 244 g, one cup. Camembert → 21 g.
+
+Inert until FR-14, which needs an amount when a typed sentence did not carry one.
+
 ## `Recipes` and `RecipeIngredients`
 
 A recipe is a saved composition of foods with weights. It belongs to exactly one account — there is
@@ -145,6 +189,20 @@ everything goes anyway — is the only path that reaches it.
 **Grams only.** The architecture asks for `DisplayAmount`/`DisplayUnit` alongside, so that "2 eggs"
 survives a round trip. Turning "2 eggs" into grams needs `Food.Servings`, which does not exist yet,
 so neither does the display pair.
+
+### Loading the servings
+
+The catalogue was loaded before servings existed, and `tools/CatalogueLoad` refuses to run on a
+non-empty table by design ([0006](../decisions/0006-load-the-catalogue-once-then-own-it.md)). So
+they arrive through a second tool that fills a gap rather than rebuilding anything:
+
+```bash
+cd tools/ServingsLoad && dotnet run
+```
+
+It refuses in the same way if `FoodServings` already holds rows. A fresh `CatalogueLoad` fills both
+in one pass — `CatalogueImport` sets them alongside the nutrients — so this tool exists only for
+catalogues loaded before 2026-08-31.
 
 ## Loading the catalogue
 
@@ -198,6 +256,8 @@ the wrong column fails silently: it produces a different grade, not an error.
 | `20260831125607_FoodBelongsToItsOwner` | added `Foods.OwnerId`, its index, and the cascade from `AspNetUsers` |
 | `20260831131409_FoodCarriesItsSource` | added `Foods.Source`, filled the 1,933 existing rows with `UsdaFndds`, then dropped the default |
 | `20260831151030_AddRecipes` | added `Recipes` and `RecipeIngredients` |
+| `20260831162538_FoodCarriesItsServings` | added `FoodServings` and `Foods.TypicalGrams` |
+| `20260831162706_PluraliseTheChildTables` | renamed `RecipeIngredient` and `FoodServing` to their plural forms, matching every other table |
 
 ```bash
 dotnet ef migrations add <Name> -p Sated.Data -s Sated.Api

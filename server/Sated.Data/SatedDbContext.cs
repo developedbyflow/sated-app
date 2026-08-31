@@ -34,7 +34,20 @@ public class SatedDbContext(
                 .HasForeignKey(entry => entry.OwnerId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            food.HasMany(entry => entry.Servings)
+                .WithOne(serving => serving.Food)
+                .HasForeignKey(serving => serving.FoodId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             food.HasQueryFilter(entry => entry.OwnerId == null || entry.OwnerId == AskedBy);
+        });
+
+        modelBuilder.Entity<FoodServing>(serving =>
+        {
+            serving.ToTable("FoodServings");
+
+            serving.HasQueryFilter(entry =>
+                entry.Food.OwnerId == null || entry.Food.OwnerId == AskedBy);
         });
 
         modelBuilder.Entity<Recipe>(recipe =>
@@ -56,6 +69,8 @@ public class SatedDbContext(
 
         modelBuilder.Entity<RecipeIngredient>(ingredient =>
         {
+            ingredient.ToTable("RecipeIngredients");
+
             ingredient.HasOne(entry => entry.Food)
                 .WithMany()
                 .HasForeignKey(entry => entry.FoodId)

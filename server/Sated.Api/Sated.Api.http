@@ -884,3 +884,28 @@ Accept: application/json
 ### Recipes without a session — 401
 GET {{secureHost}}/api/recipes
 Accept: application/json
+
+# =============================================================================
+# Servings — on GET /api/foods/{id}
+#
+# Imported from the same FNDDS file the catalogue came from: 6,810 servings
+# across all 1,933 foods, five each on average, none without.
+#
+# Two things live here, and they are not the same thing:
+#   servings      the named measures a person can pick — "1 egg", "1 cup"
+#   typicalGrams  what USDA assumes was eaten when the survey respondent did
+#                 not say. It matches one of the named servings only 40.7% of
+#                 the time; the rest of the time it is its own number.
+#
+# THE TRAP, measured: foodPortions in the USDA file is NOT in order. Taking
+# element [0] of the array gives "1 cup (4.86 large eggs) = 243 g" for an egg.
+# Sorted by sequenceNumber it gives "1 large = 50 g". Sated sorts.
+#
+# typicalGrams is inert until FR-14, which needs an amount when the sentence
+# did not carry one. It is exposed anyway: a field no test can see is a field
+# nobody knows is right.
+# =============================================================================
+
+### An egg — 200. servings starts at "1 egg" 50 g, and typicalGrams is 50
+GET {{secureHost}}/api/foods/5943
+Accept: application/json

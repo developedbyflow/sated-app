@@ -40,6 +40,7 @@ Status is one of `proposed`, `accepted`, `superseded by 00NN`.
 | [0011](0011-a-food-belongs-to-one-account-or-to-the-catalogue.md) | A food belongs to one account, or to the catalogue | accepted |
 | [0012](0012-store-the-source-of-a-row-and-derive-the-rest.md) | Store the source of a row and derive the rest | accepted |
 | [0013](0013-a-recipe-stores-its-parts-and-derives-everything-else.md) | A recipe stores its parts and derives everything else | accepted |
+| [0014](0014-import-usda-servings-sorted-and-keep-the-default-apart.md) | Import USDA servings sorted, and keep the default apart | accepted |
 
 ## The scoring decisions are not here yet
 

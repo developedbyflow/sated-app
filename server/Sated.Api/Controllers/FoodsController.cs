@@ -48,7 +48,9 @@ public class FoodsController(
     [HttpGet("{id:int}", Name = "FoodById")]
     public async Task<ActionResult<FoodDetailDto>> Get(int id)
     {
-        var food = await database.Foods.FirstOrDefaultAsync(food => food.Id == id);
+        var food = await database.Foods
+            .Include(food => food.Servings)
+            .FirstOrDefaultAsync(food => food.Id == id);
 
         if (food is null)
         {

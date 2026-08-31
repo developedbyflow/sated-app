@@ -822,3 +822,28 @@ Two of the four acceptance criteria need `Meal`, which is Epic 4:
 - **adding a recipe to a meal is one action** — there are no meals to add it to;
 - **editing a recipe does not rewrite meals already logged** — solved on the meal side, where the
   architecture freezes grams at logging time. Nothing on the recipe can enforce it.
+
+## Servings, on `GET /api/foods/{id}`
+
+```json
+{
+  "typicalGrams": 50,
+  "servings": [
+    { "description": "1 egg", "grams": 50 },
+    { "description": "1 cup", "grams": 135 },
+    { "description": "1 slice", "grams": 5 }
+  ]
+}
+```
+
+**`servings` is the list a person picks from**, in USDA's own order — sorted by the file's
+`sequenceNumber`, never by the order the array happens to be in. That distinction is not
+bookkeeping: taking `foodPortions[0]` from the SR Legacy file gives `1 cup (4.86 large eggs) = 243 g`
+for an egg. See [database.md](database.md#the-trap-and-it-is-not-where-the-prd-says-it-is).
+
+**`typicalGrams` is a different question** — what USDA assumes was eaten when a survey respondent
+did not say how much. It is not one of the servings and matches one exactly only 40.7% of the time.
+It is here for FR-14, where a typed sentence may carry no quantity at all; nothing reads it yet.
+
+Both are `null`/empty for a food someone typed in. `POST /api/foods` accepts no servings, so a
+hand-entered food is logged in grams. That is a known gap, not a decision.

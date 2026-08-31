@@ -62,6 +62,13 @@ public class FoodsDatabase : IAsyncLifetime
         Description = "Milk, whole",
         Category = "Milk, whole",
         Source = FoodSource.UsdaFndds,
+        TypicalGrams = 244,
+        Servings =
+        [
+            new FoodServing { Description = "1 fl oz", Grams = 30.5, Sequence = 3 },
+            new FoodServing { Description = "1 cup", Grams = 244, Sequence = 1 },
+            new FoodServing { Description = "1 tbsp", Grams = 15.3, Sequence = 2 }
+        ],
         Nutrients = new NutrientAmounts
         {
             Calories = 61,
