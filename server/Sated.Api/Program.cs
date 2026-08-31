@@ -3,6 +3,7 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Sated.Api;
 using Sated.Data;
 using Sated.Data.Entities;
 using Sated.Scoring;
@@ -15,6 +16,8 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddOpenApi();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUser, CurrentUserFromHttp>();
 builder.Services.AddDbContext<SatedDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Sated")));
 

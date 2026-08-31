@@ -19,7 +19,7 @@ if (!File.Exists(survey))
 var options = new DbContextOptionsBuilder<SatedDbContext>().UseNpgsql(connection).Options;
 await using var context = new SatedDbContext(options);
 
-var existing = await context.Foods.CountAsync();
+var existing = await context.Foods.IgnoreQueryFilters().CountAsync();
 
 if (existing > 0)
 {

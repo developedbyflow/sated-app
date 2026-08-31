@@ -7,4 +7,5 @@ public class Food
     public required string Description { get; set; }
     public required string Category { get; set; }
     public required NutrientAmounts Nutrients { get; set; }
+    public string? OwnerId { get; set; }
 }

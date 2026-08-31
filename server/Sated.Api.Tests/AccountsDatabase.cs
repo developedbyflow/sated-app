@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Sated.Data;
+using Sated.Data.Entities;
 
 namespace Sated.Api.Tests;
 
@@ -36,6 +37,33 @@ public class AccountsDatabase : IAsyncLifetime
     public HttpClient NewThrottledBrowser() => OverHttps(throttled);
 
     public static string UnusedEmail() => $"{Guid.NewGuid():N}@sated.test";
+
+    public async Task<int> AddFood(string description, string? ownerId)
+    {
+        using var scope = api.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<SatedDbContext>();
+
+        var food = new Food
+        {
+            Description = description,
+            Category = "Cheese",
+            OwnerId = ownerId,
+            Nutrients = new NutrientAmounts
+            {
+                Calories = 250,
+                Protein = 17,
+                Fat = 20,
+                Fiber = 0,
+                SaturatedFat = 12,
+                Sodium = 900
+            }
+        };
+
+        database.Foods.Add(food);
+        await database.SaveChangesAsync();
+
+        return food.Id;
+    }
 
     public async Task<int> ConsentsOf(string userId)
     {

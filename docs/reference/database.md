@@ -26,7 +26,8 @@ do not repeat it.
 
 ## `Foods`
 
-One row per catalogue food. Nutrients are an [owned type](../decisions/0004-nutrients-are-an-owned-type-on-food.md),
+One row per food — the shared catalogue and every food a person typed in for themselves, in
+the same table, told apart by `OwnerId`. Nutrients are an [owned type](../decisions/0004-nutrients-are-an-owned-type-on-food.md),
 so they are columns in this same table rather than a related row.
 
 | Column | Type | Null | Meaning |
@@ -35,6 +36,7 @@ so they are columns in this same table rather than a related row.
 | `FdcId` | integer | yes | the USDA FoodData Central id, when the food came from there |
 | `Description` | text | no | the catalogue's own name for the food |
 | `Category` | text | no | the catalogue's category, stored exactly as it arrives — it selects the category rule (FR-6) |
+| `OwnerId` | text | yes | **null means the shared catalogue.** Set means the row belongs to that one account and nobody else can see it |
 | `Nutrients_Calories` | double precision | no | |
 | `Nutrients_Protein` | double precision | no | |
 | `Nutrients_Fat` | double precision | no | |
@@ -58,6 +60,33 @@ FR-7 says zero never means absent.
 
 **Nullable means absent, and the engine knows the difference.** A null micronutrient is dropped
 from the density score's denominator; a zero counts against the food.
+
+### `OwnerId` is enforced by a global query filter, not by remembering
+
+`SatedDbContext` registers one filter on `Food`:
+
+```csharp
+food.HasQueryFilter(entry => entry.OwnerId == null || entry.OwnerId == AskedBy);
+```
+
+EF Core appends it to **every** query it generates for `Foods`, so `GET /api/foods`, the detail
+endpoint and `FoodGrading` all carry it without any of them mentioning it. The rule is written once
+and cannot be forgotten in a place that never mentions it.
+
+`AskedBy` is the signed-in account's id, supplied through `ICurrentUser` — an interface declared in
+`Sated.Data` and implemented in `Sated.Api` over the HTTP request. The data layer says what it
+needs; the web layer supplies it. Signed out, it is null and only the catalogue is visible.
+
+`ICurrentUser` reads the id claim directly rather than through `UserManager`, and that is not a
+style choice: `UserManager` needs `SatedDbContext`, so injecting it here makes the container refuse
+to start with a circular dependency.
+
+**The one place the filter is turned off on purpose** is `tools/CatalogueLoad`, which asks whether
+the table is empty before it fills it, and must count rows belonging to everybody:
+`context.Foods.IgnoreQueryFilters().CountAsync()`.
+
+**Deleting an account deletes its foods.** The foreign key from `Foods.OwnerId` to `AspNetUsers.Id`
+cascades, so the row goes when the owner does — the other half of FR-29.
 
 ## Loading the catalogue
 
@@ -105,6 +134,10 @@ the wrong column fails silently: it produces a different grade, not an error.
 |---|---|
 | `20260830120815_CreateFoods` | created `Foods` with its four identity columns |
 | `20260830122029_AddNutrientsToFoods` | added the sixteen `Nutrients_*` columns |
+| `20260830144959_MakeFdcIdUnique` | made `FdcId` unique, so the same USDA food cannot land twice |
+| `20260831070929_AddIdentityTables` | added the ASP.NET Identity tables, `AspNetUsers` among them |
+| `20260831075022_AddProfileAndConsent` | added `WeightKg` and `ActiveLensId`, plus `ConsentDocuments` and `Consents` |
+| `20260831125607_FoodBelongsToItsOwner` | added `Foods.OwnerId`, its index, and the cascade from `AspNetUsers` |
 
 ```bash
 dotnet ef migrations add <Name> -p Sated.Data -s Sated.Api

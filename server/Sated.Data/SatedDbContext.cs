@@ -4,9 +4,12 @@ using Sated.Data.Entities;
 
 namespace Sated.Data;
 
-public class SatedDbContext(DbContextOptions<SatedDbContext> options)
+public class SatedDbContext(
+    DbContextOptions<SatedDbContext> options, ICurrentUser? currentUser = null)
     : IdentityDbContext<AppUser>(options)
 {
+    private string? AskedBy => currentUser?.Id;
+
     public DbSet<Food> Foods => Set<Food>();
 
     public DbSet<ConsentDocument> ConsentDocuments => Set<ConsentDocument>();
@@ -17,8 +20,19 @@ public class SatedDbContext(DbContextOptions<SatedDbContext> options)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<Food>().OwnsOne(food => food.Nutrients);
-        modelBuilder.Entity<Food>().HasIndex(food => food.FdcId).IsUnique();
+        modelBuilder.Entity<Food>(food =>
+        {
+            food.OwnsOne(entry => entry.Nutrients);
+            food.HasIndex(entry => entry.FdcId).IsUnique();
+            food.HasIndex(entry => entry.OwnerId);
+
+            food.HasOne<AppUser>()
+                .WithMany()
+                .HasForeignKey(entry => entry.OwnerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            food.HasQueryFilter(entry => entry.OwnerId == null || entry.OwnerId == AskedBy);
+        });
 
         modelBuilder.Entity<ConsentDocument>(document =>
         {
