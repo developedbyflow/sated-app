@@ -1,0 +1,42 @@
+using Microsoft.EntityFrameworkCore;
+using Sated.Data;
+using Sated.Data.Entities;
+
+namespace Sated.Services;
+
+public enum ProfileUpdate
+{
+    Saved,
+    ConsentMissing,
+    UnknownLens
+}
+
+public class Profiles(SatedDbContext database, Consents consents, FoodGrading grading)
+{
+    public Task<AppUser> Of(string userId) =>
+        database.Users.FirstAsync(account => account.Id == userId);
+
+    public async Task<ProfileUpdate> Update(string userId, double weightKg, string? lensId)
+    {
+        if (!await consents.IsGiven(userId, ConsentPurpose.HealthData))
+        {
+            return ProfileUpdate.ConsentMissing;
+        }
+
+        var lens = grading.LensFor(lensId);
+
+        if (lens is null)
+        {
+            return ProfileUpdate.UnknownLens;
+        }
+
+        var user = await Of(userId);
+
+        user.WeightKg = weightKg;
+        user.ActiveLensId = lens.Id;
+
+        await database.SaveChangesAsync();
+
+        return ProfileUpdate.Saved;
+    }
+}

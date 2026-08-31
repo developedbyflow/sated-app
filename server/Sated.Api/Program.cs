@@ -1,7 +1,11 @@
 using System.Text.Json.Serialization;
-using Sated.Scoring;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Sated.Data;
+using Sated.Data.Entities;
+using Sated.Scoring;
 using Sated.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,11 +18,72 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<SatedDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Sated")));
 
+builder.Services
+    .AddIdentity<AppUser, IdentityRole>(options =>
+    {
+        options.Password.RequiredLength = 12;
+        options.Password.RequireDigit = false;
+        options.Password.RequireLowercase = false;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireNonAlphanumeric = false;
+
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+        options.Lockout.AllowedForNewUsers = true;
+
+        options.User.RequireUniqueEmail = true;
+    })
+    .AddEntityFrameworkStores<SatedDbContext>();
+
+builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+    options.ValidationInterval = TimeSpan.Zero);
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.Name = "sated.session";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.ExpireTimeSpan = TimeSpan.FromDays(14);
+    options.SlidingExpiration = true;
+
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        return Task.CompletedTask;
+    };
+
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        return Task.CompletedTask;
+    };
+});
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy<string>("login", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = context.RequestServices
+                    .GetRequiredService<IConfiguration>()
+                    .GetValue("RateLimits:LoginPerMinute", 10),
+                Window = TimeSpan.FromMinutes(1)
+            }));
+});
+
 var calibration = Calibration.Load();
 
 builder.Services.AddSingleton(calibration);
 builder.Services.AddSingleton(calibration.Engine());
 builder.Services.AddScoped<FoodGrading>();
+builder.Services.AddScoped<Consents>();
+builder.Services.AddScoped<Profiles>();
+builder.Services.AddSingleton(TimeProvider.System);
 
 var app = builder.Build();
 
@@ -28,6 +93,13 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRouting();
+
+app.UseRateLimiter();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
