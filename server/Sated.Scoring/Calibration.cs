@@ -15,7 +15,6 @@ public sealed class Calibration
     private static readonly Dictionary<string, ComponentStrategy> KnownStrategies =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            ["unsaturatedShare"] = FatQuality.UnsaturatedShare,
             ["noSatiety"] = LiquidCalories.NoSatiety
         };
 
