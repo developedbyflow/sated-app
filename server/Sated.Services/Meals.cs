@@ -10,6 +10,8 @@ public enum MealRejection
     None,
     UnknownFood,
     UnknownServing,
+    UnknownRecipe,
+    RecipeNeedsGrams,
     QuantityNotClear
 }
 
@@ -108,6 +110,42 @@ public class Meals(
         var lens = grading.LensFor(user.ActiveLensId);
 
         return lens is null ? null : grading.Grade(Profile(meal), meal.Id, meal.Name, lens);
+    }
+
+    public async Task<MealRejection> AddRecipe(Meal meal, int recipeId, double? grams)
+    {
+        if (grams is null)
+        {
+            return MealRejection.RecipeNeedsGrams;
+        }
+
+        var recipe = await database.Recipes
+            .Include(stored => stored.Ingredients)
+            .FirstOrDefaultAsync(stored => stored.Id == recipeId);
+
+        if (recipe is null || recipe.Ingredients.Count == 0)
+        {
+            return MealRejection.UnknownRecipe;
+        }
+
+        var share = grams.Value / recipe.Ingredients.Sum(ingredient => ingredient.Grams);
+
+        foreach (var ingredient in recipe.Ingredients)
+        {
+            meal.Entries.Add(new MealEntry
+            {
+                FoodId = ingredient.FoodId,
+                QuantityGrams = ingredient.Grams * share,
+                DisplayAmount = ingredient.Grams * share,
+                DisplayUnit = "g",
+                FromRecipeId = recipe.Id,
+                FromRecipeName = recipe.Name
+            });
+        }
+
+        await database.SaveChangesAsync();
+
+        return MealRejection.None;
     }
 
     public static FoodInput Profile(Meal meal) =>

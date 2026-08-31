@@ -1029,3 +1029,83 @@ Content-Type: application/json
 ### Meals without a session — 401
 GET {{secureHost}}/api/days/2026-08-31
 Accept: application/json
+
+# =============================================================================
+# A recipe, logged into a meal — POST /api/meals/{id}/entries with recipeId
+#
+# The last two criteria of FR-12, which needed Meal to exist.
+#
+# Logging a recipe UNPACKS it into its foods, then and there. What lands in the
+# meal is ordinary entries — food plus grams — with no live link to the recipe.
+# That is what makes "editing a recipe does not rewrite meals already logged"
+# true by construction rather than by a rule somebody has to remember.
+#
+# You say how many grams of the recipe you ate; every ingredient is scaled by
+# the same share. A 600 g recipe logged at 300 g halves each ingredient.
+#
+# Each entry carries fromRecipeId and fromRecipeName so a screen can group them
+# back into one row. fromRecipeId is NOT a foreign key, on purpose: delete the
+# recipe and the meal stands, name and all. It records what happened, the same
+# way engineVersion does.
+#
+# Servings do not apply to a recipe — grams only.
+# =============================================================================
+
+### Sign in — 200
+POST {{secureHost}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Half of a 600 g recipe — 200, two entries at 100 g and 200 g.
+### Replace both 1s with the meal and recipe ids you got above.
+POST {{secureHost}}/api/meals/1/entries
+Content-Type: application/json
+
+{
+  "recipeId": 1,
+  "grams": 300
+}
+
+### A recipe without grams — 400. Servings belong to a food, not a recipe
+POST {{secureHost}}/api/meals/1/entries
+Content-Type: application/json
+
+{
+  "recipeId": 1
+}
+
+### A food AND a recipe in one call — 400
+POST {{secureHost}}/api/meals/1/entries
+Content-Type: application/json
+
+{
+  "foodId": 5347,
+  "recipeId": 1,
+  "grams": 100
+}
+
+### Now edit the recipe out of all recognition — 200
+PUT {{secureHost}}/api/recipes/1
+Content-Type: application/json
+
+{
+  "name": "Something else entirely",
+  "ingredients": [
+    { "foodId": 5347, "grams": 1000 }
+  ]
+}
+
+### The meal has not moved — 200, same entries, same grams, old recipe name
+GET {{secureHost}}/api/meals/1
+Accept: application/json
+
+### Delete the recipe — 204
+DELETE {{secureHost}}/api/recipes/1
+
+### The meal still stands — 200, fromRecipeName is still there
+GET {{secureHost}}/api/meals/1
+Accept: application/json

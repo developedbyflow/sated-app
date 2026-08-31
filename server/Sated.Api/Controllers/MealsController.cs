@@ -37,12 +37,23 @@ public class MealsController(Meals meals) : ControllerBase
             return NotFound();
         }
 
-        var rejection = await meals.AddEntry(
-            meal,
-            request.FoodId!.Value,
-            request.Grams,
-            request.ServingCount,
-            request.ServingDescription);
+        if (request.FoodId is null == request.RecipeId is null)
+        {
+            ModelState.AddModelError(
+                nameof(request.FoodId),
+                "Give either foodId or recipeId. Not both, and not neither.");
+
+            return ValidationProblem(ModelState);
+        }
+
+        var rejection = request.RecipeId is null
+            ? await meals.AddEntry(
+                meal,
+                request.FoodId!.Value,
+                request.Grams,
+                request.ServingCount,
+                request.ServingDescription)
+            : await meals.AddRecipe(meal, request.RecipeId.Value, request.Grams);
 
         if (rejection is not MealRejection.None)
         {
@@ -82,6 +93,19 @@ public class MealsController(Meals meals) : ControllerBase
                 nameof(request.ServingDescription),
                 $"This food has no serving called '{request.ServingDescription}'. "
                 + "GET /api/foods/{id} lists the ones it has.");
+        }
+        else if (rejection is MealRejection.UnknownRecipe)
+        {
+            ModelState.AddModelError(
+                nameof(request.RecipeId),
+                $"No recipe you can see has the id {request.RecipeId}, or it has no ingredients. "
+                + "GET /api/recipes lists yours.");
+        }
+        else if (rejection is MealRejection.RecipeNeedsGrams)
+        {
+            ModelState.AddModelError(
+                nameof(request.Grams),
+                "Say how many grams of the recipe you ate. Servings belong to a food, not a recipe.");
         }
         else
         {

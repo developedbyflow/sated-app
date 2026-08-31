@@ -14,8 +14,9 @@ public record MealRequestDto
 
 public record MealEntryRequestDto
 {
-    [Required]
     public int? FoodId { get; init; }
+
+    public int? RecipeId { get; init; }
 
     [Range(0.1, 20000)]
     public double? Grams { get; init; }

@@ -10,4 +10,6 @@ public class MealEntry
     public required double DisplayAmount { get; set; }
     public required string DisplayUnit { get; set; }
     public bool QuantityEstimated { get; set; }
+    public int? FromRecipeId { get; set; }
+    public string? FromRecipeName { get; set; }
 }

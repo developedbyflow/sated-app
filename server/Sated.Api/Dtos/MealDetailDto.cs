@@ -11,7 +11,9 @@ public record MealEntryDto(
     double QuantityGrams,
     double DisplayAmount,
     string DisplayUnit,
-    bool QuantityEstimated);
+    bool QuantityEstimated,
+    int? FromRecipeId,
+    string? FromRecipeName);
 
 public record MealDetailDto(
     int Id,
@@ -37,7 +39,9 @@ public record MealDetailDto(
             entry.QuantityGrams,
             entry.DisplayAmount,
             entry.DisplayUnit,
-            entry.QuantityEstimated))],
+            entry.QuantityEstimated,
+            entry.FromRecipeId,
+            entry.FromRecipeName))],
         grade);
 }
 

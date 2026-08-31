@@ -901,3 +901,27 @@ Every meal stamps the `version` from `calibration.json` as it was when the meal 
 reads it: grades always render at the current version, so a recalibration moves old letters on
 purpose. The stamp is what makes that detectable and explainable later, and the architecture is
 explicit that adding it after months of history is a migration nobody performs.
+
+### Logging a recipe
+
+```json
+{ "recipeId": 3, "grams": 300 }
+```
+
+One call, and the meal comes back with **one entry per ingredient**, each scaled by the share of the
+recipe eaten. A 600 g recipe logged at 300 g halves every ingredient. Servings do not apply — grams
+only, because a serving is defined on a food.
+
+Either `foodId` or `recipeId`, never both and never neither.
+
+Each resulting entry carries `fromRecipeId` and `fromRecipeName`, so a screen can fold them back
+into one row:
+
+```json
+{ "quantityGrams": 200, "description": "Milk, NFS", "fromRecipeId": 2, "fromRecipeName": "Ciorba mamei" }
+```
+
+**Editing or deleting the recipe afterwards does not touch the meal.** Measured, end to end: a
+recipe rewritten to a different name and a single different ingredient, then deleted — the meal
+still reads 300 g across the same two entries, still labelled `Ciorba mamei`. That is FR-12's last
+criterion, and it holds because the meal never referenced the recipe in the first place.

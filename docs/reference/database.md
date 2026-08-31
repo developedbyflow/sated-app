@@ -229,6 +229,8 @@ catalogues loaded before 2026-08-31.
 | `DisplayAmount` | double precision | no | what the person said — `2` |
 | `DisplayUnit` | text | no | what they said it in — `1 egg`, or `g` |
 | `QuantityEstimated` | boolean | no | false everywhere until FR-14 proposes a quantity |
+| `FromRecipeId` | integer | yes | which recipe this entry was unpacked from. **Not a foreign key** |
+| `FromRecipeName` | text | yes | what that recipe was called at the moment it was logged |
 
 **`OwnerId` is on `Day`, not on `Meal`.** A meal reaches its owner through its day, and its query
 filter says so: `meal.Day.OwnerId == AskedBy`.
@@ -250,6 +252,21 @@ All three come from the architecture, and the middle two exist for one reason: *
 
 `QuantityEstimated` is written and never set true yet. It belongs to FR-14, where the system
 proposes a quantity the sentence did not carry.
+
+### A logged recipe is unpacked, not referenced
+
+Logging a recipe writes one entry per ingredient, each scaled by the share of the recipe that was
+eaten — a 600 g recipe logged at 300 g halves every ingredient. What ends up in the meal is ordinary
+entries: a food and a weight.
+
+**`FromRecipeId` is deliberately not a foreign key.** A logged meal must not depend on the recipe
+table at all: edit the recipe beyond recognition, or delete it outright, and the meal keeps its
+entries, its grams and the recipe's name as it stood. The column records what happened, the way
+`EngineVersion` does — it is not a live link.
+
+A foreign key with `ON DELETE SET NULL` would have destroyed exactly the thing worth keeping: the
+grouping, and with it the ability to show "Ciorba mamei — 300 g" as one row after the recipe is
+gone.
 
 ### `Meal`'s query filter is defence with no test behind it
 
@@ -314,6 +331,7 @@ the wrong column fails silently: it produces a different grade, not an error.
 | `20260831162538_FoodCarriesItsServings` | added `FoodServings` and `Foods.TypicalGrams` |
 | `20260831162706_PluraliseTheChildTables` | renamed `RecipeIngredient` and `FoodServing` to their plural forms, matching every other table |
 | `20260831164107_AddDaysAndMeals` | added `Days`, `Meals` and `MealEntries` |
+| `20260831165330_MealEntryRemembersItsRecipe` | added `MealEntries.FromRecipeId` and `FromRecipeName` |
 
 ```bash
 dotnet ef migrations add <Name> -p Sated.Data -s Sated.Api
