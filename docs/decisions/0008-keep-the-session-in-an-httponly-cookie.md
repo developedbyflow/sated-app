@@ -70,6 +70,9 @@ already configures.
 - **Adding a mobile client later means running two schemes**, cookie and bearer, in one application.
   That is the point at which this decision would be revisited, and it is a real cost, not a
   theoretical one.
-- Identity's cookie handler answers an unauthenticated request with a `302` to a login page that
-  does not exist in an API. It has to be overridden to return `401`, or every failure reads as a
-  broken redirect instead of an auth error.
+- Identity's cookie handler points an unauthenticated request at a login page that does not exist
+  in an API. **Measured on .NET 10**, including with `Accept: text/html`: the status is already
+  `401`, but the response carries a `Location` header naming `/Account/Login`. The redirect event
+  is overridden so that header is not sent, because a client that follows it reaches a 404 instead
+  of reading the auth error. Older ASP.NET Core versions answered `302` here, which is what most
+  guidance still describes.

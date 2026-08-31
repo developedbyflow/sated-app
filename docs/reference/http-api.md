@@ -7,21 +7,27 @@ title: HTTP API
 The complete surface of `Sated.Api`. Everything not listed here does not exist yet.
 
 !!! note "State"
-    Five endpoints. Three of them read the catalogue from PostgreSQL; the other two answer from
-    `calibration.json` alone. There is still **no authentication and nothing is written** — every
-    request is a read, and the same request produces the same answer (NFR2). Epic 2 adds accounts.
+    Fourteen endpoints. Three read the catalogue from PostgreSQL, two answer from
+    `calibration.json` alone, four handle accounts and five handle onboarding. The catalogue endpoints are still open to anyone and still
+    only read: the same request produces the same answer (NFR2). `POST /api/auth/register` is the
+    first endpoint in the API that **writes**.
 
 ## Running it
 
 ```bash
-dotnet run --project server/Sated.Api --launch-profile http
+dotnet run --project server/Sated.Api --launch-profile https
 ```
 
-Base address: `http://localhost:5227`.
+Base address: `https://localhost:7245`, with `http://localhost:5227` still answering.
 
-The `http` launch profile declares no HTTPS port, so `UseHttpsRedirection` logs
+**Use the `https` profile for anything under `/api/auth`.** The session cookie is marked `Secure`,
+so a client on plain http is sent the cookie and discards it: registering answers `200` and the
+next request is still `401`, with nothing in the logs to say why. The catalogue endpoints do not
+care and work on either address.
+
+The `http` profile declares no HTTPS port, so `UseHttpsRedirection` logs
 `Failed to determine the https port for redirect` at startup and passes requests through. That
-warning is expected locally. HTTPS is a deployment concern.
+warning is expected on that profile.
 
 ## Conventions
 
@@ -385,3 +391,197 @@ a field called `lensId`, and the old name is not accepted.
 The field was renamed rather than left in place because the value changed underneath it. A client
 still sending `{"lens": "Weight Loss"}` gets `lensId is required`, which is the truth, instead of
 `no lens is named 'Weight Loss'`, which reads like a broken server.
+
+---
+
+## `POST /api/auth/register`
+
+Creates an account and signs the caller in, in one request.
+
+### Request
+
+```json
+{ "email": "florin@sated.test", "password": "abcdefghijkl" }
+```
+
+Both fields are required. `email` must parse as an address.
+
+**The password rule is length alone: at least 12 characters.** No digit, no capital letter and no
+symbol is required, and adding one buys nothing. Composition rules push people towards
+`Parola1!` — short, predictable, and annoying to type. The reasoning and the source are in the
+private `02_planning/6.prd-addendum-account-security` §3.2.
+
+The rule lives in `Program.cs`, in Identity's options, and nowhere else. The DTO deliberately does
+not repeat it as an annotation: two copies of one number drift.
+
+### Response
+
+```json
+{ "id": "ae0f05fd-c297-43eb-bcf7-49760614b83c", "email": "florin@sated.test" }
+```
+
+`200`, plus a `Set-Cookie` header carrying `sated.session`. **The caller is signed in already** —
+there is no second call to log in after registering.
+
+The cookie is marked `HttpOnly`, `Secure` and `SameSite=Lax`. `HttpOnly` is the one that matters:
+JavaScript cannot read the cookie at all, so a script that gets onto the page cannot carry the
+session away with it. See [0008](../decisions/0008-keep-the-session-in-an-httponly-cookie.md).
+
+### Errors
+
+| Case | Status | Body |
+|---|---|---|
+| Missing or malformed email | `400` | The automatic `[ApiController]` validation problem |
+| Password under 12 characters | `400` | `PasswordTooShort` |
+| Email already registered | `400` | `DuplicateEmail` **and** `DuplicateUserName` |
+
+The last row is a **deliberate leak**, and the only one in the API. Everything else refuses to say
+whether an address has an account; registration has to say it, because otherwise nobody can tell
+why they are unable to sign up. It disappears once the answer can be sent by email instead
+(FR-33).
+
+Both error codes appear because the username is set to the email. There is no separate username
+today — see `UQ4` in the private UX decision log.
+
+## `POST /api/auth/login`
+
+```json
+{ "email": "florin@sated.test", "password": "abcdefghijkl" }
+```
+
+`200` with the same body as register, plus a fresh cookie.
+
+### Every failure answers the same
+
+| Case | Status |
+|---|---|
+| Wrong password | `401` |
+| No account with that email | `401` |
+| Account locked after five wrong attempts | `401` |
+| More than ten attempts in a minute from one address | `429` |
+
+The three `401`s are identical down to the body — only the trace id differs, and that changes on
+every request anyway. **In a nutrition product, who has an account is itself health information**,
+so the API does not confirm an address from the outside.
+
+The locked account answering `401` rather than saying so is a conscious trade: it costs a confused
+user five minutes, and it keeps the third case from becoming a way to test whether an address is
+registered.
+
+### Two limits, two different attacks
+
+**The lockout** — five wrong attempts, then five minutes — protects **one account** from having
+its password guessed.
+
+**The rate limit** — ten attempts a minute from one address — protects **every other account**.
+Trying one common password against ten thousand accounts gives each account a single attempt, so
+no lockout ever triggers. Only the rate limit sees that. Neither measure covers the other's case.
+
+The limit is `RateLimits:LoginPerMinute` in configuration, default 10, partitioned by remote
+address.
+
+## `POST /api/auth/logout`
+
+No body. `204`, and the cookie is cleared.
+
+`401` when there is no session — logging out of nothing is not success.
+
+## `GET /api/auth/me`
+
+`200` with `id` and `email` for the signed-in caller. `401` otherwise.
+
+The `401` carries **no `Location` header**. Identity's cookie handler would name `/Account/Login`
+there, a page that does not exist in an API; a client that followed it would get a `404` instead of
+reading the authentication error. The redirect event is overridden in `Program.cs` to stop that.
+
+### The session is a cookie, not a row
+
+Signing out clears the cookie in that browser. A copy taken somewhere else stays valid until it
+expires, unless the user's security stamp changes — which is what happens on a password change or
+account deletion. `SecurityStampValidationInterval` decides how fast that takes effect and is set
+to zero here, so it is checked on every request. The cost is one lookup by primary key.
+
+---
+
+## `GET /api/consents/{purpose}`
+
+Requires a session. `purpose` is `HealthData`; it is the only one so far.
+
+```json
+{
+  "purpose": "HealthData",
+  "version": "2026-08-31",
+  "text": "Sated needs two kinds of information about you that count as health data...",
+  "givenAt": null
+}
+```
+
+`text` is the wording in force, in full. The onboarding screen shows exactly this and nothing it
+composes itself, because the version the user signs has to be the version they read.
+
+`givenAt` is `null` until this user consents, and the timestamp afterwards. One call tells the
+screen both what to display and whether to display it at all.
+
+## `POST /api/consents/{purpose}`
+
+```json
+{ "version": "2026-08-31" }
+```
+
+**The version is required, and it is the point.** A client cannot consent to a text it never
+fetched: a version that was never published is a `400`. Without it, a stale screen could record
+agreement to wording nobody had seen.
+
+`200`, with `givenAt` filled in. Sending it again returns the **same** `givenAt` — one standing
+consent per purpose, not a row per click.
+
+## `DELETE /api/consents/{purpose}`
+
+`204`. `404` when there is nothing standing to withdraw.
+
+**Withdrawing erases what the consent covered** — today the weight; food logs when they exist. That
+sentence is in the consent text itself, before anyone accepts it, because it is the real
+consequence: Sated cannot work without that data, so withdrawing empties the product. The account
+survives and can still sign in.
+
+One `POST` and one `DELETE`, deliberately symmetric. Withdrawal has to be as easy as consent, and
+"delete your entire account" is not as easy.
+
+`ActiveLensId` is left in place — see [0009](../decisions/0009-consent-is-a-document-and-a-signature.md).
+
+## `GET /api/profile`
+
+```json
+{ "weightKg": 82, "activeLensId": "weight-loss", "healthDataConsentGiven": true }
+```
+
+Both values are `null` for an account that has not finished onboarding. That is not an error state
+and does not need one: registering and onboarding are two moments, and the gap between them is
+ordinary.
+
+## `PUT /api/profile`
+
+```json
+{ "weightKg": 82, "activeLensId": "weight-loss" }
+```
+
+Returns the stored profile. Weight is in kilograms and must be between 20 and 500 — a sanity check
+on typing, not a statement about who may use the product.
+
+`activeLensId` is the slug from `GET /api/lenses`, matched case-insensitively; an unknown one is a
+`400` naming the field, the same shape `GET /api/foods/{id}/grade` uses.
+
+### Why this can answer 403
+
+| | |
+|---|---|
+| No session | `401` |
+| Session, no consent on file | **`403`** |
+| Consent, bad lens or bad weight | `400` |
+
+The `403` is the consent rule expressed as behaviour. Weight is health data; storing it without a
+recorded basis is not something the API will do, and a rule that only exists in documentation is
+not a rule. The body names the request to make first.
+
+`403` rather than `400`: the request is well formed and the caller is known. What is missing is
+permission.

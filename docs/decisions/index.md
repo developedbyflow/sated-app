@@ -35,6 +35,7 @@ Status is one of `proposed`, `accepted`, `superseded by 00NN`.
 | [0006](0006-load-the-catalogue-once-then-own-it.md) | Load the catalogue once, then own it | accepted |
 | [0007](0007-test-the-foods-query-against-a-real-database.md) | Test the foods query against a real database | accepted |
 | [0008](0008-keep-the-session-in-an-httponly-cookie.md) | Keep the session in an HttpOnly cookie | accepted |
+| [0009](0009-consent-is-a-document-and-a-signature.md) | Record consent as a document and a signature | accepted |
 
 ## The scoring decisions are not here yet
 
