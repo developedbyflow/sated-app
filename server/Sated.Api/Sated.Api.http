@@ -607,3 +607,137 @@ Content-Type: application/json
   "email": "{{email}}",
   "password": "{{password}}"
 }
+
+# =============================================================================
+# GET  /api/foods/categories
+# POST /api/foods
+#
+# Story 3.3, FR-11. A food you type in from a package label. It belongs to you
+# alone: `Foods.OwnerId` holds your account id, and a global query filter on the
+# entity puts "or it is mine" into every query the API makes against that table.
+# Nothing in FoodsController mentions the owner.
+#
+# The body asks for what a nutrition label prints, per 100 g:
+#   required  calories · protein · fat · carbohydrate · fibre · saturated fat · sodium
+#   optional  vitamin D · calcium · iron · potassium   (the only four labels carry)
+#
+# Carbohydrate is required and NOT stored. The engine never reads it; it is here
+# so NutrientPlausibility can check that the energy follows from the macros.
+# Without it, bread reads as four times the energy its macros imply and would be
+# rejected as a typo.
+#
+# Category is required and must be one the catalogue already uses, because the
+# name selects the calibrated category rule (FR-6). GET .../categories is the
+# list; it is read from the catalogue rows themselves, not from a copy.
+# =============================================================================
+
+### Sign in — 200
+POST {{secureHost}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### The categories the engine has rules for — 200, an array of names
+GET {{secureHost}}/api/foods/categories
+Accept: application/json
+
+### A Romanian cheese the American catalogue has never heard of — 201 + Location
+POST {{secureHost}}/api/foods
+Content-Type: application/json
+
+{
+  "description": "Telemea de oaie",
+  "category": "Cheese",
+  "calories": 250,
+  "protein": 17,
+  "fat": 20,
+  "carbohydrate": 1,
+  "fiber": 0,
+  "saturatedFat": 12,
+  "sodium": 900,
+  "calcium": 450
+}
+
+### It is graded, not refused — 200. density and proteinQuality say isEstimated.
+### Replace 7283 with the id the Location header above returned.
+GET {{secureHost}}/api/foods/7283/grade?lensId=weight-loss
+Accept: application/json
+
+### It is in my search — 200, total 1
+GET {{secureHost}}/api/foods?search=telemea
+Accept: application/json
+
+### A category the catalogue does not use — 400, the error sits on category
+POST {{secureHost}}/api/foods
+Content-Type: application/json
+
+{
+  "description": "Branza de burduf",
+  "category": "Branzeturi",
+  "calories": 300,
+  "protein": 18,
+  "fat": 25,
+  "carbohydrate": 1,
+  "fiber": 0,
+  "saturatedFat": 15,
+  "sodium": 800
+}
+
+### The label read in kilojoules — 400, and the message says so
+POST {{secureHost}}/api/foods
+Content-Type: application/json
+
+{
+  "description": "Telemea in kilojoules",
+  "category": "Cheese",
+  "calories": 1046,
+  "protein": 17,
+  "fat": 20,
+  "carbohydrate": 1,
+  "fiber": 0,
+  "saturatedFat": 12,
+  "sodium": 900
+}
+
+### Energy that does not follow from the macronutrients — 400
+POST {{secureHost}}/api/foods
+Content-Type: application/json
+
+{
+  "description": "Nothing adds up",
+  "category": "Cheese",
+  "calories": 400,
+  "protein": 0,
+  "fat": 0,
+  "carbohydrate": 0,
+  "fiber": 0,
+  "saturatedFat": 0,
+  "sodium": 0
+}
+
+### Adding a food without a session — 401
+POST {{secureHost}}/api/foods
+Content-Type: application/json
+
+{
+  "description": "Nobody's cheese",
+  "category": "Cheese",
+  "calories": 250,
+  "protein": 17,
+  "fat": 20,
+  "carbohydrate": 1,
+  "fiber": 0,
+  "saturatedFat": 12,
+  "sodium": 900
+}
+
+### The export now carries the food too — 200, foods has one entry
+POST {{secureHost}}/api/account/export
+Content-Type: application/json
+
+{
+  "password": "{{password}}"
+}

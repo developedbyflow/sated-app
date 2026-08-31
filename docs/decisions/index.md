@@ -37,6 +37,7 @@ Status is one of `proposed`, `accepted`, `superseded by 00NN`.
 | [0008](0008-keep-the-session-in-an-httponly-cookie.md) | Keep the session in an HttpOnly cookie | accepted |
 | [0009](0009-consent-is-a-document-and-a-signature.md) | Record consent as a document and a signature | accepted |
 | [0010](0010-ask-for-the-password-before-export-and-deletion.md) | Ask for the password before export and deletion | accepted |
+| [0011](0011-a-food-belongs-to-one-account-or-to-the-catalogue.md) | A food belongs to one account, or to the catalogue | accepted |
 
 ## The scoring decisions are not here yet
 

@@ -27,6 +27,7 @@ public class AccountController(
         }
 
         var signed = await accounts.SignedDocuments(user!.Id);
+        var own = await accounts.OwnFoods(user.Id);
         var exportedAt = clock.GetUtcNow();
 
         Response.Headers.ContentDisposition =
@@ -42,7 +43,8 @@ public class AccountController(
                 consent.Document.Version,
                 consent.GivenAt,
                 consent.WithdrawnAt,
-                consent.Document.Text)).ToArray());
+                consent.Document.Text)).ToArray(),
+            own.Select(FoodDetailDto.From).ToArray());
     }
 
     [HttpDelete]

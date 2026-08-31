@@ -79,4 +79,5 @@ nav:
       - 0008 - The session lives in an HttpOnly cookie: decisions/0008-keep-the-session-in-an-httponly-cookie.md
       - 0009 - Consent is a document and a signature: decisions/0009-consent-is-a-document-and-a-signature.md
       - 0010 - Ask for the password before export and deletion: decisions/0010-ask-for-the-password-before-export-and-deletion.md
+      - 0011 - A food belongs to one account: decisions/0011-a-food-belongs-to-one-account-or-to-the-catalogue.md
       - Record template: decisions/_template.md

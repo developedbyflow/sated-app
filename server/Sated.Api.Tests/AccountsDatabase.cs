@@ -65,6 +65,14 @@ public class AccountsDatabase : IAsyncLifetime
         return food.Id;
     }
 
+    public async Task<int> FoodsWithId(int id)
+    {
+        using var scope = api.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<SatedDbContext>();
+
+        return await database.Foods.IgnoreQueryFilters().CountAsync(food => food.Id == id);
+    }
+
     public async Task<int> ConsentsOf(string userId)
     {
         using var scope = api.Services.CreateScope();

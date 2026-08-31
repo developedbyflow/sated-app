@@ -13,6 +13,12 @@ public class Accounts(SatedDbContext database)
             .OrderBy(consent => consent.GivenAt)
             .ToArrayAsync();
 
+    public Task<Food[]> OwnFoods(string userId) =>
+        database.Foods
+            .Where(food => food.OwnerId == userId)
+            .OrderBy(food => food.Description)
+            .ToArrayAsync();
+
     public async Task Delete(AppUser user)
     {
         database.Users.Remove(user);

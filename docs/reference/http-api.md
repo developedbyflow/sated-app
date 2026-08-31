@@ -654,3 +654,71 @@ permission for this particular action.
 five minutes locked. Without that, a stolen session could be used to guess the password at leisure
 against an endpoint with no counter. A locked account gets the identical `403`, and the body never
 says which of the two happened.
+
+## `GET /api/foods/categories`
+
+An array of the category names the catalogue uses, sorted. Anonymous, like the rest of the read
+side. It is read from the catalogue rows themselves, so it cannot drift from what
+`CategoryRules` will match — there is no second copy of the list to forget to update.
+
+## `POST /api/foods`
+
+Adds a food that belongs to the caller alone. Requires a session.
+
+```json
+{
+  "description": "Telemea de oaie",
+  "category": "Cheese",
+  "calories": 250, "protein": 17, "fat": 20, "carbohydrate": 1,
+  "fiber": 0, "saturatedFat": 12, "sodium": 900,
+  "calcium": 450
+}
+```
+
+`201` with the stored food and a `Location` header. Amounts are per 100 g, the same as the
+catalogue — see [database.md](database.md#units--the-one-place-they-are-written).
+
+**The required fields are the ones a nutrition label prints**, and no more. The four optional ones —
+`vitaminD`, `calcium`, `iron`, `potassium` — are the only micronutrients a label carries. Vitamin A,
+C and E, magnesium and thiamine are never printed, so they are not asked for; the density score
+renormalises over what is present and reports `isEstimated`.
+
+### `carbohydrate` is required and is not stored
+
+The engine never reads carbohydrate. It is asked for because `NutrientPlausibility` needs it to
+check that the declared energy follows from the macronutrients, and without it the check breaks on
+exactly the foods it should pass: bread's protein and fat alone imply a quarter of its calories, so
+omitting carbohydrate would reject bread as a typo.
+
+Asked, checked, discarded. Nothing keeps it.
+
+### What gets rejected, and why each one
+
+| Body | Answer |
+|---|---|
+| a category the catalogue does not use | `400` on `category` |
+| energy no 100 g of food can carry | `400` on `calories` — almost always kilojoules |
+| energy that does not follow from protein, fat and carbohydrate | `400` on `calories` |
+| no session | `401` |
+
+The category has to be one the catalogue already uses because the name selects the calibrated
+category rule (FR-6). A name from somewhere else would match no rule and fall to the general
+formula in silence, which is the failure [ProfileRules](https://github.com/developedbyflow/sated-app/blob/main/server/Sated.Scoring/ProfileRules.cs)
+exists to catch.
+
+The two energy checks are unit checks, not quality checks. European labels print kilojoules —
+4.184 times the number this engine wants — and that value passes every other check and simply
+grades wrong. What the check cannot catch: European labels print **salt in grams** where this
+engine wants **sodium in milligrams**, and 1.2 g of salt is 480 mg of sodium. Both are plausible
+numbers. That conversion is the client's job.
+
+### A hand-typed food is graded, not refused
+
+`GET /api/foods/{id}/grade` answers for it like any other food. Measured on the telemea above:
+`B`, 59.8, with `isPartial: false` — all four components computed.
+
+**`isPartial` is not the flag that says data was missing.** It means fewer than three components
+went into the score. The flag that carries the missing micronutrients is `isEstimated`, per
+component, and for a label-only food `density` and `proteinQuality` both report `true`: density
+renormalised over the four nutrients it had, and leucine was estimated from the category rather
+than measured.

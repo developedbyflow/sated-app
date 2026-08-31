@@ -5,4 +5,5 @@ public record AccountExportDto(
     string Email,
     double? WeightKg,
     string? ActiveLensId,
-    ConsentExportDto[] Consents);
+    ConsentExportDto[] Consents,
+    FoodDetailDto[] Foods);
