@@ -94,4 +94,5 @@ nav:
       - 0022 - A public page is reached by a slug: decisions/0022-a-public-page-is-reached-by-a-slug.md
       - 0023 - A parsed meal is a proposal: decisions/0023-a-parsed-meal-is-a-proposal-nobody-saved.md
       - 0024 - The provider is chosen by a key: decisions/0024-the-provider-is-chosen-by-a-key.md
+      - 0025 - A reset link is single use: decisions/0025-a-reset-link-is-single-use-and-says-nothing-about-who-has-an-account.md
       - Record template: decisions/_template.md

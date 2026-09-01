@@ -51,6 +51,7 @@ Status is one of `proposed`, `accepted`, `superseded by 00NN`.
 | [0022](0022-a-public-page-is-reached-by-a-slug.md) | A public page is reached by a slug, and only catalogue foods have one | accepted |
 | [0023](0023-a-parsed-meal-is-a-proposal-nobody-saved.md) | A parsed meal is a proposal nobody saved | accepted |
 | [0024](0024-the-provider-is-chosen-by-a-key.md) | The provider is chosen by a key, and the schema is not what the exporter hands you | accepted |
+| [0025](0025-a-reset-link-is-single-use-and-says-nothing-about-who-has-an-account.md) | A reset link is single use, and says nothing about who has an account | accepted |
 
 ## The scoring decisions are not here yet
 

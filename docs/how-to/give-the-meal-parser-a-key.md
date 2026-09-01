@@ -1,5 +1,9 @@
 # Give the meal parser a key
 
+> Email has the same shape and the same store: `Email:ApiKey`, plus `App:BaseUrl` for the links.
+> No provider is written yet, so setting `Email:ApiKey` today stops the API from starting, on
+> purpose.
+
 `POST /api/meals/parse` answers `503` until an OpenAI key is configured. Nothing else in Sated
 needs one, and nothing else stops working without it.
 

@@ -1545,3 +1545,89 @@ Content-Type: application/json
 {
   "grams": 200
 }
+
+# =============================================================================
+# POST /api/auth/forgot-password    POST /api/auth/reset-password
+# POST /api/auth/confirm-email
+#
+# Story 2.4, FR-33. Getting back into an account by email, and proving the
+# address belongs to whoever typed it.
+#
+# NO PROVIDER IS WIRED YET. In Development the message is written to the API's
+# log instead of being sent — that is a way to read the link while building,
+# NOT delivery, and outside Development the API refuses to start without a
+# real provider rather than pretend.
+#
+# forgot-password answers 202 whether or not the address has an account. Any
+# other answer turns this form into a list of who has an account: type an
+# address, read the status.
+#
+# The link carries userId and token, never the email address — a query string
+# ends up in logs and referrers.
+#
+#   202  the request was taken. Says nothing about whether an account exists
+#   204  the password was changed, or the address was confirmed
+#   400  the link expired (two hours), was already used, or was tampered with
+#   429  more than three of these a minute from one address
+#
+# A reset link works ONCE: changing the password moves the account's security
+# stamp, and the token was signed against the old one. A confirmation link
+# stays usable until it expires — confirming twice changes nothing.
+# =============================================================================
+
+### Ask for a reset — 202. Read the link from the API's log
+POST {{secureHost}}/api/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "{{email}}"
+}
+
+### An address with no account — 202, exactly the same, and nothing is sent
+POST {{secureHost}}/api/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "nobody-has-this-address@sated.test"
+}
+
+### Use the link — 204. Replace userId and token with the ones from the log
+POST {{secureHost}}/api/auth/reset-password
+Content-Type: application/json
+
+{
+  "userId": "PASTE-THE-USERID",
+  "token": "PASTE-THE-TOKEN",
+  "password": "mnopqrstuvwx"
+}
+
+### The same link again — 400, it was single use.
+### Running the requests above in one go trips the limiter first: this is the
+### fourth in a minute, so it answers 429. Wait a minute, then send it.
+
+POST {{secureHost}}/api/auth/reset-password
+Content-Type: application/json
+
+{
+  "userId": "PASTE-THE-USERID",
+  "token": "PASTE-THE-TOKEN",
+  "password": "yzabcdefghij"
+}
+
+### Confirm the address — 204, with the link from the registration email
+POST {{secureHost}}/api/auth/confirm-email
+Content-Type: application/json
+
+{
+  "userId": "PASTE-THE-USERID",
+  "token": "PASTE-THE-TOKEN"
+}
+
+### A token nobody was sent — 400
+POST {{secureHost}}/api/auth/confirm-email
+Content-Type: application/json
+
+{
+  "userId": "PASTE-THE-USERID",
+  "token": "a token nobody generated"
+}

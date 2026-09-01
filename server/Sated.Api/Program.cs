@@ -37,7 +37,11 @@ builder.Services
 
         options.User.RequireUniqueEmail = true;
     })
-    .AddEntityFrameworkStores<SatedDbContext>();
+    .AddEntityFrameworkStores<SatedDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+    options.TokenLifespan = TimeSpan.FromHours(2));
 
 builder.Services.Configure<SecurityStampValidatorOptions>(options =>
     options.ValidationInterval = TimeSpan.Zero);
@@ -78,6 +82,17 @@ builder.Services.AddRateLimiter(options =>
                     .GetValue("RateLimits:LoginPerMinute", 10),
                 Window = TimeSpan.FromMinutes(1)
             }));
+
+    options.AddPolicy<string>("email", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = context.RequestServices
+                    .GetRequiredService<IConfiguration>()
+                    .GetValue("RateLimits:EmailPerMinute", 3),
+                Window = TimeSpan.FromMinutes(1)
+            }));
 });
 
 var calibration = Calibration.Load();
@@ -89,6 +104,8 @@ builder.Services.AddScoped<FoodSwaps>();
 builder.Services.AddScoped<Consents>();
 builder.Services.AddScoped<Profiles>();
 builder.Services.AddScoped<Accounts>();
+builder.Services.AddScoped<AccountRecovery>();
+builder.Services.AddEmailSender(builder.Configuration, builder.Environment);
 builder.Services.AddScoped<FoodCatalogue>();
 builder.Services.AddScoped<Recipes>();
 builder.Services.AddScoped<Meals>();

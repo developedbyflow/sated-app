@@ -624,6 +624,71 @@ no lockout ever triggers. Only the rate limit sees that. Neither measure covers 
 The limit is `RateLimits:LoginPerMinute` in configuration, default 10, partitioned by remote
 address.
 
+## `POST /api/auth/forgot-password`, `reset-password` and `confirm-email`
+
+Getting back into an account by email (Story 2.4, FR-33), and proving the address belongs to
+whoever typed it.
+
+**No provider is wired yet.** In Development the message is written to the API's log, which is how
+you read the link while building. Outside Development the API refuses to start without a real
+provider rather than pretend
+([0025](../decisions/0025-a-reset-link-is-single-use-and-says-nothing-about-who-has-an-account.md)).
+
+### `POST /api/auth/forgot-password`
+
+```json
+{ "email": "you@example.com" }
+```
+
+**`202 Accepted`, always** — for an address with an account and for one without. The answer is the
+same on purpose: any difference turns this form into a list of who has an account. Nothing is sent
+to an address nobody registered.
+
+### `POST /api/auth/reset-password`
+
+```json
+{ "userId": "…", "token": "…", "password": "a new password" }
+```
+
+`userId` and `token` come from the link. **The link carries no email address** — a query string
+ends up in logs, history and referrers.
+
+`204 No Content` on success. `400` covers every way a link can fail, in one message: expired after
+two hours, already used, or altered.
+
+**A link works once.** Changing the password moves the account's security stamp, and the token was
+signed against the old one, so the second attempt fails validation. There is no line of code that
+marks a token as spent — do not go looking for one.
+
+**Resetting also confirms the address.** The link arrived, so the mailbox is real. That is how an
+account created before this story gets a confirmed address, with no migration.
+
+### `POST /api/auth/confirm-email`
+
+```json
+{ "userId": "…", "token": "…" }
+```
+
+`204`, or `400` for a token that expired or was never issued. Unlike a reset link, this one stays
+usable until it expires: confirming an address twice changes nothing.
+
+**An unconfirmed account is a complete account.** Sign-in, the journal, grades, own foods — all of
+it works. Confirming matters for getting back in, not for getting in.
+
+### All three are limited to three a minute
+
+Per address block, the same shape as the login limiter. They are the only endpoints in Sated that
+cause mail to leave, which makes them the only ones somebody can point at a stranger's inbox.
+
+### Five wrong passwords tell the owner, and nobody else
+
+Sign-in blocks for five minutes after five failures. The screen keeps answering `401` with nothing
+in it — saying "this account is locked" would mean only real accounts can be locked, and five
+invented passwords would become a way to ask whether an address is registered.
+
+The owner gets one message, sent on the attempt that causes the block and not on the ones after
+it. It says **nobody got in**, because nobody did.
+
 ## `POST /api/auth/logout`
 
 No body. `204`, and the cookie is cleared.

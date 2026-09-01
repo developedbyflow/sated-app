@@ -12,4 +12,8 @@
     <ProjectReference Include="..\Sated.Scoring\Sated.Scoring.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.11" />
+  </ItemGroup>
+
 </Project>

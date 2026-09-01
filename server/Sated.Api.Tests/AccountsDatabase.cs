@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Sated.Data;
 using Sated.Data.Entities;
 using Sated.Parsing;
+using Sated.Services;
 
 namespace Sated.Api.Tests;
 
@@ -32,6 +33,9 @@ public class AccountsDatabase : IAsyncLifetime
         await api.DisposeAsync();
         await throttled.DisposeAsync();
     }
+
+    public RecordingEmailSender Post =>
+        (RecordingEmailSender)api.Services.GetRequiredService<IEmailSender>();
 
     public ScriptedMealParser Parser =>
         (ScriptedMealParser)api.Services.GetRequiredService<IMealParser>();
@@ -135,6 +139,17 @@ public class AccountsDatabase : IAsyncLifetime
             .CountAsync(meal => meal.Day.OwnerId == userId);
     }
 
+    public async Task<bool> EmailIsConfirmed(string address)
+    {
+        using var scope = api.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<SatedDbContext>();
+
+        return await database.Users
+            .Where(user => user.Email == address)
+            .Select(user => user.EmailConfirmed)
+            .SingleAsync();
+    }
+
     public async Task<int> ConsentsOf(string userId)
     {
         using var scope = api.Services.CreateScope();
@@ -150,13 +165,15 @@ public class AccountsDatabase : IAsyncLifetime
                 configuration.AddInMemoryCollection(new Dictionary<string, string?>
                 {
                     ["ConnectionStrings:Sated"] = ConnectionString,
-                    ["RateLimits:LoginPerMinute"] = loginAttemptsPerMinute
+                    ["RateLimits:LoginPerMinute"] = loginAttemptsPerMinute,
+                    ["RateLimits:EmailPerMinute"] = "1000"
                 }));
 
             builder.ConfigureServices(services =>
             {
                 services.AddSingleton<TimeProvider>(new ClockFinerThanPostgres());
                 services.AddSingleton<IMealParser, ScriptedMealParser>();
+                services.AddSingleton<IEmailSender, RecordingEmailSender>();
             });
         });
 
