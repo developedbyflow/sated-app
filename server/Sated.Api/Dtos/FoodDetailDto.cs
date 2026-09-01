@@ -6,6 +6,7 @@ public record FoodDetailDto(
     int Id,
     int? FdcId,
     string Description,
+    string? Slug,
     string Category,
     NutrientAmountsDto Nutrients,
     FoodProvenanceDto Provenance,
@@ -17,6 +18,7 @@ public record FoodDetailDto(
         food.Id,
         food.FdcId,
         food.Description,
+        food.Slug,
         food.Category,
         new NutrientAmountsDto(
             food.Nutrients.Calories,

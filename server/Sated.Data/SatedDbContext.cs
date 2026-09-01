@@ -29,6 +29,7 @@ public class SatedDbContext(
             food.OwnsOne(entry => entry.Nutrients);
             food.Property(entry => entry.Source).HasConversion<string>();
             food.HasIndex(entry => entry.FdcId).IsUnique();
+            food.HasIndex(entry => entry.Slug).IsUnique();
             food.HasIndex(entry => entry.OwnerId);
 
             food.HasOne<AppUser>()

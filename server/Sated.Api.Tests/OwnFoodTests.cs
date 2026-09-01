@@ -167,6 +167,18 @@ public class OwnFoodTests(AccountsDatabase database) : IClassFixture<AccountsDat
     }
 
     [Fact]
+    public async Task Post_AFoodOfMyOwn_CarriesNoSlugAndSoNoPublicPage()
+    {
+        using var browser = await SignedIn();
+        await Catalogued();
+
+        var response = await Post(browser, Telemea());
+
+        var food = await response.Content.ReadFromJsonAsync<FoodDetailDto>(ApiJson.Options);
+        Assert.Null(food!.Slug);
+    }
+
+    [Fact]
     public async Task Search_Always_SaysWhichRowsAreMineAndWhichAreTheCatalogue()
     {
         using var browser = await SignedIn();

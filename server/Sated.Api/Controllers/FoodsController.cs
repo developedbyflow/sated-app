@@ -61,6 +61,21 @@ public class FoodsController(
         return FoodDetailDto.From(food);
     }
 
+    [HttpGet("by-slug/{slug}")]
+    public async Task<ActionResult<FoodDetailDto>> Get(string slug)
+    {
+        var food = await database.Foods
+            .Include(food => food.Servings)
+            .FirstOrDefaultAsync(food => food.Slug == slug && food.OwnerId == null);
+
+        if (food is null)
+        {
+            return NotFound();
+        }
+
+        return FoodDetailDto.From(food);
+    }
+
     [HttpGet("categories")]
     public Task<string[]> Categories() => catalogue.Categories();
 

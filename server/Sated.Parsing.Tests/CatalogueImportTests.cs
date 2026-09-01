@@ -101,4 +101,10 @@ public class CatalogueImportTests
     {
         Assert.Null(ChickenBreast().Nutrients.Leucine);
     }
+
+    [Fact]
+    public void Read_ACataloguedFood_CarriesTheSlugItsPublicPageIsAt()
+    {
+        Assert.Equal("chicken-breast-grilled-without-sauce-skin-eaten", ChickenBreast().Slug);
+    }
 }

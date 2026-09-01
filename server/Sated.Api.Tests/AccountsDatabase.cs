@@ -43,7 +43,8 @@ public class AccountsDatabase : IAsyncLifetime
         string? ownerId,
         double calories = 250,
         double protein = 17,
-        double fat = 20)
+        double fat = 20,
+        string? slug = null)
     {
         using var scope = api.Services.CreateScope();
         var database = scope.ServiceProvider.GetRequiredService<SatedDbContext>();
@@ -51,6 +52,7 @@ public class AccountsDatabase : IAsyncLifetime
         var food = new Food
         {
             Description = description,
+            Slug = slug,
             Category = "Cheese",
             Source = ownerId is null ? FoodSource.UsdaFndds : FoodSource.UserEntered,
             OwnerId = ownerId,

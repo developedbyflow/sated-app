@@ -277,6 +277,7 @@ kept counting through the reloads that happened before 0006 stopped them.
   "id": 5348,
   "fdcId": 2705385,
   "description": "Milk, whole",
+  "slug": "milk-whole",
   "category": "Milk, whole",
   "nutrients": {
     "calories": 61, "protein": 3.27, "fat": 3.2, "fiber": 0,
@@ -284,7 +285,16 @@ kept counting through the reloads that happened before 0006 stopped them.
     "vitaminA": 32, "vitaminC": 0, "vitaminD": 1.1, "vitaminE": 0.05,
     "thiamine": 0.056, "calcium": 123, "iron": 0, "magnesium": 12,
     "potassium": 150, "leucine": null
-  }
+  },
+  "provenance": { "source": "UsdaFndds", "estimated": ["leucine"], "absent": [] },
+  "typicalGrams": 244,
+  "servings": [
+    { "description": "1 cup", "grams": 244 },
+    { "description": "1 fl oz", "grams": 30.5 },
+    { "description": "1 individual school container", "grams": 244 },
+    { "description": "Guideline amount per fl oz of beverage", "grams": 2.5 },
+    { "description": "Guideline amount per cup of hot cereal", "grams": 61 }
+  ]
 }
 ```
 
@@ -293,6 +303,7 @@ kept counting through the reloads that happened before 0006 stopped them.
 | `id` | number | The stable key |
 | `fdcId` | number \| null | The USDA row these numbers came from. `null` for a food typed in by hand |
 | `description` | string | The name, as the catalogue carries it. This is the field a translation replaces |
+| `slug` | string \| null | The name this food's public page is at. `null` for a food somebody added for themselves |
 | `category` | string | One of the 71 FNDDS categories. Read by the scoring rules, never translated |
 | `nutrients` | object | Per 100 g. Six always present, ten nullable |
 
@@ -319,6 +330,48 @@ also matches the database, where the nutrients are an owned type on `Food`
 
 Note that `POST /api/grades` takes its nutrients **flat**, in the request root. The two shapes are
 not inconsistent: one is a food we hold, the other is a measurement someone hands us.
+
+## `GET /api/foods/by-slug/{slug}`
+
+The same food as `GET /api/foods/{id}`, named by its slug instead of its id. It exists because a
+public food page is reached from a search engine, which knows a name and not a number.
+
+**Request** — `slug` is the description in lowercase, with every run of characters that are not
+letters or digits turned into one hyphen. `Rice, wild, 100%, cooked, NS as to fat` becomes
+`rice-wild-100-cooked-ns-as-to-fat`.
+
+The slug is **stored on the row**, not computed per request, so it can be indexed and looked up.
+It is set once, when the food is imported, and never changes — the description never changes
+either.
+
+**Response** — `200 OK`, byte for byte the body `GET /api/foods/{id}` returns for the same food.
+Anonymous: the page has to work before anyone signs up.
+
+**`404 Not Found`** covers four cases, and they are the same answer on purpose:
+
+| | |
+|---|---|
+| no food carries that slug | there is no page |
+| the slug in another letter case | `Milk-Whole` is not `milk-whole`; the lookup is exact |
+| the description instead of the slug | `Milk,%20whole` is not a slug |
+| the slug of a food somebody added for themselves | those never get a public page (FR-11) |
+
+Only catalogue rows carry a slug. A food created through `POST /api/foods` comes back with
+`slug: null`, and that is what keeps it off the public web
+([0022](../decisions/0022-a-public-page-is-reached-by-a-slug.md)).
+
+### Two requests build the page, not one
+
+The page needs the food, its grade under every lens, and the breakdown. That is this endpoint for
+the food, then `GET /api/foods/{id}/grades` with the id it returns. Both are anonymous, and both
+are the endpoints the signed-in app already calls — Story 9.1 asks for no parallel path to the
+same data.
+
+### The slug is not truncated
+
+The longest slug in the catalogue is 110 characters. Measured by `tools/SlugQuery`, cutting slugs
+to a maximum length is what *creates* collisions: none at 100 characters, 10 at 80, 25 at 60, 223
+at 40. The two longest slugs are both 110 characters and first differ at character **100**.
 
 ## `GET /api/foods/{id}/grade`
 

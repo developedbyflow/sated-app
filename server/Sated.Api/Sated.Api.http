@@ -229,6 +229,63 @@ GET {{host}}/api/foods/6626
 Accept: application/json
 
 # =============================================================================
+# GET /api/foods/by-slug/{slug}
+#
+# The same food as /api/foods/{id}, named by its slug instead of its id. This
+# is what the public food page of Story 9.1 opens with: a search engine sends a
+# visitor to /food/milk-whole, and the page has an id only after this call.
+#
+# The slug is the description in lowercase, with every run of anything that is
+# not a letter or a digit turned into one hyphen: "Rice, wild, 100%, cooked"
+# becomes rice-wild-100-cooked. It is stored on the row, not computed per
+# request, so it can be indexed and looked up.
+#
+#   200  the food, the same body as /api/foods/{id}
+#   404  no catalogue food carries that slug — including a slug written in
+#        another letter case, and including the slug of a food somebody added
+#        for themselves, which never gets a public page (FR-11, ADR 0022)
+#
+# Only catalogue rows carry a slug. A food added through POST /api/foods comes
+# back with slug: null, and that is what keeps it off the public web.
+# =============================================================================
+
+### Whole milk by its slug — 200, the same body as /api/foods/5348 above
+GET {{host}}/api/foods/by-slug/milk-whole
+Accept: application/json
+
+### The first row of the catalogue, by slug — 200, id 5347
+GET {{host}}/api/foods/by-slug/milk-nfs
+Accept: application/json
+
+### The last row, by slug — 200, id 7279
+GET {{host}}/api/foods/by-slug/fruit-juice-acai-blend
+Accept: application/json
+
+### A description carrying a percent sign — the sign is gone, the number stays
+GET {{host}}/api/foods/by-slug/rice-wild-100-cooked-ns-as-to-fat
+Accept: application/json
+
+### The longest slug in the catalogue — 110 characters, kept whole
+GET {{host}}/api/foods/by-slug/egg-omelet-or-scrambled-egg-with-cheese-meat-and-vegetables-other-than-dark-green-and-or-tomatoes-no-added-fat
+Accept: application/json
+
+### The same slug shouted — 404, the lookup is exact
+GET {{host}}/api/foods/by-slug/Milk-Whole
+Accept: application/json
+
+### The description itself, not its slug — 404
+GET {{host}}/api/foods/by-slug/Milk,%20whole
+Accept: application/json
+
+### A slug nothing carries — 404
+GET {{host}}/api/foods/by-slug/telemea-de-oaie
+Accept: application/json
+
+### An empty slug — 404 from the route, this is not the list endpoint
+GET {{host}}/api/foods/by-slug/
+Accept: application/json
+
+# =============================================================================
 # GET /api/foods/{id}/grade?lensId=…
 #
 # The letter of a catalogue food. The database supplies the food, the engine

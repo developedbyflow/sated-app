@@ -60,6 +60,7 @@ public static class CatalogueImport
         {
             FdcId = food.FdcId,
             Description = food.Description,
+            Slug = Slug.From(food.Description),
             Category = food.Category!.Description,
             Source = FoodSource.UsdaFndds,
             TypicalGrams = SurveyPortions.TypicalGramsOf(food),
