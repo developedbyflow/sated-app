@@ -13,11 +13,19 @@ internal static class Frozen
         "fitness", "Fitness", satiety: 25, density: 25, proteinQuality: 50,
         proteinPerKg: new ProteinPerKg(1.4, 2.0));
 
+    public static readonly Lens Glp1 = new(
+        "glp-1", "GLP-1", satiety: 50, density: 35, proteinQuality: 15,
+        densityNutrients: DensityScore.Nrf112,
+        proteinPerKg: new ProteinPerKg(1.2, 2.0));
+
     public static readonly GradeThresholds WeightLossCutoffs =
         new(dStartsAt: 29.68, cStartsAt: 43.63, bStartsAt: 57.44, aStartsAt: 72.01);
 
     public static readonly GradeThresholds FitnessCutoffs =
         new(dStartsAt: 30.96, cStartsAt: 45.38, bStartsAt: 54.58, aStartsAt: 70.99);
+
+    public static readonly GradeThresholds Glp1Cutoffs =
+        new(dStartsAt: 29.88, cStartsAt: 44.07, bStartsAt: 57.2, aStartsAt: 71.65);
 
     public const double ReferenceMealGrams = 300;
 

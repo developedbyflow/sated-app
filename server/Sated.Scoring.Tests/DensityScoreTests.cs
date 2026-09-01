@@ -2,6 +2,36 @@ namespace Sated.Scoring.Tests;
 
 public class DensityScoreTests
 {
+    private static readonly DensityInput MilkNfs = new(
+        Calories: 52, Protein: 3.33, Fiber: 0,
+        VitaminA: 58, VitaminC: 0.1, VitaminE: 0.03,
+        Calcium: 125, Iron: 0, Magnesium: 12, Potassium: 156,
+        SaturatedFat: 1.25, Sodium: 39,
+        VitaminD: 1.1, Thiamine: 0.057);
+
+    private static readonly DensityInput PassionFruit = new(
+        Calories: 97, Protein: 2.2, Fiber: 10.4,
+        VitaminA: 64, VitaminC: 30, VitaminE: 0.02,
+        Calcium: 12, Iron: 1.6, Magnesium: 29, Potassium: 348,
+        SaturatedFat: 0.059, Sodium: 28,
+        VitaminD: 0, Thiamine: 0);
+
+    [Fact]
+    public void Calculate_MilkUnderTheGlp1Set_CountsTheTwoNutrientsNrf92LeavesOut()
+    {
+        Assert.True(
+            DensityScore.Calculate(MilkNfs, DensityScore.Nrf112)
+            > DensityScore.Calculate(MilkNfs, DensityScore.Nrf92));
+    }
+
+    [Fact]
+    public void Calculate_AFoodCarryingNeitherNutrient_ScoresTheSameUnderBothSets()
+    {
+        Assert.Equal(
+            DensityScore.Calculate(PassionFruit, DensityScore.Nrf92),
+            DensityScore.Calculate(PassionFruit, DensityScore.Nrf112));
+    }
+
     [Fact]
     public void Calculate_OliveOil_MatchesBenchmarkReport()
     {

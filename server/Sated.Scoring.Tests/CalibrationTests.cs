@@ -9,26 +9,54 @@ public class CalibrationTests
     private static readonly string ShippedPath =
         Path.Combine(AppContext.BaseDirectory, "calibration.json");
 
+    private static readonly Lens[] FrozenLenses = [Frozen.WeightLoss, Frozen.Fitness, Frozen.Glp1];
+
+    [Fact]
+    public void Lenses_FromShippedFile_AreTheThreeFrozenOnesAndNothingElse()
+    {
+        Assert.Equal(
+            FrozenLenses.Select(lens => lens.Id),
+            Shipped.Lenses.Select(lens => lens.Id));
+    }
+
     [Fact]
     public void Lenses_FromShippedFile_MatchTheFrozenWeights()
     {
-        var lens = Shipped.Lenses.Single(candidate => candidate.Id == "weight-loss");
+        foreach (var frozen in FrozenLenses)
+        {
+            var shipped = Shipped.Lenses.Single(candidate => candidate.Id == frozen.Id);
 
-        Assert.Equal(Frozen.WeightLoss.Satiety, lens.Satiety);
-        Assert.Equal(Frozen.WeightLoss.Density, lens.Density);
-        Assert.Equal(Frozen.WeightLoss.ProteinQuality, lens.ProteinQuality);
+            Assert.Equal(frozen.Satiety, shipped.Satiety);
+            Assert.Equal(frozen.Density, shipped.Density);
+            Assert.Equal(frozen.ProteinQuality, shipped.ProteinQuality);
+        }
     }
 
     [Fact]
     public void ProteinPerKg_FromShippedFile_MatchesTheFrozenRanges()
     {
-        foreach (var frozen in new[] { Frozen.WeightLoss, Frozen.Fitness })
+        foreach (var frozen in FrozenLenses)
         {
             var shipped = Shipped.Lenses.Single(candidate => candidate.Id == frozen.Id);
 
             Assert.Equal(frozen.ProteinPerKg!.Min, shipped.ProteinPerKg!.Min);
             Assert.Equal(frozen.ProteinPerKg.Max, shipped.ProteinPerKg.Max);
         }
+    }
+
+    [Fact]
+    public void DensityNutrients_FromShippedFile_CountVitaminDAndThiamineUnderGlp1Alone()
+    {
+        foreach (var frozen in FrozenLenses)
+        {
+            var shipped = Shipped.Lenses.Single(candidate => candidate.Id == frozen.Id);
+
+            Assert.Equal(frozen.DensityNutrients.Name, shipped.DensityNutrients.Name);
+        }
+
+        Assert.Equal(
+            DensityScore.Nrf92.Encouraged.Count + 2,
+            Shipped.Lenses.Single(lens => lens.Id == "glp-1").DensityNutrients.Encouraged.Count);
     }
 
     [Fact]
@@ -47,7 +75,8 @@ public class CalibrationTests
         var frozen = new[]
         {
             (Lens: Frozen.WeightLoss, Cutoffs: Frozen.WeightLossCutoffs),
-            (Lens: Frozen.Fitness, Cutoffs: Frozen.FitnessCutoffs)
+            (Lens: Frozen.Fitness, Cutoffs: Frozen.FitnessCutoffs),
+            (Lens: Frozen.Glp1, Cutoffs: Frozen.Glp1Cutoffs)
         };
 
         foreach (var (lens, cutoffs) in frozen)

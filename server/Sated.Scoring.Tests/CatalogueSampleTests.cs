@@ -35,6 +35,28 @@ public class CatalogueSampleTests
         Assert.Empty(moved);
     }
 
+    [Fact]
+    public void GradeFor_TheWatermelonTheEpicNames_IsAUnderWeightLossAndCUnderFitness()
+    {
+        var watermelon = new FoodInput(
+            Category: "Melons",
+            Calories: 30, Protein: 0.61, Fat: 0.15, Fiber: 0.4,
+            VitaminA: 28, VitaminC: 8.1, VitaminE: 0.05,
+            Calcium: 7, Iron: 0.24, Magnesium: 10, Potassium: 112,
+            SaturatedFat: 0.016, Sodium: 1,
+            VitaminD: 0, Thiamine: 0.033);
+
+        Assert.Equal(Grade.A, GradeUnder(watermelon, "weight-loss"));
+        Assert.Equal(Grade.C, GradeUnder(watermelon, "fitness"));
+    }
+
+    private static Grade? GradeUnder(FoodInput food, string lensId)
+    {
+        var lens = Shipped.Lenses.Single(candidate => candidate.Id == lensId);
+
+        return Shipped.GradeFor(Engine.Combine(food, lens), lens);
+    }
+
     private static IEnumerable<SampleFood> Sample()
     {
         var path = Path.Combine(AppContext.BaseDirectory, "catalogue-sample.csv");

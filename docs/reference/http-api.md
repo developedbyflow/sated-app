@@ -736,6 +736,24 @@ not a rule. The body names the request to make first.
 `403` rather than `400`: the request is well formed and the caller is known. What is missing is
 permission.
 
+### Changing the lens regrades everything, including the past
+
+A grade is computed when it is read, never stored
+([0018](../decisions/0018-the-day-is-one-plate.md)), so switching the lens here changes every
+letter the product will show from the next request on — today's meals, a day logged in March, the
+day ring. There is no migration, no backfill and no invalidation step, because there is nothing
+holding an old letter.
+
+**What is stored is untouched.** A meal keeps its id, its entries keep theirs, and the grams stay
+what they were. The letter moves; the food you ate does not.
+
+The protein target does move, because it is per lens: Weight Loss asks 1.6-2.2 g per kg of
+adjusted body weight, Fitness 1.4-2.0, GLP-1 1.2-2.0. The protein you actually ate is the same
+number under all three.
+
+Switching back gives the first letters back, exactly. That is the same property said differently:
+a letter is a function of the food and the lens, and of nothing that happened in between.
+
 ## `PUT /api/profile/calorie-target` and `DELETE`
 
 ```json
