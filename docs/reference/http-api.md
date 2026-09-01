@@ -699,6 +699,14 @@ No body. `204`, and the cookie is cleared.
 
 `200` with `id` and `email` for the signed-in caller. `401` otherwise.
 
+```json
+{ "id": "dd3d0b9b-130d-46ea-bc41-e4fc9d0ca34e", "email": "you@example.com" }
+```
+
+The id is what a reset link carries
+([0025](../decisions/0025-a-reset-link-is-single-use-and-says-nothing-about-who-has-an-account.md))
+and what `ownerId` holds on a food somebody added.
+
 The `401` carries **no `Location` header**. Identity's cookie handler would name `/Account/Login`
 there, a page that does not exist in an API; a client that followed it would get a `404` instead of
 reading the authentication error. The redirect event is overridden in `Program.cs` to stop that.
@@ -989,6 +997,10 @@ against an endpoint with no counter. A locked account gets the identical `403`, 
 says which of the two happened.
 
 ## `GET /api/foods/categories`
+
+```json
+["Apple juice", "Apples", "Bananas", "Beans, peas, legumes", "Beef, excludes ground"]
+```
 
 An array of the category names the catalogue uses, sorted. Anonymous, like the rest of the read
 side. It is read from the catalogue rows themselves, so it cannot drift from what
