@@ -48,6 +48,10 @@ memory through `WebApplicationFactory` — the same validation, the same contain
 The two catalogue endpoints run against a real PostgreSQL in a second database, `sated_test`, for
 the reasons in [0007](../decisions/0007-test-the-foods-query-against-a-real-database.md).
 
+> Every JSON example below is checked against the running API by `tools/DocExampleCheck` — see
+> [Check the examples still hold](../how-to/check-the-examples-still-hold.md). If you change a
+> response, run it.
+
 ## `GET /api/lenses`
 
 The goal profiles a user can choose between (FR-23, FR-25). This is what the onboarding screen of
@@ -146,10 +150,10 @@ says which components stood on estimates.
 ```json
 {
   "grade": "A",
-  "score": 88.03,
+  "score": 88.99,
   "isPartial": false,
   "satiety":       { "score": 86.13, "isEstimated": false },
-  "density":       { "score": 85.62, "isEstimated": true  },
+  "density":       { "score": 88.35, "isEstimated": true  },
   "proteinQuality":{ "score": 100,   "isEstimated": true  },
   "fatQuality":    { "score": 69.00, "isEstimated": false }
 }
@@ -229,7 +233,8 @@ A raw space ends the URL in an HTTP request line. Categories that contain one mu
 ```json
 {
   "items": [
-    { "id": 6626, "description": "Broccoli, raw", "category": "Broccoli" }
+    { "id": 6626, "description": "Broccoli, raw", "category": "Broccoli",
+      "source": "UsdaFndds" }
   ],
   "page": 1,
   "pageSize": 25,
@@ -728,7 +733,7 @@ Requires a session. `purpose` is `HealthData`; it is the only one so far.
 {
   "purpose": "HealthData",
   "version": "2026-08-31",
-  "text": "Sated needs two kinds of information about you that count as health data...",
+  "text": "Sated needs three kinds of information about you that count as health data: your\nbody weight, your height, and what you eat…",
   "givenAt": null
 }
 ```
@@ -775,9 +780,12 @@ One `POST` and one `DELETE`, deliberately symmetric. Withdrawal has to be as eas
 }
 ```
 
-All three values are `null` for an account that has not finished onboarding. That is not an error state
-and does not need one: registering and onboarding are two moments, and the gap between them is
-ordinary.
+`weightKg`, `heightCm` and `activeLensId` are `null` for an account that has not finished
+onboarding. That is not an error state and does not need one: registering and onboarding are two
+moments, and the gap between them is ordinary.
+
+`calorieTargetKcal` is `null` until somebody sets one. That is its own step, not part of
+onboarding, so a finished profile can still have none.
 
 ## `PUT /api/profile`
 
@@ -941,14 +949,40 @@ Returns the whole account as one JSON document, sent as an attachment named
   "exportedAt": "2026-08-31T09:22:56.951492+00:00",
   "email": "florin@sated.test",
   "weightKg": 82,
+  "heightCm": 180,
+  "calorieTargetKcal": 2000,
   "activeLensId": "weight-loss",
+  "foods": [],
+  "recipes": [],
+  "meals": [
+    {
+      "date": "2026-08-31",
+      "name": "Breakfast",
+      "loggedAt": "2026-08-31T09:22:51.114217+00:00",
+      "engineVersion": "1",
+      "totalGrams": 100,
+      "entries": [
+        {
+          "id": 18,
+          "foodId": 5943,
+          "description": "Egg, whole, boiled or poached",
+          "quantityGrams": 100,
+          "displayAmount": 2,
+          "displayUnit": "1 egg",
+          "quantityEstimated": false,
+          "fromRecipeId": null,
+          "fromRecipeName": null
+        }
+      ]
+    }
+  ],
   "consents": [
     {
       "purpose": "HealthData",
       "version": "2026-08-31",
       "givenAt": "2026-08-31T09:22:49.888733+00:00",
       "withdrawnAt": null,
-      "text": "Sated needs two kinds of information about you..."
+      "text": "Sated needs three kinds of information about you…"
     }
   ]
 }
@@ -1073,7 +1107,7 @@ than measured.
 Every food says where its numbers came from. `GET /api/foods` carries `source` on each row:
 
 ```json
-{ "id": 5347, "description": "Milk, NFS", "category": "Milk, whole", "source": "UsdaFndds" }
+{ "id": 5347, "description": "Milk, NFS", "category": "Milk, reduced fat", "source": "UsdaFndds" }
 ```
 
 That is what tells your own foods apart from the catalogue's. FR-10 asks for the distinction to be

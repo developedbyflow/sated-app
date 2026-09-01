@@ -65,6 +65,7 @@ nav:
   - How-to:
       - Change the engine safely: how-to/change-the-engine-safely.md
       - Give the meal parser a key: how-to/give-the-meal-parser-a-key.md
+      - Check the examples still hold: how-to/check-the-examples-still-hold.md
   - Reference:
       - HTTP API: reference/http-api.md
       - Database: reference/database.md
