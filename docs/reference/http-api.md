@@ -754,6 +754,62 @@ number under all three.
 Switching back gives the first letters back, exactly. That is the same property said differently:
 a letter is a function of the food and the lens, and of nothing that happened in between.
 
+## `POST /api/meals/parse`
+
+A sentence in, a proposal out. **Nothing is saved.**
+
+```json
+{ "text": "chicken burrito bowl with rice and beans" }
+```
+
+Text is required, between 2 and 500 characters. A session is required too: the call costs money and
+it reads the foods that person added for themselves.
+
+**Response** — `200 OK`.
+
+```json
+{
+  "items": [
+    { "foodId": 6315, "description": "Rice, wild, 100%, cooked, no added fat",
+      "rawText": "rice", "grams": 150, "quantityEstimated": true }
+  ],
+  "unrecognised": ["burrito bowl"]
+}
+```
+
+`rawText` is the part of the sentence this item came from, so the screen can show what was matched
+to what. `quantityEstimated` marks a quantity the model guessed rather than read.
+
+**To log it**, post each item to `POST /api/meals/{id}/entries` — the endpoint that already exists.
+Carry `quantityEstimated` with it, and the entry remembers that the number was a guess. Typing over
+the quantity later clears it.
+
+### `unrecognised` is never a substitution
+
+Three different things land there, and none of them is a food nobody asked for
+([0023](../decisions/0023-a-parsed-meal-is-a-proposal-nobody-saved.md)):
+
+| | |
+|---|---|
+| the sentence named something the catalogue does not carry | the model says so itself |
+| the model answered with an id no row carries | rejected here, against the catalogue |
+| the model answered with somebody else's food | it was never in the prompt, and is rejected the same way |
+
+A schema constrains the shape of an answer, never its content. An invented id passes the schema.
+
+### `503` is the documented way for this to fail
+
+```json
+{ "title": "Reading a sentence is unavailable",
+  "detail": "Nothing was logged and nothing was lost. Search for each food instead: GET /api/foods?search=…" }
+```
+
+No provider configured, a timeout, a refusal, a `429` or a `5xx` all answer this. Logging never
+depends on it: `GET /api/foods?search=…` and `POST /api/meals/{id}/entries` are the path that always
+works.
+
+**Today every call answers `503`** — the provider is not wired yet.
+
 ## `PUT /api/profile/calorie-target` and `DELETE`
 
 ```json

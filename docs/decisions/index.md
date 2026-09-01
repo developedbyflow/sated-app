@@ -49,6 +49,7 @@ Status is one of `proposed`, `accepted`, `superseded by 00NN`.
 | [0020](0020-compare-every-lens-in-one-request.md) | Compare every lens in one request | accepted |
 | [0021](0021-a-swap-beats-the-letter-and-is-ranked-by-score.md) | A swap beats the letter, and is ranked by score | accepted |
 | [0022](0022-a-public-page-is-reached-by-a-slug.md) | A public page is reached by a slug, and only catalogue foods have one | accepted |
+| [0023](0023-a-parsed-meal-is-a-proposal-nobody-saved.md) | A parsed meal is a proposal nobody saved | accepted |
 
 ## The scoring decisions are not here yet
 

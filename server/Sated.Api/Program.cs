@@ -7,6 +7,7 @@ using Sated.Api;
 using Sated.Data;
 using Sated.Data.Entities;
 using Sated.Scoring;
+using Sated.Parsing;
 using Sated.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -91,6 +92,8 @@ builder.Services.AddScoped<Accounts>();
 builder.Services.AddScoped<FoodCatalogue>();
 builder.Services.AddScoped<Recipes>();
 builder.Services.AddScoped<Meals>();
+builder.Services.AddScoped<MealParsing>();
+builder.Services.AddSingleton<IMealParser, NotConfiguredMealParser>();
 builder.Services.AddScoped<Days>();
 builder.Services.AddSingleton(TimeProvider.System);
 

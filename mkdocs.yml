@@ -91,4 +91,5 @@ nav:
       - 0020 - Compare every lens in one request: decisions/0020-compare-every-lens-in-one-request.md
       - 0021 - A swap beats the letter: decisions/0021-a-swap-beats-the-letter-and-is-ranked-by-score.md
       - 0022 - A public page is reached by a slug: decisions/0022-a-public-page-is-reached-by-a-slug.md
+      - 0023 - A parsed meal is a proposal: decisions/0023-a-parsed-meal-is-a-proposal-nobody-saved.md
       - Record template: decisions/_template.md

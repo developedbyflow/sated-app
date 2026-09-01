@@ -9,8 +9,23 @@ namespace Sated.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class MealsController(Meals meals) : ControllerBase
+public class MealsController(Meals meals, MealParsing parsing) : ControllerBase
 {
+    [HttpPost("parse")]
+    public async Task<ActionResult<ParsedMealDto>> Parse(
+        ParseMealRequestDto request, CancellationToken cancellation)
+    {
+        var parsed = await parsing.Of(request.Text!, cancellation);
+
+        return parsed is null
+            ? Problem(
+                statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "Reading a sentence is unavailable",
+                detail: "Nothing was logged and nothing was lost. Search for each food instead: "
+                    + "GET /api/foods?search=…")
+            : ParsedMealDto.From(parsed);
+    }
+
     [HttpGet("{id:int}", Name = "MealById")]
     public async Task<ActionResult<MealDetailDto>> Get(int id)
     {
@@ -52,7 +67,8 @@ public class MealsController(Meals meals) : ControllerBase
                 request.FoodId!.Value,
                 request.Grams,
                 request.ServingCount,
-                request.ServingDescription)
+                request.ServingDescription,
+                request.QuantityEstimated ?? false)
             : await meals.AddRecipe(meal, request.RecipeId.Value, request.Grams);
 
         if (rejection is not MealRejection.None)

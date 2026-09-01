@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Sated.Data;
 using Sated.Data.Entities;
+using Sated.Parsing;
 
 namespace Sated.Api.Tests;
 
@@ -31,6 +32,9 @@ public class AccountsDatabase : IAsyncLifetime
         await api.DisposeAsync();
         await throttled.DisposeAsync();
     }
+
+    public ScriptedMealParser Parser =>
+        (ScriptedMealParser)api.Services.GetRequiredService<IMealParser>();
 
     public HttpClient NewBrowser() => OverHttps(api);
 
@@ -121,6 +125,16 @@ public class AccountsDatabase : IAsyncLifetime
         return await database.Set<Meal>().IgnoreQueryFilters().CountAsync(meal => meal.Id == mealId);
     }
 
+    public async Task<int> MealsOf(string userId)
+    {
+        using var scope = api.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<SatedDbContext>();
+
+        return await database.Set<Meal>()
+            .IgnoreQueryFilters()
+            .CountAsync(meal => meal.Day.OwnerId == userId);
+    }
+
     public async Task<int> ConsentsOf(string userId)
     {
         using var scope = api.Services.CreateScope();
@@ -140,7 +154,10 @@ public class AccountsDatabase : IAsyncLifetime
                 }));
 
             builder.ConfigureServices(services =>
-                services.AddSingleton<TimeProvider>(new ClockFinerThanPostgres()));
+            {
+                services.AddSingleton<TimeProvider>(new ClockFinerThanPostgres());
+                services.AddSingleton<IMealParser, ScriptedMealParser>();
+            });
         });
 
     private static HttpClient OverHttps(WebApplicationFactory<Program> api) =>

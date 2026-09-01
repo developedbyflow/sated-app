@@ -1469,3 +1469,79 @@ DELETE {{secureHost}}/api/meals/1
 ### The recipe it was logged from is untouched — 200
 GET {{secureHost}}/api/recipes/1
 Accept: application/json
+
+# =============================================================================
+# POST /api/meals/parse
+#
+# Story 4.2, FR-14. Send a sentence, get back the foods and quantities it names.
+# NOTHING IS SAVED. The answer is a proposal the person confirms, and the
+# confirmation is the existing POST /api/meals/{id}/entries.
+#
+# The provider is not wired yet, so every call below answers 503 today. That is
+# the documented degradation, not a defect: the person is told to search instead
+# (Story 4.1) and the logging path stays open.
+#
+#   200  the proposal: items[] and unrecognised[]
+#   400  no text, or under two characters
+#   401  no session — the request costs money and reads your own foods
+#   503  no provider configured, or it timed out, refused, or answered 429/5xx
+#
+# unrecognised[] carries the raw words, never a substituted food. A food id the
+# model invents, a food belonging to somebody else, and a quantity of zero all
+# land there — see ADR 0023.
+#
+# quantityEstimated marks a quantity the model guessed rather than read. It
+# travels to the stored entry through the confirmation, and typing over the
+# quantity later clears it.
+# =============================================================================
+
+### Sign in first — 200
+POST {{secureHost}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### A sentence naming two foods — 503 until a provider is configured
+POST {{secureHost}}/api/meals/parse
+Content-Type: application/json
+
+{
+  "text": "chicken burrito bowl with rice and beans"
+}
+
+### Empty text — 400, before anything is sent anywhere
+POST {{secureHost}}/api/meals/parse
+Content-Type: application/json
+
+{
+  "text": ""
+}
+
+### One character — 400, the same rule
+POST {{secureHost}}/api/meals/parse
+Content-Type: application/json
+
+{
+  "text": "a"
+}
+
+### Confirming a proposal — the quantity the model guessed is stored as guessed
+POST {{secureHost}}/api/meals/1/entries
+Content-Type: application/json
+
+{
+  "foodId": 5348,
+  "grams": 244,
+  "quantityEstimated": true
+}
+
+### Typing over that quantity — quantityEstimated goes back to false
+PUT {{secureHost}}/api/meals/1/entries/1
+Content-Type: application/json
+
+{
+  "grams": 200
+}

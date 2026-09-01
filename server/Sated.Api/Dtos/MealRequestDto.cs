@@ -25,6 +25,8 @@ public record MealEntryRequestDto
     public double? ServingCount { get; init; }
 
     public string? ServingDescription { get; init; }
+
+    public bool? QuantityEstimated { get; init; }
 }
 
 public record MealRenameRequestDto

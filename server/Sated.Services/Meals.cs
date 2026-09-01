@@ -60,7 +60,8 @@ public class Meals(
     }
 
     public async Task<MealRejection> AddEntry(
-        Meal meal, int foodId, double? grams, double? servingCount, string? servingDescription)
+        Meal meal, int foodId, double? grams, double? servingCount, string? servingDescription,
+        bool quantityEstimated = false)
     {
         var food = await WithServings(foodId);
 
@@ -81,7 +82,8 @@ public class Meals(
             FoodId = foodId,
             QuantityGrams = quantity.Grams,
             DisplayAmount = quantity.Amount,
-            DisplayUnit = quantity.Unit
+            DisplayUnit = quantity.Unit,
+            QuantityEstimated = quantityEstimated
         });
 
         await database.SaveChangesAsync();
@@ -110,6 +112,7 @@ public class Meals(
         entry.QuantityGrams = quantity.Grams;
         entry.DisplayAmount = quantity.Amount;
         entry.DisplayUnit = quantity.Unit;
+        entry.QuantityEstimated = false;
 
         await database.SaveChangesAsync();
 

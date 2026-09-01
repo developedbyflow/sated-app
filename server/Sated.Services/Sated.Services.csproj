@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Sated.Data\Sated.Data.csproj" />
+    <ProjectReference Include="..\Sated.Parsing\Sated.Parsing.csproj" />
     <ProjectReference Include="..\Sated.Scoring\Sated.Scoring.csproj" />
   </ItemGroup>
 
