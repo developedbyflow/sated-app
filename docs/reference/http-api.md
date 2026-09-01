@@ -862,6 +862,25 @@ Three different things land there, and none of them is a food nobody asked for
 
 A schema constrains the shape of an answer, never its content. An invented id passes the schema.
 
+### Twenty sentences a day, per account
+
+The window opens on the first sentence and closes twenty-four hours later — not at midnight, so
+there is no timezone to argue about and no minute at which everybody's allowance returns at once.
+
+```json
+{ "title": "That is as many sentences as this account can have read in a day",
+  "detail": "Nothing was logged and nothing was lost. The limit is 20 a day, and the next one is free at 2026-09-02 08:14:33Z. Until then, search for each food instead: GET /api/foods?search=…" }
+```
+
+`429`, and the answer names the moment rather than a duration.
+
+**Only a sentence that was actually read counts.** A `503` costs nothing and takes nothing: the
+count and the clock are written in the same breath as the answer, after the model has replied
+([0026](../decisions/0026-twenty-sentences-a-day.md)).
+
+There is a second `429` in front of it, six a minute per address block, which is the burst rather
+than the bill.
+
 ### `503` is the documented way for this to fail
 
 ```json

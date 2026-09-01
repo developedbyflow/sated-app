@@ -130,6 +130,75 @@ public class MealParsingTests(AccountsDatabase database) : IClassFixture<Account
     }
 
     [Fact]
+    public async Task Parse_ASentenceThatWasRead_CountsAgainstTheDay()
+    {
+        using var browser = await SignedIn();
+        var cheese = await database.AddFood("Cheddar, counted", ownerId: null);
+        Answer(new ParsedItem(cheese, "cheese", 100, QuantityEstimated: false));
+
+        await Post(browser, Sentence);
+
+        Assert.Equal(1, await database.ParsesUsedBy(await IdOf(browser)));
+    }
+
+    [Fact]
+    public async Task Parse_ASentenceNobodyCouldRead_DoesNotCountAgainstTheDay()
+    {
+        using var browser = await SignedIn();
+        database.Parser.Answer = null;
+
+        await Post(browser, Sentence);
+
+        Assert.Equal(0, await database.ParsesUsedBy(await IdOf(browser)));
+    }
+
+    [Fact]
+    public async Task Parse_OneSentenceTooManyInADay_IsRefusedAndSaysWhenTheNextIsFree()
+    {
+        using var browser = await SignedIn();
+        var opened = DateTimeOffset.UtcNow.AddHours(-3);
+        await database.OpenedTheParseWindowAt(await IdOf(browser), opened, used: 20);
+        database.Parser.Answer = new ParsedMeal([], []);
+
+        var response = await Post(browser, Sentence);
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
+        Assert.Contains(
+            opened.AddDays(1).ToString("u"), await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task Parse_TheFirstSentenceAfterTheWindowClosed_IsRead()
+    {
+        using var browser = await SignedIn();
+        var cheese = await database.AddFood("Cheddar, a day later", ownerId: null);
+        await database.OpenedTheParseWindowAt(
+            await IdOf(browser), DateTimeOffset.UtcNow.AddHours(-25), used: 20);
+        Answer(new ParsedItem(cheese, "cheese", 100, QuantityEstimated: false));
+
+        var response = await Post(browser, Sentence);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(1, await database.ParsesUsedBy(await IdOf(browser)));
+    }
+
+    [Fact]
+    public async Task Parse_OneAccountAtItsLimit_LeavesAnotherAccountAlone()
+    {
+        using var stopped = await SignedIn();
+        await database.OpenedTheParseWindowAt(
+            await IdOf(stopped), DateTimeOffset.UtcNow, used: 20);
+        using var browser = await SignedIn();
+        var cheese = await database.AddFood("Cheddar, somebody else's day", ownerId: null);
+        Answer(new ParsedItem(cheese, "cheese", 100, QuantityEstimated: false));
+
+        var response = await Post(browser, Sentence);
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, (await Post(stopped, Sentence)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
     public async Task AddEntry_AQuantityTheParserGuessed_IsStoredAsGuessed()
     {
         using var browser = await SignedIn();

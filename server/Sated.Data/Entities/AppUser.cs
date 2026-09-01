@@ -11,4 +11,8 @@ public class AppUser : IdentityUser
     public int? CalorieTargetKcal { get; set; }
 
     public string? ActiveLensId { get; set; }
+
+    public int MealParsesUsed { get; set; }
+
+    public DateTimeOffset? MealParseWindowStartedAt { get; set; }
 }

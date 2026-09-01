@@ -1484,7 +1484,14 @@ Accept: application/json
 #   200  the proposal: items[] and unrecognised[]
 #   400  no text, or under two characters
 #   401  no session — the request costs money and reads your own foods
+#   429  twenty sentences already read for this account in the last day, or
+#        more than six a minute from this address
 #   503  no provider configured, or it timed out, refused, or answered 429/5xx
+#
+# The daily count only moves when a sentence was actually read. A 503 costs
+# nothing and takes nothing. The window opens on the first sentence and closes
+# twenty-four hours later, so the answer names the exact moment the next one is
+# free — see ADR 0026.
 #
 # unrecognised[] carries the raw words, never a substituted food. A food id the
 # model invents, a food belonging to somebody else, and a quantity of zero all
@@ -1505,6 +1512,8 @@ Content-Type: application/json
 }
 
 ### A sentence naming two foods — 503 until a provider is configured
+### To see the 429 instead, spend the day's twenty first:
+###   docker exec sated-db psql -U sated -d sated -c 'UPDATE "AspNetUsers" SET "MealParsesUsed" = 20, "MealParseWindowStartedAt" = now();'
 POST {{secureHost}}/api/meals/parse
 Content-Type: application/json
 

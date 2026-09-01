@@ -139,6 +139,30 @@ public class AccountsDatabase : IAsyncLifetime
             .CountAsync(meal => meal.Day.OwnerId == userId);
     }
 
+    public async Task OpenedTheParseWindowAt(string userId, DateTimeOffset opened, int used)
+    {
+        using var scope = api.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<SatedDbContext>();
+
+        var user = await database.Users.SingleAsync(candidate => candidate.Id == userId);
+
+        user.MealParseWindowStartedAt = opened;
+        user.MealParsesUsed = used;
+
+        await database.SaveChangesAsync();
+    }
+
+    public async Task<int> ParsesUsedBy(string userId)
+    {
+        using var scope = api.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<SatedDbContext>();
+
+        return await database.Users
+            .Where(user => user.Id == userId)
+            .Select(user => user.MealParsesUsed)
+            .SingleAsync();
+    }
+
     public async Task<bool> EmailIsConfirmed(string address)
     {
         using var scope = api.Services.CreateScope();
@@ -166,7 +190,8 @@ public class AccountsDatabase : IAsyncLifetime
                 {
                     ["ConnectionStrings:Sated"] = ConnectionString,
                     ["RateLimits:LoginPerMinute"] = loginAttemptsPerMinute,
-                    ["RateLimits:EmailPerMinute"] = "1000"
+                    ["RateLimits:EmailPerMinute"] = "1000",
+                    ["RateLimits:ParsePerMinute"] = "1000"
                 }));
 
             builder.ConfigureServices(services =>

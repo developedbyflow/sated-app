@@ -4,15 +4,44 @@ using Sated.Parsing;
 
 namespace Sated.Services;
 
+public enum MealParseRejection
+{
+    None,
+    ParserUnavailable,
+    TooManyInADay
+}
+
 public record MealParseItem(
     int FoodId, string Description, string RawText, double QuantityGrams, bool QuantityEstimated);
 
 public record MealParse(MealParseItem[] Items, string[] Unrecognised);
 
-public class MealParsing(SatedDbContext database, IMealParser parser)
+public record MealParseOutcome(
+    MealParseRejection Rejection, MealParse? Parse = null, DateTimeOffset? Frees = null);
+
+public class MealParsing(
+    SatedDbContext database,
+    IMealParser parser,
+    ICurrentUser currentUser,
+    TimeProvider clock,
+    MealParseCap cap)
 {
-    public async Task<MealParse?> Of(string text, CancellationToken cancellation)
+    public async Task<MealParseOutcome> Of(string text, CancellationToken cancellation)
     {
+        var user = await database.Users.SingleAsync(
+            candidate => candidate.Id == currentUser.Id, cancellation);
+
+        var now = clock.GetUtcNow();
+        var stillOpen = user.MealParseWindowStartedAt is DateTimeOffset started
+            && now - started < MealParseCap.Window;
+
+        if (stillOpen && user.MealParsesUsed >= cap.PerDay)
+        {
+            return new MealParseOutcome(
+                MealParseRejection.TooManyInADay,
+                Frees: user.MealParseWindowStartedAt!.Value + MealParseCap.Window);
+        }
+
         var reachable = await database.Foods
             .Select(food => new CatalogueRow(food.Id, food.Description, food.OwnerId != null))
             .ToListAsync(cancellation);
@@ -21,7 +50,7 @@ public class MealParsing(SatedDbContext database, IMealParser parser)
 
         if (parsed is null)
         {
-            return null;
+            return new MealParseOutcome(MealParseRejection.ParserUnavailable);
         }
 
         var byId = reachable.ToDictionary(row => row.Id);
@@ -44,7 +73,18 @@ public class MealParsing(SatedDbContext database, IMealParser parser)
             }
         }
 
-        return new MealParse([.. items], [.. unrecognised]);
+        if (!stillOpen)
+        {
+            user.MealParseWindowStartedAt = now;
+            user.MealParsesUsed = 0;
+        }
+
+        user.MealParsesUsed++;
+
+        await database.SaveChangesAsync(cancellation);
+
+        return new MealParseOutcome(
+            MealParseRejection.None, new MealParse([.. items], [.. unrecognised]));
     }
 
     private static string Prompt(List<CatalogueRow> reachable) =>

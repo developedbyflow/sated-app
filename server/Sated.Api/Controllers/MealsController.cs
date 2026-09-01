@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Sated.Api.Dtos;
 using Sated.Data.Entities;
 using Sated.Services;
@@ -9,21 +10,36 @@ namespace Sated.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class MealsController(Meals meals, MealParsing parsing) : ControllerBase
+public class MealsController(Meals meals, MealParsing parsing, MealParseCap cap)
+    : ControllerBase
 {
     [HttpPost("parse")]
+    [EnableRateLimiting("parse")]
     public async Task<ActionResult<ParsedMealDto>> Parse(
         ParseMealRequestDto request, CancellationToken cancellation)
     {
-        var parsed = await parsing.Of(request.Text!, cancellation);
+        var outcome = await parsing.Of(request.Text!, cancellation);
 
-        return parsed is null
-            ? Problem(
+        if (outcome.Rejection is MealParseRejection.TooManyInADay)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status429TooManyRequests,
+                title: "That is as many sentences as this account can have read in a day",
+                detail: $"Nothing was logged and nothing was lost. The limit is {cap.PerDay} a "
+                    + $"day, and the next one is free at {outcome.Frees:u}. Until then, search "
+                    + "for each food instead: GET /api/foods?search=…");
+        }
+
+        if (outcome.Rejection is MealParseRejection.ParserUnavailable)
+        {
+            return Problem(
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "Reading a sentence is unavailable",
                 detail: "Nothing was logged and nothing was lost. Search for each food instead: "
-                    + "GET /api/foods?search=…")
-            : ParsedMealDto.From(parsed);
+                    + "GET /api/foods?search=…");
+        }
+
+        return ParsedMealDto.From(outcome.Parse!);
     }
 
     [HttpGet("{id:int}", Name = "MealById")]

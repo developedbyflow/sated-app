@@ -83,6 +83,17 @@ builder.Services.AddRateLimiter(options =>
                 Window = TimeSpan.FromMinutes(1)
             }));
 
+    options.AddPolicy<string>("parse", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = context.RequestServices
+                    .GetRequiredService<IConfiguration>()
+                    .GetValue("RateLimits:ParsePerMinute", 6),
+                Window = TimeSpan.FromMinutes(1)
+            }));
+
     options.AddPolicy<string>("email", context =>
         RateLimitPartition.GetFixedWindowLimiter(
             context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -110,6 +121,8 @@ builder.Services.AddScoped<FoodCatalogue>();
 builder.Services.AddScoped<Recipes>();
 builder.Services.AddScoped<Meals>();
 builder.Services.AddScoped<MealParsing>();
+builder.Services.AddSingleton(new MealParseCap(
+    builder.Configuration.GetValue("MealParsing:PerDay", 20)));
 builder.Services.AddMealParser(builder.Configuration);
 builder.Services.AddScoped<Days>();
 builder.Services.AddSingleton(TimeProvider.System);
