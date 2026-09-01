@@ -93,7 +93,7 @@ builder.Services.AddScoped<FoodCatalogue>();
 builder.Services.AddScoped<Recipes>();
 builder.Services.AddScoped<Meals>();
 builder.Services.AddScoped<MealParsing>();
-builder.Services.AddSingleton<IMealParser, NotConfiguredMealParser>();
+builder.Services.AddMealParser(builder.Configuration);
 builder.Services.AddScoped<Days>();
 builder.Services.AddSingleton(TimeProvider.System);
 

@@ -808,7 +808,8 @@ No provider configured, a timeout, a refusal, a `429` or a `5xx` all answer this
 depends on it: `GET /api/foods?search=…` and `POST /api/meals/{id}/entries` are the path that always
 works.
 
-**Today every call answers `503`** — the provider is not wired yet.
+**A `503` also means no key is configured**, which is the state a fresh clone is in. See
+[Give the meal parser a key](../how-to/give-the-meal-parser-a-key.md).
 
 ## `PUT /api/profile/calorie-target` and `DELETE`
 

@@ -1477,9 +1477,9 @@ Accept: application/json
 # NOTHING IS SAVED. The answer is a proposal the person confirms, and the
 # confirmation is the existing POST /api/meals/{id}/entries.
 #
-# The provider is not wired yet, so every call below answers 503 today. That is
-# the documented degradation, not a defect: the person is told to search instead
-# (Story 4.1) and the logging path stays open.
+# Without a key configured every call below answers 503. That is the documented
+# degradation, not a defect: the person is told to search instead (Story 4.1) and
+# the logging path stays open. To set a key, see docs/how-to/give-the-meal-parser-a-key.
 #
 #   200  the proposal: items[] and unrecognised[]
 #   400  no text, or under two characters

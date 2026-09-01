@@ -64,6 +64,7 @@ nav:
       - Validation and its limits: explanation/validation.md
   - How-to:
       - Change the engine safely: how-to/change-the-engine-safely.md
+      - Give the meal parser a key: how-to/give-the-meal-parser-a-key.md
   - Reference:
       - HTTP API: reference/http-api.md
       - Database: reference/database.md
@@ -92,4 +93,5 @@ nav:
       - 0021 - A swap beats the letter: decisions/0021-a-swap-beats-the-letter-and-is-ranked-by-score.md
       - 0022 - A public page is reached by a slug: decisions/0022-a-public-page-is-reached-by-a-slug.md
       - 0023 - A parsed meal is a proposal: decisions/0023-a-parsed-meal-is-a-proposal-nobody-saved.md
+      - 0024 - The provider is chosen by a key: decisions/0024-the-provider-is-chosen-by-a-key.md
       - Record template: decisions/_template.md
